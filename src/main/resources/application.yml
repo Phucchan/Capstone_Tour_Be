@@ -1,0 +1,90 @@
+spring:
+  application:
+    name: tourism
+  datasource:
+    driver-class-name: org.postgresql.Driver
+
+    username: ${DB_USERNAME:postgres.ampfwmpyuuswehwwzdzn}
+    password: ${DB_PASSWORD:CApstone!2#4}
+    url: ${DB_URL:jdbc:postgresql://aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?prepareThreshold=0}
+    hikari:
+      maximum-pool-size: 100 # MAX number of connection in the pool
+      max-lifetime: 600000 # 10m
+      idle-timeout: 300000 # 5m
+      connection-timeout: 30000 # 30s
+      validation-timeout: 5000 # 5s
+
+  jpa:
+    open-in-view: true
+    show-sql: false # Temp not view SQL Hibernate
+    properties:
+      hibernate:
+        transaction:
+          jta:
+            platform: org.hibernate.transaction.JDBCTransactionFactory
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        enable_lazy_load_no_trans: true
+        format_sql: true
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: tranphuc3181@gmail.com
+    password: qghx fmpa werk tfpw
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  ai:
+    openai:
+      chat:
+        base-url: https://generativelanguage.googleapis.com
+        completions-path:  /v1beta/openai/chat/completions
+        options:
+          model: gemini-2.0-flash
+      api-key: ${GOOGLE_API_KEY:AIzaSyDfeAMn_Dz2ykkhGZ6_XMYkbGN-DwhmWsU}
+
+endpoints:
+  connect-timeout: 100000
+  read-timeout: 100000
+
+secret-key: ${SECRET_KEY:afd0ad66a5ec99ec457a5c4f9adcd46288a9e3fac01acf77ab1a23c918bd1d0e}
+expired-time: 86400000
+
+
+server:
+  servlet:
+    context-path: /v1
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+logging:
+  level:
+    org:
+      springframework:
+        jdbc:
+          core:
+            JdbcTemplate: INFO
+      hibernate:
+        SQL: INFO
+frontend:
+  base-url: http://localhost:4200
+backend:
+  base-url: https://localhost:8080/v1
+
+serpapi:
+  api:
+    key: bed059be0729a440ec1ecf37dc67b9062b7e11da25d30bf5f77560bad09d16d4
