@@ -5,7 +5,7 @@ public enum RoleName {
     CEO,
     SERVICE_PROVIDER,
     HEAD_OF_BUSINESS,
-    SALESMAN,
+    SELLER,
     MARKETER,
     OPERATOR,
     ACCOUNTANT,
