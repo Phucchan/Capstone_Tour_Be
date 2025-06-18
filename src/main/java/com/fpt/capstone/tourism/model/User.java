@@ -11,9 +11,14 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.fpt.capstone.tourism.constants.Constants.Default.DEFAULT_AVATAR_URL;
 
 @Entity
 @Data
@@ -75,4 +80,27 @@ public class User extends BaseEntity implements UserDetails {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Set<UserRole> userRoles;
+
+
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Set<Friendship> sentFriendRequests = new HashSet<>();
+
+    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Set<Friendship> receivedFriendRequests = new HashSet<>();
+
+    @Override
+    protected void beforePersist() {
+        if (userStatus == null) {
+            userStatus = UserStatus.OFFLINE;
+        }
+
+        if (avatarImage == null || avatarImage.trim().isEmpty()) {
+            avatarImage = DEFAULT_AVATAR_URL;
+        }
+    }
+
 }

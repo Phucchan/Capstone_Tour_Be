@@ -19,6 +19,10 @@ public class Constants {
         public static final String USER_NOT_FOUND = "Không tìm thấy người dùng, vui lòng đăng nhập bằng tài khoản hợp lệ để xem thông tin cá nhân";
     }
 
+    public static final class Default {
+        public static final String DEFAULT_AVATAR_URL = "https://i.pinimg.com/originals/0d/64/98/0d64989794b1a4c9d89bff571d3d5842.jpg";
+    }
+
     public static final class Message {
         //===================================================
         // Authentication & User Management Messages
