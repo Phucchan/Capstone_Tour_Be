@@ -1,4 +1,4 @@
-package com.fpt.capstone.tourism.controller;
+package com.fpt.capstone.tourism.controller.chat;
 
 import com.fpt.capstone.tourism.dto.common.UserDTO;
 import com.fpt.capstone.tourism.service.ChatService;
@@ -19,7 +19,7 @@ public class ChatController {
 
     @MessageMapping("/user/connect") //Receives messages from clients sending to /app/user/connect
     @SendTo("/topic/active") //Send the response to clients subscribed to topic/active
-    public UserDTO connect(@RequestBody UserDTO userDTO) {
+    public UserDTO connect(UserDTO userDTO) {
         return chatService.connect(userDTO);
     }
 }
