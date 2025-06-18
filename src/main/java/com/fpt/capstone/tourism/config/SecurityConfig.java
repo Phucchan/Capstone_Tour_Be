@@ -1,8 +1,9 @@
 package com.fpt.capstone.tourism.config;
 
-import com.fpt.capstone.tourism.service.impl.UserDetailsService;
+import com.fpt.capstone.tourism.helper.OAuth2AuthenticationSuccessHandler;
+import com.fpt.capstone.tourism.service.impl.user.CustomOAuth2UserService;
+import com.fpt.capstone.tourism.service.impl.user.UserDetailsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,14 +26,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final JWTAuthFilter jwtAuthFilter;
+    private final OAuth2AuthenticationSuccessHandler successHandler;
 
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity,  CustomOAuth2UserService oauth2UserService) throws Exception {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/swagger-ui/**", "/v1/v3/api-docs/**","/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui.html", "/webjars/**").permitAll()
-                        .requestMatchers("/public/**", "/auth/**").permitAll()
+                        .requestMatchers("/public/**", "/auth/**", "/oauth2/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/forgot-password", "/reset-password").permitAll()
                         .requestMatchers("/v1/ceo/**").hasAnyAuthority("CEO")
@@ -45,6 +47,11 @@ public class SecurityConfig {
                         .requestMatchers("/v1/head-of-business/**").hasAnyAuthority("HEAD_OF_BUSINESS", "CEO")
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated())
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo.userService(oauth2UserService))
+                        .successHandler(successHandler)
+                        .failureUrl("/login?error=true")
+                )
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(

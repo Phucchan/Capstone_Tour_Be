@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.model;
 
 import com.fpt.capstone.tourism.model.enums.Gender;
+import com.fpt.capstone.tourism.model.enums.UserStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -57,8 +58,13 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name="is_deleted")
     private Boolean deleted;
 
+    @Column(name = "user_status")
+    @Enumerated(EnumType.STRING)
+    private UserStatus userStatus;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        if(userRoles.isEmpty()) return Set.of();
         return userRoles.stream()
                 .map(role -> new SimpleGrantedAuthority(role.getRole().getRoleName()))
                 .collect(Collectors.toList());
