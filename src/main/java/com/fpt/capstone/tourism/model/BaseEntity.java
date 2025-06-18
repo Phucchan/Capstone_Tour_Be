@@ -31,6 +31,7 @@ public class BaseEntity {
         ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
         createdAt = LocalDateTime.now(vietnamZone);
         updatedAt = LocalDateTime.now(vietnamZone);
+        beforePersist();
     }
 
     @PreUpdate
@@ -38,4 +39,7 @@ public class BaseEntity {
         ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
         updatedAt = LocalDateTime.now(vietnamZone);
     }
+
+
+    protected void beforePersist() {}
 }
