@@ -1,4 +1,4 @@
-package com.fpt.capstone.tourism.service.impl;
+package com.fpt.capstone.tourism.service.impl.user;
 
 import com.fpt.capstone.tourism.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;

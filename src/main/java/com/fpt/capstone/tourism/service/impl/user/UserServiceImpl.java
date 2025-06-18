@@ -1,4 +1,4 @@
-package com.fpt.capstone.tourism.service.impl;
+package com.fpt.capstone.tourism.service.impl.user;
 
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.User;
