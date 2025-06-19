@@ -32,6 +32,10 @@ public class Tour extends BaseEntity {
     @Column(nullable = false)
     private String name;
 
+    // Thêm trường ảnh đại diện cho tour
+    @Column(name = "thumbnail_url")
+    private String thumbnailUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "tour_type", length = 50)
     private TourType tourType; // e.g., FIXED, CUSTOM
