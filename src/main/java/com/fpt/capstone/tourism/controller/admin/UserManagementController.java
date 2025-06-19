@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.controller.admin;
 
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.request.UserManagementRequestDTO;
 import com.fpt.capstone.tourism.dto.response.UserManagementDTO;
 
 
