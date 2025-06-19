@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.model.tour;
 
 import com.fpt.capstone.tourism.model.BaseEntity;
+import com.fpt.capstone.tourism.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,8 +16,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@EqualsAndHashCode(callSuper = true, exclude = {"tour", "tourPax"})
-@ToString(callSuper = true, exclude = {"tour", "tourPax"})
+@EqualsAndHashCode(callSuper = true, exclude = {"tour", "tourPax", "coordinator"})
+@ToString(callSuper = true, exclude = {"tour", "tourPax", "coordinator"})
 public class TourSchedule extends BaseEntity {
 
     @Id
@@ -27,6 +28,10 @@ public class TourSchedule extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tour_id", nullable = false)
     private Tour tour;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coordinator_id", nullable = false)
+    private User coordinator;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tour_pax_id", nullable = false)
