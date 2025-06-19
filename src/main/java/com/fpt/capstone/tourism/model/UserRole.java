@@ -14,8 +14,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode(callSuper = true, exclude = {"user", "role"})
-@ToString(callSuper = true, exclude = {"user", "role"})
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class UserRole extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,6 +32,8 @@ public class UserRole extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Role role;
 
 }

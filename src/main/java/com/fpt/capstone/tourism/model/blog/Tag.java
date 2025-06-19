@@ -12,8 +12,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "tag")
-@EqualsAndHashCode(callSuper = true, exclude = "blogs")
-@ToString(callSuper = true, exclude = "blogs")
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class Tag extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,6 +30,7 @@ public class Tag extends BaseEntity {
 
     @ManyToMany(mappedBy = "blogTags")
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<Blog> blogs;
 
 }

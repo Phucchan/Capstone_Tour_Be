@@ -13,8 +13,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "blog")
-@EqualsAndHashCode(callSuper = true, exclude = {"author", "blogTags"})
-@ToString(callSuper = true, exclude = {"author", "blogTags"})
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class Blog extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,6 +35,8 @@ public class Blog extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "author_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private User author;
 
     @ManyToMany
@@ -44,5 +46,6 @@ public class Blog extends BaseEntity {
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<Tag> blogTags;
 }

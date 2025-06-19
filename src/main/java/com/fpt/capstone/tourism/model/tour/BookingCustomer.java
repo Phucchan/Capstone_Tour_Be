@@ -14,8 +14,8 @@ import java.util.Date;
 @AllArgsConstructor
 @Builder
 @Table(name = "booking_customer")
-@EqualsAndHashCode(callSuper = true, exclude = "booking")
-@ToString(callSuper = true, exclude = "booking")
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class BookingCustomer extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,6 +24,7 @@ public class BookingCustomer extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "booking_id")
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Booking booking;
 
     @Column(name = "customer_name")
