@@ -11,4 +11,6 @@ import java.util.List;
 public interface UserManagementService {
 
     public GeneralResponse<List<UserManagementDTO>> getListUsers();
+
+    GeneralResponse<UserManagementDTO> createUser(UserManagementRequestDTO requestDTO);
 }
