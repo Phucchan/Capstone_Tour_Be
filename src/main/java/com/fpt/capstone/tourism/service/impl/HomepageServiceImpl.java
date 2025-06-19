@@ -75,14 +75,7 @@ public class HomepageServiceImpl implements HomepageService {
                     .build();
         }).collect(Collectors.toList());
     }
-
-    private List<BlogSummaryDTO> getRecentBlogs() {
-        List<Blog> blogs = blogRepository.findFirst5ByDeletedFalseOrderByCreatedAtDesc();
-        return blogs.stream()
-                .map(blogMapper::blogToBlogSummaryDTO)
-                .collect(Collectors.toList());
-    }
-
+    
     /**
      * Fetches a list of recent blog posts for the homepage.
      * Tạm thời trả về danh sách rỗng. Sẽ hoàn thiện ở bước sau.
