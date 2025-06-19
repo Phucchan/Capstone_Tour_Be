@@ -2,10 +2,7 @@ package com.fpt.capstone.tourism.model;
 
 import com.fpt.capstone.tourism.model.enums.FriendshipStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "friendships")
@@ -13,6 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(callSuper = true, exclude = {"sender", "receiver"})
+@ToString(callSuper = true, exclude = {"sender", "receiver"})
 public class Friendship extends BaseEntity{
 
     @Id

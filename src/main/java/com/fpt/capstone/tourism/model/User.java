@@ -26,6 +26,8 @@ import static com.fpt.capstone.tourism.constants.Constants.Default.DEFAULT_AVATA
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "users")
+@EqualsAndHashCode(callSuper = true, exclude = {"userRoles", "sentFriendRequests", "receivedFriendRequests"})
+@ToString(callSuper = true, exclude = {"userRoles", "sentFriendRequests", "receivedFriendRequests"})
 public class User extends BaseEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

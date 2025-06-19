@@ -76,7 +76,7 @@ public class Constants {
         public static final String GET_TOUR_LOCATIONS_FAIL = "Không thể lấy địa điểm của tour";
 
         //===================================================
-        // Service Provider Related Messages
+        // PartnerService Provider Related Messages
         //===================================================
         // Provider management
         public static final String SERVICE_PROVIDER_NOT_FOUND = "Không tìm thấy nhà cung cấp dịch vụ. Vui lòng thử lại";
@@ -97,9 +97,9 @@ public class Constants {
         public static final String NO_PROVIDER_FOR_CATEGORY_IN_LOCATION = "Không có nhà cung cấp dịch vụ cho danh mục tại địa điểm đã chọn.";
 
         //===================================================
-        // Service Related Messages
+        // PartnerService Related Messages
         //===================================================
-        // Service management
+        // PartnerService management
         public static final String SERVICE_NOT_FOUND = "Không tìm thấy dịch vụ";
         public static final String SERVICE_RETRIEVE_SUCCESS = "Lấy thông tin dịch vụ thành công";
         public static final String SERVICE_CREATED = "Tạo dịch vụ thành công";
@@ -111,7 +111,7 @@ public class Constants {
         public static final String SERVICE_ID_REQUIRED = "Cần có ID dịch vụ để thêm dịch vụ vào ngày tour mới";
         public static final String SERVICE_NOT_ASSOCIATED = "Dịch vụ không được liên kết với tour này";
 
-        // Service operations
+        // PartnerService operations
         public static final String SERVICE_CREATE_FAIL = "Tạo dịch vụ thất bại";
         public static final String SERVICE_UPDATE_FAIL = "Cập nhật dịch vụ thất bại";
         public static final String SERVICE_DELETE_FAIL = "Xóa dịch vụ thất bại";
@@ -121,7 +121,7 @@ public class Constants {
         public static final String CREATE_SERVICE_FAIL = "Tạo chi tiết dịch vụ thất bại";
         public static final String UPDATE_SERVICE_FAIL = "Cập nhật chi tiết dịch vụ thất bại";
 
-        // Service categories
+        // PartnerService categories
         public static final String SERVICE_CATEGORY_NOT_FOUND = "Không tìm thấy danh mục dịch vụ";
         public static final String INVALID_SERVICE_CATEGORY = "Loại dịch vụ không hợp lệ. Phải là: Khách sạn, Nhà hàng, Vận chuyển";
         public static final String SERVICE_CATEGORY_REQUIRED = "Cần chọn ít nhất một danh mục dịch vụ.";
@@ -132,7 +132,7 @@ public class Constants {
         public static final String TICKET = "Flight Ticket";
         public static final String EMPTY_ACTIVITY_CATEGORY = "Danh mục hoạt động không được để trống";
 
-        // Service details
+        // PartnerService details
         public static final String SERVICE_DETAILS_RETRIEVED = "Lấy chi tiết dịch vụ thành công";
         public static final String GET_SERVICE_DETAIL_FAIL = "Lấy chi tiết dịch vụ thất bại";
         public static final String SERVICE_DETAIL_LOAD_SUCCESS = "Tải chi tiết dịch vụ thành công";
@@ -149,7 +149,7 @@ public class Constants {
         public static final String SEND_EMAIL_ORDER_SERVICE_FAIL = "Gửi email đặt dịch vụ thất bại";
 
         //===================================================
-        // Hotel Service Specific Messages
+        // Hotel PartnerService Specific Messages
         //===================================================
         public static final String ROOM_NOT_FOUND = "Không tìm thấy phòng";
         public static final String ROOM_DETAILS_REQUIRED = "Cần có thông tin chi tiết phòng cho dịch vụ khách sạn";
@@ -161,7 +161,7 @@ public class Constants {
         public static final String HOTEL_DETAIL_LOAD_FAIL = "Tải chi tiết khách sạn thất bại";
 
         //===================================================
-        // Restaurant Service Specific Messages
+        // Restaurant PartnerService Specific Messages
         //===================================================
         public static final String MEAL_NOT_FOUND = "Không tìm thấy bữa ăn";
         public static final String MEAL_DETAILS_REQUIRED = "Cần có thông tin chi tiết bữa ăn cho dịch vụ nhà hàng";
@@ -170,7 +170,7 @@ public class Constants {
         public static final String MEAL_NOT_FOUND_BY_SERVICE_ID = "Không tìm thấy bữa ăn cho ID dịch vụ: %s";
 
         //===================================================
-        // Transport Service Specific Messages
+        // Transport PartnerService Specific Messages
         //===================================================
         public static final String TRANSPORT_NOT_FOUND = "Không tìm thấy phương tiện";
         public static final String TRANSPORT_DETAILS_REQUIRED = "Cần có thông tin chi tiết phương tiện cho dịch vụ vận chuyển";

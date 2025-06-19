@@ -24,6 +24,9 @@ public class BaseEntity {
     @Column(name = "updated_at", nullable = false)
     protected LocalDateTime updatedAt;
 
+    @Column(name = "is_deleted")
+    private Boolean deleted;
+
 
 
     @PrePersist
@@ -38,6 +41,16 @@ public class BaseEntity {
     protected void onUpdate() {
         ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
         updatedAt = LocalDateTime.now(vietnamZone);
+    }
+
+    public void softDelete() {
+        this.deleted = true;
+        this.updatedAt = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+    }
+
+    public void restore() {
+        this.deleted = false;
+        this.updatedAt = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
     }
 
 

@@ -1,0 +1,50 @@
+package com.fpt.capstone.tourism.model.tour;
+
+import com.fpt.capstone.tourism.model.BaseEntity;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+
+@Entity
+@Table(name = "tour_schedules")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+@EqualsAndHashCode(callSuper = true, exclude = {"tour", "tourPax"})
+@ToString(callSuper = true, exclude = {"tour", "tourPax"})
+public class TourSchedule extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "schedule_id")
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tour_id", nullable = false)
+    private Tour tour;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tour_pax_id", nullable = false)
+    private TourPax tourPax;
+
+    @Column(name = "departure_date")
+    private LocalDateTime departureDate;
+
+    @Column(name = "end_date")
+    private LocalDateTime endDate;
+
+    @Column(name = "seat_limit")
+    private int seatLimit;
+
+    @Column(name = "price")
+    private double price;
+
+    @Column(name = "is_published")
+    private boolean published;
+
+}
