@@ -96,14 +96,15 @@ public class UserManagementServiceImpl implements UserManagementService {
                                 .roleName(roleName)
                                 .deleted(false)
                                 .build()));
-                userRoleRepository.save(UserRole.builder()
+                UserRole userRole = userRoleRepository.save(UserRole.builder()
                         .user(savedUser)
                         .role(role)
                         .deleted(false)
                         .build());
+                savedUser.getUserRoles().add(userRole);
             }
         }
-
+        savedUser = userRepository.findUserById(savedUser.getId()).orElse(savedUser);
         UserManagementDTO dto = toDTO(savedUser);
         return GeneralResponse.of(dto, "User created successfully");
     }
@@ -151,6 +152,11 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     private UserManagementDTO toDTO(User user) {
+        List<String> roleNames = user.getUserRoles() == null
+                ? List.of()
+                : user.getUserRoles().stream()
+                .map(ur -> ur.getRole().getRoleName())
+                .toList();
         return new UserManagementDTO(
                 user.getId(),
                 user.getUsername(),
@@ -160,7 +166,7 @@ public class UserManagementServiceImpl implements UserManagementService {
                 user.getPhone(),
                 user.getAddress(),
                 user.getAvatarImage(),
-                user.getUserRoles().stream().map(ur -> ur.getRole().getRoleName()).toList(),
+                roleNames,
                 user.getDeleted(),
                 user.getCreatedAt(),
                 user.getUpdatedAt()
