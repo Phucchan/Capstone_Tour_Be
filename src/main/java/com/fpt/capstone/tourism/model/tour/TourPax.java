@@ -25,9 +25,15 @@ public class TourPax extends BaseEntity {
     private Tour tour;
 
     @Column(name = "min_quantity")
-    private int minQuantity = 0;
+    private int minQuantity;
 
     @Column(name = "max_quantity")
     private int maxQuantity;
+
+    @Column(name = "selling_price")
+    private double sellingPrice;
+
+    @Column(name = "fixed_price")
+    private double fixedPrice;
 
 }
