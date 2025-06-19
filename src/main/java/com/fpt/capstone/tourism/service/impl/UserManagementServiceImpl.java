@@ -117,9 +117,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         if (requestDTO.getFullName() != null) user.setFullName(requestDTO.getFullName());
         if (requestDTO.getEmail() != null) user.setEmail(requestDTO.getEmail());
         if (requestDTO.getPassword() != null) user.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
-        if (requestDTO.getGender() != null) user.setGender(requestDTO.getGender());
         if (requestDTO.getPhone() != null) user.setPhone(requestDTO.getPhone());
-        if (requestDTO.getAddress() != null) user.setAddress(requestDTO.getAddress());
 
         User updatedUser = userRepository.save(user);
 
