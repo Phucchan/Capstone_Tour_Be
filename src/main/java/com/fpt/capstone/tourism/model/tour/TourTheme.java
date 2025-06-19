@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "tours")
+@Table(name = "tour_themes")
 @Data
 @Builder
 @NoArgsConstructor
