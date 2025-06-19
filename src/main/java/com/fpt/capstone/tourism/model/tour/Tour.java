@@ -20,8 +20,8 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true, exclude = {"location", "createdBy"})
-@ToString(exclude = {"location", "createdBy"})
+@EqualsAndHashCode(callSuper = true, exclude = {"departLocation", "createdBy", "tourTheme"})
+@ToString(exclude = {"departLocation", "createdBy", "tourTheme"})
 public class Tour extends BaseEntity {
 
     @Id
@@ -36,8 +36,9 @@ public class Tour extends BaseEntity {
     @Column(name = "tour_type", length = 50)
     private TourType tourType; // e.g., FIXED, CUSTOM
 
-    @Column(name = "tour_theme", length = 50)
-    private String tourTheme; // Consider using Enum if validation needed
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tour_theme_id", nullable = false)
+    private TourTheme tourTheme; // Consider using Enum if validation needed
 
     @Lob
     private String description;
