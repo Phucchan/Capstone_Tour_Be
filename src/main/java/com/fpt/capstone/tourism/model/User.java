@@ -56,6 +56,7 @@ public class User extends BaseEntity implements UserDetails {
 
     private String address;
 
+
     @Column(name="avatar_img")
     private String avatarImage;
 
