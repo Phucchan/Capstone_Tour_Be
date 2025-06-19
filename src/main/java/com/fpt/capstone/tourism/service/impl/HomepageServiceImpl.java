@@ -3,26 +3,33 @@ import com.fpt.capstone.tourism.dto.response.homepage.BlogSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.HomepageDataDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.TourThemeDTO;
+import com.fpt.capstone.tourism.mapper.BlogMapper;
+import com.fpt.capstone.tourism.mapper.TourThemeMapper;
+import com.fpt.capstone.tourism.model.blog.Blog;
+import com.fpt.capstone.tourism.model.tour.Tour;
+import com.fpt.capstone.tourism.model.tour.TourTheme;
+import com.fpt.capstone.tourism.repository.blog.BlogRepository;
+import com.fpt.capstone.tourism.repository.tour.FeedbackRepository;
+import com.fpt.capstone.tourism.repository.tour.TourThemeRepository;
 import com.fpt.capstone.tourism.service.HomepageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class HomepageServiceImpl implements HomepageService {
 
-    //  inject các repository cần thiết sau
-    // private final TourThemeRepository tourThemeRepository;
-    // private final TourRepository tourRepository;
-    // private final FeedbackRepository feedbackRepository;
-    // private final BlogRepository blogRepository;
+    private final TourThemeRepository tourThemeRepository;
+    private final FeedbackRepository feedbackRepository;
+    private final BlogRepository blogRepository;
 
-    // Và các mappers
-    // private final TourMapper tourMapper;
-    // private final BlogMapper blogMapper;
+    private final TourThemeMapper tourThemeMapper;
+    private final BlogMapper blogMapper;
 
     @Override
     public HomepageDataDTO getHomepageData() {
@@ -42,8 +49,10 @@ public class HomepageServiceImpl implements HomepageService {
      * Tạm thời trả về danh sách rỗng. Sẽ hoàn thiện ở bước sau.
      */
     private List<TourThemeDTO> getHomepageThemes() {
-        // TODO: Implement logic to fetch from TourThemeRepository
-        return Collections.emptyList();
+        List<TourTheme> themes = tourThemeRepository.findTop6ByDeletedFalse();
+        return themes.stream()
+                .map(tourThemeMapper::tourThemeToTourThemeDTO)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -51,8 +60,27 @@ public class HomepageServiceImpl implements HomepageService {
      * Tạm thời trả về danh sách rỗng. Sẽ hoàn thiện ở bước sau.
      */
     private List<TourSummaryDTO> getHighlyRatedTours() {
-        // TODO: Implement logic to fetch from FeedbackRepository/TourRepository
-        return Collections.emptyList();
+        List<Tour> topTours = feedbackRepository.findTopRatedTours(PageRequest.of(0, 5));
+
+        return topTours.stream().map(tour -> {
+            Double averageRating = feedbackRepository.findAverageRatingByTourId(tour.getId());
+            return TourSummaryDTO.builder()
+                    .id(tour.getId())
+                    .name(tour.getName())
+                    .thumbnailUrl(tour.getThumbnailUrl())
+                    .averageRating(averageRating)
+                    .durationDays(tour.getDurationDays())
+                    .region(tour.getRegion().name())
+                    .locationName(tour.getDepartLocation().getName())
+                    .build();
+        }).collect(Collectors.toList());
+    }
+
+    private List<BlogSummaryDTO> getRecentBlogs() {
+        List<Blog> blogs = blogRepository.findFirst5ByDeletedFalseOrderByCreatedAtDesc();
+        return blogs.stream()
+                .map(blogMapper::blogToBlogSummaryDTO)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -60,7 +88,9 @@ public class HomepageServiceImpl implements HomepageService {
      * Tạm thời trả về danh sách rỗng. Sẽ hoàn thiện ở bước sau.
      */
     private List<BlogSummaryDTO> getRecentBlogs() {
-        // TODO: Implement logic to fetch from BlogRepository
-        return Collections.emptyList();
+        List<Blog> blogs = blogRepository.findFirst5ByDeletedFalseOrderByCreatedAtDesc();
+        return blogs.stream()
+                .map(blogMapper::blogToBlogSummaryDTO)
+                .collect(Collectors.toList());
     }
 }
