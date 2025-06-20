@@ -41,7 +41,7 @@ public class Tour extends BaseEntity {
     private TourType tourType; // e.g., FIXED, CUSTOM
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tour_theme_id", nullable = false)
+    @JoinColumn(name = "tour_theme_id")
     private TourTheme tourTheme; // Consider using Enum if validation needed
 
     @Lob
