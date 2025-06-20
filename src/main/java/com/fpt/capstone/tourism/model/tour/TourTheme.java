@@ -15,7 +15,7 @@ import lombok.*;
 public class TourTheme  extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "tour_id")
+    @Column(name = "tour_theme_id")
     private Long id;
     private String name; // Name of the tour theme, e.g., "Adventure", "Cultural", etc.
     private String description; // Description of the tour theme
