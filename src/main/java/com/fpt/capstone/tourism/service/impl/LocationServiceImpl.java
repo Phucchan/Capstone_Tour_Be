@@ -73,25 +73,7 @@ import org.springframework.stereotype.Service;
             }
         }
 
-        @Override
-        public GeneralResponse<PagingDTO<List<LocationDTO>>> getAllLocation(int page, int size, String keyword, Boolean isDeleted, String orderDate) {
-            try {
-                // Determine sorting order dynamically
-                Sort sort = "asc".equalsIgnoreCase(orderDate) ? Sort.by("createdAt").ascending() : Sort.by("createdAt").descending();
-                Pageable pageable = PageRequest.of(page, size, sort);
 
-                Specification<Location> spec = buildSearchSpecification(keyword, isDeleted);
-
-                Page<Location> serviceProviderPage = locationRepository.findAll(spec, pageable);
-                List<LocationDTO> serviceProviderDTOS = serviceProviderPage.getContent().stream()
-                        .map(locationMapper::toDTO)
-                        .collect(Collectors.toList());
-
-                return buildPagedResponse(serviceProviderPage, serviceProviderDTOS);
-            } catch (Exception ex) {
-                throw BusinessException.of("Tải danh sách địa điểm thất bại", ex);
-            }
-        }
 
         @Override
         public GeneralResponse<LocationDTO> deleteLocation(Long id, boolean isDeleted) {
@@ -136,12 +118,19 @@ import org.springframework.stereotype.Service;
 
 
 
-        private GeneralResponse<PagingDTO<List<LocationDTO>>> buildPagedResponse(Page<Location> locationPage, List<LocationDTO> locationDTOS) {
-            PagingDTO<List<LocationDTO>> pagingDTO = PagingDTO.<List<LocationDTO>>builder()
+        // SỬA LẠI TOÀN BỘ PHƯƠNG THỨC NÀY
+        private GeneralResponse<PagingDTO<LocationDTO>> buildPagedResponse(Page<Location> locationPage) {
+            // Chuyển đổi List<Location> sang List<LocationDTO>
+            List<LocationDTO> locationDTOS = locationPage.getContent().stream()
+                    .map(locationMapper::toDTO)
+                    .collect(Collectors.toList());
+
+            // Xây dựng PagingDTO với kiểu đúng là <LocationDTO>
+            PagingDTO<LocationDTO> pagingDTO = PagingDTO.<LocationDTO>builder()
                     .page(locationPage.getNumber())
                     .size(locationPage.getSize())
                     .total(locationPage.getTotalElements())
-                    .items(locationDTOS)
+                    .items(locationDTOS) // Bây giờ sẽ không còn lỗi
                     .build();
 
             return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);

@@ -2,21 +2,16 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.dto.response.homepage.BlogSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.HomepageDataDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
-import com.fpt.capstone.tourism.dto.response.homepage.TourThemeDTO;
 import com.fpt.capstone.tourism.mapper.BlogMapper;
-import com.fpt.capstone.tourism.mapper.TourThemeMapper;
 import com.fpt.capstone.tourism.model.blog.Blog;
 import com.fpt.capstone.tourism.model.tour.Tour;
-import com.fpt.capstone.tourism.model.tour.TourTheme;
 import com.fpt.capstone.tourism.repository.blog.BlogRepository;
 import com.fpt.capstone.tourism.repository.tour.FeedbackRepository;
-import com.fpt.capstone.tourism.repository.tour.TourThemeRepository;
 import com.fpt.capstone.tourism.service.HomepageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,44 +19,34 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class HomepageServiceImpl implements HomepageService {
 
-    private final TourThemeRepository tourThemeRepository;
+
     private final FeedbackRepository feedbackRepository;
     private final BlogRepository blogRepository;
 
-    private final TourThemeMapper tourThemeMapper;
+
     private final BlogMapper blogMapper;
 
     @Override
     public HomepageDataDTO getHomepageData() {
-        List<TourThemeDTO> themes = getHomepageThemes();
         List<TourSummaryDTO> highlyRatedTours = getHighlyRatedTours();
         List<BlogSummaryDTO> recentBlogs = getRecentBlogs();
 
         return HomepageDataDTO.builder()
-                .themes(themes)
                 .highlyRatedTours(highlyRatedTours)
                 .recentBlogs(recentBlogs)
                 .build();
     }
 
-    /**
-     * Fetches a list of tour themes for the homepage.
-     * Tạm thời trả về danh sách rỗng. Sẽ hoàn thiện ở bước sau.
-     */
-    private List<TourThemeDTO> getHomepageThemes() {
-        List<TourTheme> themes = tourThemeRepository.findTop6ByDeletedFalse();
-        return themes.stream()
-                .map(tourThemeMapper::tourThemeToTourThemeDTO)
-                .collect(Collectors.toList());
-    }
 
     /**
      * Fetches a list of top-rated tours for the homepage.
      * Tạm thời trả về danh sách rỗng. Sẽ hoàn thiện ở bước sau.
      */
     private List<TourSummaryDTO> getHighlyRatedTours() {
+        //láy 5 tour có đánh giá cao nhất từ repository
         List<Tour> topTours = feedbackRepository.findTopRatedTours(PageRequest.of(0, 5));
 
+        // Chuyển đổi sang DTO và gán điểm rating trung bình
         return topTours.stream().map(tour -> {
             Double averageRating = feedbackRepository.findAverageRatingByTourId(tour.getId());
             return TourSummaryDTO.builder()
@@ -70,8 +55,8 @@ public class HomepageServiceImpl implements HomepageService {
                     .thumbnailUrl(tour.getThumbnailUrl())
                     .averageRating(averageRating)
                     .durationDays(tour.getDurationDays())
-                    .region(tour.getRegion().name())
-                    .locationName(tour.getDepartLocation().getName())
+                    .region(tour.getRegion() != null ? tour.getRegion().name() : null)
+                    .locationName(tour.getDepartLocation() != null ? tour.getDepartLocation().getName() : null)
                     .build();
         }).collect(Collectors.toList());
     }

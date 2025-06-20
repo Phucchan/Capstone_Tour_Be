@@ -6,10 +6,6 @@ import java.util.List;
 @Data
 @Builder
 public class HomepageDataDTO {
-    /**
-     * A list of tour themes to be displayed.
-     */
-    private List<TourThemeDTO> themes;
 
     /**
      * A list of top-rated or featured tours.
