@@ -1,4 +1,4 @@
-package com.fpt.capstone.tourism.controller.coordinator;
+package com.fpt.capstone.tourism.controller.business;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 
@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/coordinator/")
+@RequestMapping("/business/")
 public class TourManagementController {
 
     @Autowired

@@ -20,119 +20,142 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-    import java.time.LocalDateTime;
-    import java.util.ArrayList;
-    import java.util.List;
-    import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
-    import static com.fpt.capstone.tourism.constants.Constants.Message.*;
+import static com.fpt.capstone.tourism.constants.Constants.Message.*;
 
-    @Service
-    @RequiredArgsConstructor
-    public class LocationServiceImpl implements LocationService {
-        private final LocationRepository locationRepository;
-        private final LocationMapper locationMapper;
-        @Override
-        public GeneralResponse<LocationDTO> saveLocation(LocationRequestDTO locationRequestDTO) {
-            try{
-                //Validate input data
-                Validator.validateLocation(locationRequestDTO);
+@Service
+@RequiredArgsConstructor
+public class LocationServiceImpl implements LocationService {
+    private final LocationRepository locationRepository;
+    private final LocationMapper locationMapper;
 
-                //Check duplicate location
-                if(locationRepository.findByName(locationRequestDTO.getName()) != null){
-                    throw BusinessException.of(EXISTED_LOCATION);
-                }
+    @Override
+    public GeneralResponse<LocationDTO> saveLocation(LocationRequestDTO locationRequestDTO) {
+        try {
+            //Validate input data
+            Validator.validateLocation(locationRequestDTO);
 
-                //Save date to database
-                Location location = locationMapper.toEntity(locationRequestDTO);
-                location.setCreatedAt(LocalDateTime.now());
-                location.setDeleted(false);
-                locationRepository.save(location);
-
-                LocationDTO locationDTO = locationMapper.toDTO(location);
-
-                return new GeneralResponse<>(HttpStatus.OK.value(), CREATE_LOCATION_SUCCESS, locationDTO);
-            }catch (BusinessException be){
-                throw be;
-            } catch (Exception ex){
-                throw BusinessException.of(CREATE_LOCATION_FAIL, ex);
+            //Check duplicate location
+            if (locationRepository.findByName(locationRequestDTO.getName()) != null) {
+                throw BusinessException.of(EXISTED_LOCATION);
             }
-        }
 
-        @Override
-        public GeneralResponse<LocationDTO> getLocationById(Long id) {
-            try{
-                Location location = locationRepository.findById(id).orElseThrow();
+            //Save date to database
+            Location location = locationMapper.toEntity(locationRequestDTO);
+            location.setCreatedAt(LocalDateTime.now());
+            location.setDeleted(false);
+            locationRepository.save(location);
 
-                LocationDTO locationDTO = locationMapper.toDTO(location);
-                return new GeneralResponse<>(HttpStatus.OK.value(), GENERAL_SUCCESS_MESSAGE, locationDTO);
-            }catch (BusinessException be){
-                throw be;
-            } catch (Exception ex){
-                throw BusinessException.of(GENERAL_FAIL_MESSAGE, ex);
-            }
-        }
+            LocationDTO locationDTO = locationMapper.toDTO(location);
 
-
-
-        @Override
-        public GeneralResponse<LocationDTO> deleteLocation(Long id, boolean isDeleted) {
-            try{
-                Location location = locationRepository.findById(id).orElseThrow();
-
-                location.setDeleted(isDeleted);
-                location.setUpdatedAt(LocalDateTime.now());
-                locationRepository.save(location);
-
-                LocationDTO locationDTO = locationMapper.toDTO(location);
-                return new GeneralResponse<>(HttpStatus.OK.value(), GENERAL_SUCCESS_MESSAGE, locationDTO);
-            }catch (BusinessException be){
-                throw be;
-            } catch (Exception ex){
-                throw BusinessException.of(GENERAL_FAIL_MESSAGE, ex);
-            }
-        }
-
-        @Override
-        public GeneralResponse<?> getListLocation() {
-            return null;
-        }
-
-
-        private Specification<Location> buildSearchSpecification(String keyword, Boolean isDeleted) {
-            return (root, query, cb) -> {
-                List<Predicate> predicates = new ArrayList<>();
-
-                if (keyword != null && !keyword.isEmpty()) {
-                    Predicate namePredicate = cb.like(root.get("name"), "%" + keyword + "%");
-                    predicates.add(namePredicate);
-                }
-
-                if (isDeleted != null) {
-                    predicates.add(cb.equal(root.get("deleted"), isDeleted));
-                }
-
-                return cb.and(predicates.toArray(new Predicate[0]));
-            };
-        }
-
-
-
-        // SỬA LẠI TOÀN BỘ PHƯƠNG THỨC NÀY
-        private GeneralResponse<PagingDTO<LocationDTO>> buildPagedResponse(Page<Location> locationPage) {
-            // Chuyển đổi List<Location> sang List<LocationDTO>
-            List<LocationDTO> locationDTOS = locationPage.getContent().stream()
-                    .map(locationMapper::toDTO)
-                    .collect(Collectors.toList());
-
-            // Xây dựng PagingDTO với kiểu đúng là <LocationDTO>
-            PagingDTO<LocationDTO> pagingDTO = PagingDTO.<LocationDTO>builder()
-                    .page(locationPage.getNumber())
-                    .size(locationPage.getSize())
-                    .total(locationPage.getTotalElements())
-                    .items(locationDTOS) // Bây giờ sẽ không còn lỗi
-                    .build();
-
-            return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
+            return new GeneralResponse<>(HttpStatus.OK.value(), CREATE_LOCATION_SUCCESS, locationDTO);
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception ex) {
+            throw BusinessException.of(CREATE_LOCATION_FAIL, ex);
         }
     }
+
+    @Override
+    public GeneralResponse<LocationDTO> getLocationById(Long id) {
+        try {
+            Location location = locationRepository.findById(id).orElseThrow();
+
+            LocationDTO locationDTO = locationMapper.toDTO(location);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GENERAL_SUCCESS_MESSAGE, locationDTO);
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception ex) {
+            throw BusinessException.of(GENERAL_FAIL_MESSAGE, ex);
+        }
+    }
+
+
+    @Override
+    public GeneralResponse<LocationDTO> deleteLocation(Long id, boolean isDeleted) {
+        try {
+            Location location = locationRepository.findById(id).orElseThrow();
+
+            location.setDeleted(isDeleted);
+            location.setUpdatedAt(LocalDateTime.now());
+            locationRepository.save(location);
+
+            LocationDTO locationDTO = locationMapper.toDTO(location);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GENERAL_SUCCESS_MESSAGE, locationDTO);
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception ex) {
+            throw BusinessException.of(GENERAL_FAIL_MESSAGE, ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<List<LocationDTO>> getListLocation() {
+        try {
+            List<Location> locations = locationRepository.findAll();
+            List<LocationDTO> dtos = locations.stream()
+                    .map(locationMapper::toDTO)
+                    .collect(Collectors.toList());
+            return new GeneralResponse<>(HttpStatus.OK.value(), GET_LOCATIONS_SUCCESS, dtos);
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception ex) {
+            throw BusinessException.of(GET_LOCATIONS_FAIL, ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<List<LocationDTO>> searchLocations(String name) {
+        try {
+            List<Location> locations = locationRepository.findByNameContainingIgnoreCase(name);
+            List<LocationDTO> dtos = locations.stream()
+                    .map(locationMapper::toDTO)
+                    .collect(Collectors.toList());
+            return new GeneralResponse<>(HttpStatus.OK.value(), GET_LOCATIONS_SUCCESS, dtos);
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception ex) {
+            throw BusinessException.of(GET_LOCATIONS_FAIL, ex);
+        }
+    }
+
+    private Specification<Location> buildSearchSpecification(String keyword, Boolean isDeleted) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (keyword != null && !keyword.isEmpty()) {
+                Predicate namePredicate = cb.like(root.get("name"), "%" + keyword + "%");
+                predicates.add(namePredicate);
+            }
+
+            if (isDeleted != null) {
+                predicates.add(cb.equal(root.get("deleted"), isDeleted));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+
+    // SỬA LẠI TOÀN BỘ PHƯƠNG THỨC NÀY
+    private GeneralResponse<PagingDTO<LocationDTO>> buildPagedResponse(Page<Location> locationPage) {
+        // Chuyển đổi List<Location> sang List<LocationDTO>
+        List<LocationDTO> locationDTOS = locationPage.getContent().stream()
+                .map(locationMapper::toDTO)
+                .collect(Collectors.toList());
+
+        // Xây dựng PagingDTO với kiểu đúng là <LocationDTO>
+        PagingDTO<LocationDTO> pagingDTO = PagingDTO.<LocationDTO>builder()
+                .page(locationPage.getNumber())
+                .size(locationPage.getSize())
+                .total(locationPage.getTotalElements())
+                .items(locationDTOS) // Bây giờ sẽ không còn lỗi
+                .build();
+
+        return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
+    }
+}
