@@ -99,4 +99,18 @@ public class BlogServiceImpl implements BlogService {
             throw BusinessException.of(Constants.Message.BLOG_DELETE_FAIL, ex);
         }
     }
+    @Override
+    public GeneralResponse<List<BlogDTO>> getBlogs() {
+        try {
+            List<Blog> blogs = blogRepository.findByDeletedFalseOrderByCreatedAtDesc();
+            List<BlogDTO> dtos = blogs.stream()
+                    .map(blogMapper::blogToBlogDTO)
+                    .toList();
+            return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.BLOG_LIST_SUCCESS, dtos);
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception ex) {
+            throw BusinessException.of(Constants.Message.BLOG_LIST_FAIL, ex);
+        }
+    }
 }

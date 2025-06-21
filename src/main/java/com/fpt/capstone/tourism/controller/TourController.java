@@ -33,4 +33,7 @@ public class TourController {
         PagingDTO<TourSummaryDTO> result = tourService.getFixedTours(pageable);
         return ResponseEntity.ok(GeneralResponse.of(result, "Fixed tours loaded successfully."));
     }
+
+
+
 }

@@ -10,5 +10,5 @@ import java.util.List;
 public interface BlogRepository extends JpaRepository<Blog, Long> {
     // Lấy 5 bài blog mới nhất không bị xóa
     List<Blog> findFirst5ByDeletedFalseOrderByCreatedAtDesc();
-
+    List<Blog> findByDeletedFalseOrderByCreatedAtDesc();
 }
