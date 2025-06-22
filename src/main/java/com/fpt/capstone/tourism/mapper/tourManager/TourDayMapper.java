@@ -1,4 +1,4 @@
-package com.fpt.capstone.tourism.mapper;
+package com.fpt.capstone.tourism.mapper.tourManager;
 
 import com.fpt.capstone.tourism.dto.response.ServiceInfoDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourDayDTO;
