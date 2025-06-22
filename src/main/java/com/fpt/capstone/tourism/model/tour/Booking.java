@@ -25,6 +25,9 @@ public class Booking extends BaseEntity {
     @Column(name = "booking_id")
     private Long id;
 
+    @Column(name = "booking_code", nullable = false, unique = true)
+    private String bookingCode;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
