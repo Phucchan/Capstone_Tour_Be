@@ -1,4 +1,4 @@
-package com.fpt.capstone.tourism.dto.request;
+package com.fpt.capstone.tourism.dto.request.tourManager;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

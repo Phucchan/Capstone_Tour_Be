@@ -1,5 +1,6 @@
-package com.fpt.capstone.tourism.dto.response;
+package com.fpt.capstone.tourism.dto.response.tourManager;
 
+import com.fpt.capstone.tourism.dto.response.ServiceInfoDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -3,11 +3,11 @@ package com.fpt.capstone.tourism.controller.business;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
-import com.fpt.capstone.tourism.dto.request.TourDayCreateRequestDTO;
-import com.fpt.capstone.tourism.dto.request.TourUpdateRequestDTO;
-import com.fpt.capstone.tourism.dto.response.TourDayDTO;
-import com.fpt.capstone.tourism.dto.response.TourDetailDTO;
-import com.fpt.capstone.tourism.dto.response.TourResponseDTO;
+import com.fpt.capstone.tourism.dto.request.tourManager.TourDayCreateRequestDTO;
+import com.fpt.capstone.tourism.dto.request.tourManager.TourUpdateRequestDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.TourDayDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.TourDetailDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.TourResponseDTO;
 import com.fpt.capstone.tourism.service.TourManagementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;

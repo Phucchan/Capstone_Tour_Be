@@ -1,7 +1,7 @@
 package com.fpt.capstone.tourism.mapper;
 
 import com.fpt.capstone.tourism.dto.response.ServiceInfoDTO;
-import com.fpt.capstone.tourism.dto.response.TourDayDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.TourDayDTO;
 import com.fpt.capstone.tourism.model.partner.PartnerService;
 import com.fpt.capstone.tourism.model.tour.TourDay;
 import org.mapstruct.Mapper;
