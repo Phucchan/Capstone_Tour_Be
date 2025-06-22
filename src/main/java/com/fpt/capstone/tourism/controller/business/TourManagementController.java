@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.controller.business;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
+import com.fpt.capstone.tourism.dto.request.TourDayCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.TourUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.TourDayDTO;
 import com.fpt.capstone.tourism.dto.response.TourDetailDTO;
@@ -36,6 +37,7 @@ public class TourManagementController {
     public ResponseEntity<GeneralResponse<Object>> changeStatus(@PathVariable Long id, @RequestBody ChangeStatusDTO changeStatusDTO) {
         return ResponseEntity.ok(tourManagementService.changeStatus(id, changeStatusDTO));
     }
+
     @GetMapping("/tours/{id}")
     public ResponseEntity<GeneralResponse<Object>> getTourDetail(@PathVariable Long id) {
         return ResponseEntity.ok(tourManagementService.getTourDetail(id));
@@ -46,9 +48,16 @@ public class TourManagementController {
                                                                      @RequestBody TourUpdateRequestDTO requestDTO) {
         return ResponseEntity.ok(tourManagementService.updateTour(id, requestDTO));
     }
+
     @GetMapping("/tours/{id}/days")
     public ResponseEntity<GeneralResponse<List<TourDayDTO>>> getTourDays(@PathVariable Long id) {
         return ResponseEntity.ok(tourManagementService.getTourDays(id));
+    }
+
+    @PostMapping("/tours/{id}/days")
+    public ResponseEntity<GeneralResponse<TourDayDTO>> createTourDay(@PathVariable Long id,
+                                                                     @RequestBody TourDayCreateRequestDTO requestDTO) {
+        return ResponseEntity.ok(tourManagementService.createTourDay(id, requestDTO));
     }
 
 }

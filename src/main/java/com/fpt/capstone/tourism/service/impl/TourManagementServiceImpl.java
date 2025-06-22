@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
+import com.fpt.capstone.tourism.dto.request.TourDayCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.TourUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.TourDayDTO;
 import com.fpt.capstone.tourism.dto.response.TourDetailDTO;
@@ -17,6 +18,7 @@ import com.fpt.capstone.tourism.model.tour.TourDay;
 import com.fpt.capstone.tourism.model.tour.TourTheme;
 import com.fpt.capstone.tourism.repository.LocationRepository;
 import com.fpt.capstone.tourism.repository.TourManagementRepository;
+import com.fpt.capstone.tourism.repository.partner.PartnerServiceRepository;
 import com.fpt.capstone.tourism.repository.tour.TourDayRepository;
 import com.fpt.capstone.tourism.repository.tour.TourThemeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +53,8 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     @Autowired
     private TourDayMapper tourDayMapper;
 
+    @Autowired
+    private PartnerServiceRepository partnerServiceRepository;
 
     @Override
     public GeneralResponse<List<TourResponseDTO>> getListTours() {
@@ -130,6 +134,37 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         List<TourDay> days = tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId);
         List<TourDayDTO> dtos = days.stream().map(tourDayMapper::toDTO).collect(Collectors.toList());
         return GeneralResponse.of(dtos);
+    }
+
+    @Override
+    public GeneralResponse<TourDayDTO> createTourDay(Long tourId, TourDayCreateRequestDTO requestDTO) {
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
+
+        int nextDayNumber = 1;
+        List<TourDay> existing = tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId);
+        if (!existing.isEmpty()) {
+            nextDayNumber = existing.get(existing.size() - 1).getDayNumber() + 1;
+        }
+
+        TourDay day = new TourDay();
+        day.setTour(tour);
+        day.setDayNumber(nextDayNumber);
+        day.setTitle(requestDTO.getTitle());
+        day.setDescription(requestDTO.getDescription());
+
+        if (requestDTO.getLocationId() != null) {
+            Location location = locationRepository.findById(requestDTO.getLocationId())
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
+            day.setLocation(location);
+        }
+
+        if (requestDTO.getServiceIds() != null && !requestDTO.getServiceIds().isEmpty()) {
+            day.setServices(partnerServiceRepository.findAllById(requestDTO.getServiceIds()));
+        }
+
+        TourDay saved = tourDayRepository.save(day);
+        return GeneralResponse.of(tourDayMapper.toDTO(saved), "Tour day created successfully");
     }
 
 }

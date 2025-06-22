@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
+import com.fpt.capstone.tourism.dto.request.TourDayCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.TourUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.TourDayDTO;
 import com.fpt.capstone.tourism.dto.response.TourDetailDTO;
@@ -22,4 +23,6 @@ public interface TourManagementService {
     GeneralResponse<TourDetailDTO> updateTour(Long id, TourUpdateRequestDTO requestDTO);
 
     GeneralResponse<List<TourDayDTO>> getTourDays(Long tourId);
+
+    GeneralResponse<TourDayDTO> createTourDay(Long tourId, TourDayCreateRequestDTO requestDTO);
 }
