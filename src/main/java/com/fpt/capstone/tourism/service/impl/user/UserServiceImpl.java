@@ -3,13 +3,15 @@ package com.fpt.capstone.tourism.service.impl.user;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.mapper.UserMapper;
 import com.fpt.capstone.tourism.model.User;
-import com.fpt.capstone.tourism.model.enums.UserStatus;
 import com.fpt.capstone.tourism.repository.UserRepository;
 import com.fpt.capstone.tourism.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformation.*;
@@ -19,11 +21,12 @@ import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformat
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
 
 
     @Override
-    public User findById(Long id) {
+    public User     findById(Long id) {
         return userRepository.findUserById(id).orElseThrow();
     }
 
@@ -61,16 +64,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public GeneralResponse<List<UserBasicDTO>> findOnlineFriends(Long userId) {
-        return GeneralResponse.of(userRepository.findOnlineFriends(userId)
+    public GeneralResponse<List<UserBasicDTO>> findFriends(Long userId) {
+
+        List<User> friends = new ArrayList<>();
+        friends.addAll(userRepository.findFriendsAsSender(userId));
+        friends.addAll(userRepository.findFriendsAsReceiver(userId));
+
+        return GeneralResponse.of(friends
                 .stream()
-                .map(user -> UserBasicDTO.builder()
-                        .id(user.getId())
-                        .username(user.getUsername())
-                        .fullName(user.getFullName())
-                        .email(user.getEmail())
-                        .avatarImage(user.getAvatarImage())
-                        .build())
+                .map(userMapper::toUserBasicDTO)
                 .toList());
     }
 }

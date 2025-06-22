@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.common.UserDTO;
+import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
 import com.fpt.capstone.tourism.mapper.UserMapper;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.enums.UserStatus;
@@ -22,7 +23,7 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     @Transactional
-    public UserDTO connect(UserDTO userDTO) {
+    public UserBasicDTO connect(UserDTO userDTO) {
         //Find user in repository
         Optional<User> user = userRepository.findByUsername(userDTO.getUsername());
         //If present then set the status to online
@@ -30,6 +31,18 @@ public class ChatServiceImpl implements ChatService {
             u.setUserStatus(UserStatus.ONLINE);
             userRepository.save(u);
         });
-        return user.map(userMapper::toUserDTO).orElse(null);
+        return user.map(userMapper::toUserBasicDTO).orElse(null);
+    }
+
+    @Override
+    public UserBasicDTO disconnect(UserBasicDTO userDTO) {
+        //Find user in repository
+        Optional<User> user = userRepository.findByUsername(userDTO.getUsername());
+        //If present then set the status to online
+        user.ifPresent(u -> {
+            u.setUserStatus(UserStatus.OFFLINE);
+            userRepository.save(u);
+        });
+        return user.map(userMapper::toUserBasicDTO).orElse(null);
     }
 }

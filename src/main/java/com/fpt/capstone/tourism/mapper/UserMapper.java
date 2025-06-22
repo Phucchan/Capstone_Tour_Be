@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.mapper;
 
 import com.fpt.capstone.tourism.dto.common.UserDTO;
+import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
 import com.fpt.capstone.tourism.dto.response.UserFullInformationResponseDTO;
 import com.fpt.capstone.tourism.dto.response.UserResponseDTO;
 import com.fpt.capstone.tourism.model.User;
@@ -19,6 +20,8 @@ public interface UserMapper {
     @Mapping(target = "roleNames", expression = "java(mapRoles(user.getUserRoles()))")
     @Mapping(target = "deleted", source = "deleted")
     UserFullInformationResponseDTO toDTO(User user);
+
+    UserBasicDTO toUserBasicDTO(User user);
 
 
     UserDTO toUserDTO(User user);
