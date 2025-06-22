@@ -1,4 +1,4 @@
-package com.fpt.capstone.tourism.controller.Marketing;
+package com.fpt.capstone.tourism.controller.marketing;
 
 import com.fpt.capstone.tourism.dto.common.BlogDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
