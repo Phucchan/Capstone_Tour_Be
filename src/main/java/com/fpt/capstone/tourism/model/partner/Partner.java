@@ -25,7 +25,7 @@ public class Partner extends BaseEntity {
     @Column(nullable = false)
     private String name;
 
-    @Lob
+    @Column(columnDefinition = "text")
     private String description;
 
     @Column(name = "logo_url")
