@@ -10,7 +10,7 @@ spring:
     password: ${DB_PASSWORD}
     url: ${DB_URL}
     hikari:
-      maximum-pool-size: 100 # MAX number of connection in the pool
+      maximum-pool-size: 10 # MAX number of connection in the pool
       max-lifetime: 600000 # 10m
       idle-timeout: 300000 # 5m
       connection-timeout: 30000 # 30s
