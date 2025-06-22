@@ -20,8 +20,8 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true, exclude = {"departLocation", "createdBy", "tourTheme"})
-@ToString(exclude = {"departLocation", "createdBy", "tourTheme"})
+@EqualsAndHashCode(callSuper = true, exclude = {"departLocation", "destinationLocation", "createdBy", "tourTheme"})
+@ToString(exclude = {"departLocation", "destinationLocation", "createdBy", "tourTheme"})
 public class Tour extends BaseEntity {
 
     @Id
@@ -61,6 +61,10 @@ public class Tour extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")
     private Location departLocation;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "destination_location_id")
+    private Location destinationLocation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
