@@ -43,9 +43,6 @@ public class TourSchedule extends BaseEntity {
     @Column(name = "end_date")
     private LocalDateTime endDate;
 
-    @Column(name = "seat_limit")
-    private int seatLimit;
-
     @Column(name = "price")
     private double price;
 

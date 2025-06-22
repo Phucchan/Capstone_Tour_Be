@@ -31,7 +31,7 @@ public class Feedback extends BaseEntity {
     @Column(nullable = false)
     private Integer rating;
 
-    @Lob
+    @Column(nullable = false, columnDefinition = "text")
     private String comment;
 
 }

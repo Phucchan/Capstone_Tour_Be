@@ -25,6 +25,9 @@ public class Booking extends BaseEntity {
     @Column(name = "booking_id")
     private Long id;
 
+    @Column(name = "booking_code", nullable = false, unique = true)
+    private String bookingCode;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -37,7 +40,7 @@ public class Booking extends BaseEntity {
     @JoinColumn(name = "tour_schedule_id", nullable = false)
     private TourSchedule tourSchedule;
 
-    @Column(name = "booking_code")
+    @Column(name = "booking_status")
     @Enumerated(EnumType.STRING)
     private BookingStatus bookingStatus;
 
