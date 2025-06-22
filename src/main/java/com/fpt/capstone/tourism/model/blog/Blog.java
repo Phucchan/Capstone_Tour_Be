@@ -20,7 +20,7 @@ public class Blog extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "thumbnail_image_url")
+    @Column(name = "thumbnail_image_url", columnDefinition = "text")
     private String thumbnailImageUrl;
 
     private String title;
