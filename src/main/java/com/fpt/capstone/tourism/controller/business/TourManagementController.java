@@ -14,13 +14,17 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/business/")
+@RequestMapping("/ /")
 public class TourManagementController {
 
     @Autowired
     private final TourManagementService tourManagementService;
 
     @GetMapping("/tours")
+    // "id": 6,
+    //            "name": "Nha Trang biển gọi",
+    //            "typeName": "FIXED",
+    //            "tourStatus": "PUBLISHED"
     public ResponseEntity<GeneralResponse<List<TourResponseDTO>>> getListtours() {
         return ResponseEntity.ok(tourManagementService.getListTours());
     }

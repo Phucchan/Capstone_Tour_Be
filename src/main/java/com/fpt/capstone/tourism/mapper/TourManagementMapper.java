@@ -14,7 +14,7 @@ public interface TourManagementMapper {
     @Mapping(target = "thumbnailImage", source = "thumbnailUrl")
     @Mapping(target = "typeName", source = "tourType", qualifiedByName = "mapTourType")
     @Mapping(target = "tourStatus", source = "tourStatus", qualifiedByName = "mapTourStatus")
-    @Mapping(target = "price", ignore = true)
+    @Mapping(target = "durationDays", source = "durationDays")
     TourResponseDTO toTourResponseDTO(Tour tour);
 
     @Named("mapTourType")
