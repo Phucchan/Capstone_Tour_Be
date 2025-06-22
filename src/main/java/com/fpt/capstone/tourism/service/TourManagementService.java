@@ -25,4 +25,8 @@ public interface TourManagementService {
     GeneralResponse<List<TourDayDTO>> getTourDays(Long tourId);
 
     GeneralResponse<TourDayDTO> createTourDay(Long tourId, TourDayCreateRequestDTO requestDTO);
+
+    GeneralResponse<TourDayDTO> updateTourDay(Long tourId, Long dayId, TourDayCreateRequestDTO requestDTO);
+
+    GeneralResponse<String> deleteTourDay(Long tourId, Long dayId);
 }

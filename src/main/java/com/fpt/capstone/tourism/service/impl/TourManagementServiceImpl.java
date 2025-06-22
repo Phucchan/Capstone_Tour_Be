@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.service.impl;
 
+import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.TourDayCreateRequestDTO;
@@ -165,6 +166,52 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
 
         TourDay saved = tourDayRepository.save(day);
         return GeneralResponse.of(tourDayMapper.toDTO(saved), "Tour day created successfully");
+    }
+
+    @Override
+    public GeneralResponse<TourDayDTO> updateTourDay(Long tourId, Long dayId, TourDayCreateRequestDTO requestDTO) {
+        tourRepository.findById(tourId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
+
+        TourDay day = tourDayRepository.findById(dayId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.TOUR_DAY_NOT_FOUND));
+
+        if (!day.getTour().getId().equals(tourId)) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.TOUR_DAY_NOT_BELONG);
+        }
+
+        if (requestDTO.getTitle() != null) day.setTitle(requestDTO.getTitle());
+        if (requestDTO.getDescription() != null) day.setDescription(requestDTO.getDescription());
+
+        if (requestDTO.getLocationId() != null) {
+            Location location = locationRepository.findById(requestDTO.getLocationId())
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
+            day.setLocation(location);
+        }
+
+        if (requestDTO.getServiceIds() != null) {
+            day.setServices(partnerServiceRepository.findAllById(requestDTO.getServiceIds()));
+        }
+
+        TourDay saved = tourDayRepository.save(day);
+        return GeneralResponse.of(tourDayMapper.toDTO(saved), Constants.Message.TOUR_DAY_UPDATED_SUCCESS);
+    }
+
+    @Override
+    public GeneralResponse<String> deleteTourDay(Long tourId, Long dayId) {
+        tourRepository.findById(tourId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
+
+        TourDay day = tourDayRepository.findById(dayId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.TOUR_DAY_NOT_FOUND));
+
+        if (!day.getTour().getId().equals(tourId)) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.TOUR_DAY_NOT_BELONG);
+        }
+
+        day.softDelete();
+        tourDayRepository.save(day);
+        return GeneralResponse.of(Constants.Message.TOUR_DAY_DELETED_SUCCESS);
     }
 
 }
