@@ -20,9 +20,9 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping("/online/{userId}")
-    public ResponseEntity<GeneralResponse<List<UserBasicDTO>>> findOnlineFriends(@PathVariable Long userId) {
-        return ResponseEntity.ok(userService.findOnlineFriends(userId));
+    @GetMapping("/friends/{userId}")
+    public ResponseEntity<GeneralResponse<List<UserBasicDTO>>> findFriends(@PathVariable(name = "userId") Long userId) {
+        return ResponseEntity.ok(userService.findFriends(userId));
     }
 
 

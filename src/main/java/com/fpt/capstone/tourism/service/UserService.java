@@ -15,5 +15,5 @@ public interface UserService {
     Boolean exitsByEmail(String email);
     Boolean existsByPhoneNumber(String phone);
 
-    GeneralResponse<List<UserBasicDTO>> findOnlineFriends(Long userId);
+    GeneralResponse<List<UserBasicDTO>> findFriends(Long userId);
 }

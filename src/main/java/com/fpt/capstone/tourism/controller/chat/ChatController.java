@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.controller.chat;
 
 import com.fpt.capstone.tourism.dto.common.UserDTO;
+import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
 import com.fpt.capstone.tourism.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -19,7 +20,13 @@ public class ChatController {
 
     @MessageMapping("/user/connect") //Receives messages from clients sending to /app/user/connect
     @SendTo("/topic/active") //Send the response to clients subscribed to topic/active
-    public UserDTO connect(UserDTO userDTO) {
+    public UserBasicDTO connect(UserDTO userDTO) {
         return chatService.connect(userDTO);
+    }
+
+    @MessageMapping("/user/disconnect") //Receives messages from clients sending to /app/user/connect
+    @SendTo("/topic/active") //Send the response to clients subscribed to topic/active
+    public UserBasicDTO disconnect(UserBasicDTO userDTO) {
+        return chatService.disconnect(userDTO);
     }
 }
