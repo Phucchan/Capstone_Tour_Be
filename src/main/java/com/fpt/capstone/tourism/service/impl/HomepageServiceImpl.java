@@ -11,6 +11,8 @@ import com.fpt.capstone.tourism.service.HomepageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import com.fpt.capstone.tourism.dto.common.location.LocationWithoutGeoPositionDTO;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,7 +37,7 @@ public class HomepageServiceImpl implements HomepageService {
 
     @Override
     public HomepageDataDTO getHomepageData() {
-        List<LocationDTO> locations = getHomepageLocations(); // Mới
+        List<LocationWithoutGeoPositionDTO> locations = getHomepageLocations(); // Sửa kiểu
         List<TourSummaryDTO> highlyRatedTours = getHighlyRatedTours();
         List<BlogSummaryDTO> recentBlogs = getRecentBlogs();
 
@@ -46,11 +48,11 @@ public class HomepageServiceImpl implements HomepageService {
                 .build();
     }
 
-    private List<LocationDTO> getHomepageLocations() {
-        // Lấy 6 địa điểm ngẫu nhiên để hiển thị
+    private List<LocationWithoutGeoPositionDTO> getHomepageLocations() {
         List<Location> locations = locationRepository.findRandomLocation(6);
+        // Sử dụng đúng phương thức map toLocationWithoutGeoPositionDTO
         return locations.stream()
-                .map(locationMapper::toDTO)
+                .map(locationMapper::toLocationWithoutGeoPositionDTO)
                 .collect(Collectors.toList());
     }
 

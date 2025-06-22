@@ -1,6 +1,6 @@
 package com.fpt.capstone.tourism.dto.response.homepage;
 import lombok.*;
-import com.fpt.capstone.tourism.dto.common.location.LocationDTO;
+import com.fpt.capstone.tourism.dto.common.location.LocationWithoutGeoPositionDTO;
 import java.util.List;
 
 @Data
@@ -9,7 +9,7 @@ public class HomepageDataDTO {
     /**
      * A list of featured locations.
      */
-    private List<LocationDTO> locations;
+    private List<LocationWithoutGeoPositionDTO> locations;
     /**
      * A list of top-rated or featured tours.
      */
