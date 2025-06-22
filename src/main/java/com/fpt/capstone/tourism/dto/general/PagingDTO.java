@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Data
 @Builder
@@ -15,5 +16,5 @@ public class PagingDTO<T> implements Serializable {
     private int page;
     private int size;
     private long total;
-    private T items;
+    private List<T> items; // Sửa từ "T items" thành "List<T> items"
 }

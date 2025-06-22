@@ -230,6 +230,16 @@ public class Constants {
         public static final String DESC_EXTENDED_WEEKEND_OPTION = "Tùy chọn cuối tuần mở rộng: %d ngày, %d đêm";
         public static final String DESC_EXTENDED_OPTION = "Tùy chọn mở rộng: %d ngày, %d đêm";
 
+        // Blog Related Messages
+        public static final String BLOG_LIST_SUCCESS = "Lấy danh sách bài viết thành công";
+        public static final String BLOG_LIST_FAIL = "Lấy danh sách bài viết thất bại";
+        public static final String BLOG_CREATE_SUCCESS = "Tạo blog thành công";
+        public static final String BLOG_UPDATE_SUCCESS = "Cập nhật blog thành công";
+        public static final String BLOG_DELETE_SUCCESS = "Xóa blog thành công";
+        public static final String BLOG_CREATE_FAIL = "Tạo blog thất bại";
+        public static final String BLOG_UPDATE_FAIL = "Cập nhật blog thất bại";
+        public static final String BLOG_DELETE_FAIL = "Xóa blog thất bại";
+        public static final String BLOG_NOT_FOUND = "Không tìm thấy blog";
         //===================================================
         // Tour Day Related Messages
         //===================================================

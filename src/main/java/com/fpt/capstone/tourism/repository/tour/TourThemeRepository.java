@@ -4,10 +4,6 @@ import com.fpt.capstone.tourism.model.tour.TourTheme;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 @Repository
 public interface TourThemeRepository extends JpaRepository<TourTheme, Long> {
-    // Lấy 6 chủ đề đầu tiên không bị xóa
-    List<TourTheme> findTop6ByDeletedFalse();
 }
