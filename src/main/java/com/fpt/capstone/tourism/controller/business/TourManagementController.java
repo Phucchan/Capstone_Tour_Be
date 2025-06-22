@@ -70,6 +70,7 @@ public class TourManagementController {
 
     // Cập nhật một ngày trong tour
     // postman http://localhost:8080/v1/business/tours/1/days/1
+    //body { "title": "Ngày 1", "locationId": 1, "serviceIds": [1, 2], "description": "Mô tả ngày 1" }
     @PutMapping("/tours/{tourId}/days/{dayId}")
     public ResponseEntity<GeneralResponse<TourDayDTO>> updateTourDay(@PathVariable Long tourId,
                                                                      @PathVariable Long dayId,
