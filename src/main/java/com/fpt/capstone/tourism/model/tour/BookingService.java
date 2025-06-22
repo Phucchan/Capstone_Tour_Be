@@ -12,7 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "booking_customer")
+@Table(name = "booking_services")
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class BookingService extends BaseEntity {
