@@ -37,7 +37,7 @@ public class Booking extends BaseEntity {
     @JoinColumn(name = "tour_schedule_id", nullable = false)
     private TourSchedule tourSchedule;
 
-    @Column(name = "booking_code")
+    @Column(name = "booking_status")
     @Enumerated(EnumType.STRING)
     private BookingStatus bookingStatus;
 
