@@ -14,6 +14,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import com.fpt.capstone.tourism.dto.common.location.LocationDTO;
+import com.fpt.capstone.tourism.mapper.LocationMapper;
+import com.fpt.capstone.tourism.model.Location;
+import com.fpt.capstone.tourism.repository.LocationRepository;
+import com.fpt.capstone.tourism.repository.tour.TourPaxRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -22,33 +27,40 @@ public class HomepageServiceImpl implements HomepageService {
 
     private final FeedbackRepository feedbackRepository;
     private final BlogRepository blogRepository;
-
+    private final LocationRepository locationRepository;
+    private final TourPaxRepository tourPaxRepository;
+    private final LocationMapper locationMapper;
 
     private final BlogMapper blogMapper;
 
     @Override
     public HomepageDataDTO getHomepageData() {
+        List<LocationDTO> locations = getHomepageLocations(); // Mới
         List<TourSummaryDTO> highlyRatedTours = getHighlyRatedTours();
         List<BlogSummaryDTO> recentBlogs = getRecentBlogs();
 
         return HomepageDataDTO.builder()
+                .locations(locations) // Mới
                 .highlyRatedTours(highlyRatedTours)
                 .recentBlogs(recentBlogs)
                 .build();
     }
 
+    private List<LocationDTO> getHomepageLocations() {
+        // Lấy 6 địa điểm ngẫu nhiên để hiển thị
+        List<Location> locations = locationRepository.findRandomLocation(6);
+        return locations.stream()
+                .map(locationMapper::toDTO)
+                .collect(Collectors.toList());
+    }
 
-    /**
-     * Fetches a list of top-rated tours for the homepage.
-     * Tạm thời trả về danh sách rỗng. Sẽ hoàn thiện ở bước sau.
-     */
     private List<TourSummaryDTO> getHighlyRatedTours() {
-        //láy 5 tour có đánh giá cao nhất từ repository
         List<Tour> topTours = feedbackRepository.findTopRatedTours(PageRequest.of(0, 5));
 
-        // Chuyển đổi sang DTO và gán điểm rating trung bình
         return topTours.stream().map(tour -> {
             Double averageRating = feedbackRepository.findAverageRatingByTourId(tour.getId());
+            Double startingPrice = tourPaxRepository.findStartingPriceByTourId(tour.getId()); // Mới
+
             return TourSummaryDTO.builder()
                     .id(tour.getId())
                     .name(tour.getName())
@@ -57,6 +69,7 @@ public class HomepageServiceImpl implements HomepageService {
                     .durationDays(tour.getDurationDays())
                     .region(tour.getRegion() != null ? tour.getRegion().name() : null)
                     .locationName(tour.getDepartLocation() != null ? tour.getDepartLocation().getName() : null)
+                    .startingPrice(startingPrice) // Mới
                     .build();
         }).collect(Collectors.toList());
     }

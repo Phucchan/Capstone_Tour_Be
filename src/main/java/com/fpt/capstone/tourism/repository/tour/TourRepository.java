@@ -19,4 +19,5 @@ public interface TourRepository extends JpaRepository<Tour, Long>{
      * @return A page of tours.
      */
     Page<Tour> findByTourTypeAndTourStatus(TourType tourType, TourStatus tourStatus, Pageable pageable);
+    Page<Tour> findByDepartLocationIdAndTourStatus(Long locationId, TourStatus tourStatus, Pageable pageable);
 }
