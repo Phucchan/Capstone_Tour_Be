@@ -38,4 +38,9 @@ public class TourSummaryDTO {
      * The name of the primary or departure location.
      */
     private String locationName;
+
+    /**
+     * The starting price for the tour, typically for the smallest group size.
+     */
+    private Double startingPrice;
 }

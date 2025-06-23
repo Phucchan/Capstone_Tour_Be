@@ -43,9 +43,6 @@ public class TourSchedule extends BaseEntity {
     @Column(name = "end_date")
     private LocalDateTime endDate;
 
-    @Column(name = "price")
-    private double price;
-
     @Column(name = "is_published")
     private boolean published;
 

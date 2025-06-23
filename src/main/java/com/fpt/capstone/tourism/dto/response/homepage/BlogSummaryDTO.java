@@ -19,7 +19,7 @@ public class BlogSummaryDTO {
     /**
      * The URL for the blog post's thumbnail image.
      */
-    private String thumbnailUrl;
+    private String thumbnailImageUrl;
 
     /**
      * The name of the author.

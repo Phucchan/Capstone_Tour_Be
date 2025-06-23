@@ -11,4 +11,6 @@ public interface TourService {
      * @return A PagingDTO containing a list of TourSummaryDTO.
      */
     PagingDTO<TourSummaryDTO> getFixedTours(Pageable pageable);
+
+    PagingDTO<TourSummaryDTO> getToursByLocation(Long locationId, Pageable pageable);
 }
