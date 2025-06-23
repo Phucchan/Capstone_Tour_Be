@@ -49,7 +49,7 @@ public class HomepageServiceImpl implements HomepageService {
     }
 
     private List<LocationWithoutGeoPositionDTO> getHomepageLocations() {
-        List<Location> locations = locationRepository.findRandomLocation(6);
+        List<Location> locations = locationRepository.findRandomLocation(8);
         // Sử dụng đúng phương thức map toLocationWithoutGeoPositionDTO
         return locations.stream()
                 .map(locationMapper::toLocationWithoutGeoPositionDTO)
