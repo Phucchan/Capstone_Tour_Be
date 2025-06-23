@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.model;
 
 import com.fpt.capstone.tourism.model.enums.Gender;
+import com.fpt.capstone.tourism.model.enums.UserStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -10,9 +11,14 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.fpt.capstone.tourism.constants.Constants.Default.DEFAULT_AVATAR_URL;
 
 @Entity
 @Data
@@ -20,6 +26,8 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "users")
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class User extends BaseEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,6 +56,7 @@ public class User extends BaseEntity implements UserDetails {
 
     private String address;
 
+
     @Column(name="avatar_img")
     private String avatarImage;
 
@@ -57,8 +66,13 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name="is_deleted")
     private Boolean deleted;
 
+    @Column(name = "user_status")
+    @Enumerated(EnumType.STRING)
+    private UserStatus userStatus;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        if(userRoles.isEmpty()) return Set.of();
         return userRoles.stream()
                 .map(role -> new SimpleGrantedAuthority(role.getRole().getRoleName()))
                 .collect(Collectors.toList());
@@ -67,5 +81,29 @@ public class User extends BaseEntity implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Set<UserRole> userRoles;
+    @Builder.Default
+    private Set<UserRole> userRoles = new HashSet<>();
+
+
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Set<Friendship> sentFriendRequests = new HashSet<>();
+
+    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Set<Friendship> receivedFriendRequests = new HashSet<>();
+
+    @Override
+    protected void beforePersist() {
+        if (userStatus == null) {
+            userStatus = UserStatus.OFFLINE;
+        }
+
+        if (avatarImage == null || avatarImage.trim().isEmpty()) {
+            avatarImage = DEFAULT_AVATAR_URL;
+        }
+    }
+
 }

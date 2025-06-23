@@ -138,11 +138,11 @@ public class AuthServiceImpl implements AuthService {
 
             // Send email confirmation
             Token token = emailConfirmationService.createEmailConfirmationToken(savedUser);
-            try {
-                emailConfirmationService.sendConfirmationEmail(savedUser, token);
-            } catch (Exception e) {
-                throw BusinessException.of(REGISTER_FAIL_MESSAGE);
-            }
+//            try {
+//                emailConfirmationService.sendConfirmationEmail(savedUser, token);
+//            } catch (Exception e) {
+//                throw BusinessException.of(REGISTER_FAIL_MESSAGE);
+//            }
 
             UserInfoResponseDTO userResponseDTO = UserInfoResponseDTO.builder()
                     .id(savedUser.getId())

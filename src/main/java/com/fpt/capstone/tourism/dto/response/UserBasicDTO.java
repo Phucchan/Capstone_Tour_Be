@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.dto.response;
 
+import com.fpt.capstone.tourism.model.enums.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,4 +16,5 @@ public class UserBasicDTO {
     private String fullName;
     private String email;
     private String avatarImage;
+    private UserStatus userStatus;
 }

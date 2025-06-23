@@ -1,10 +1,41 @@
+# ========== GENERAL ==========
 HELP.md
+.env
+*.log
+
+# Maven
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### STS ###
+# Gradle
+.gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+gradle-app.setting
+gradlew
+gradlew.bat
+
+# Distribution files
+*.war
+*.jar
+*.ear
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*.swp
+*.tmp
+*.orig
+
+# ========== IDE SPECIFIC ==========
+
+# STS (Spring Tool Suite)
 .apt_generated
 .classpath
 .factorypath
@@ -13,21 +44,39 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
+# IntelliJ IDEA
+.idea/
 *.iws
 *.iml
 *.ipr
+out/
 
-### NetBeans ###
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
+# VSCode
 .vscode/
+
+# ========== TESTS & COVERAGE ==========
+
+# Test Reports
+/test-output/
+/surefire-reports/
+/jacoco.exec
+/coverage/
+
+# ========== OTHERS ==========
+
+# Logs
+logs/
+*.out
+
+# Node-related (if full-stack in one repo)
+node_modules/
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
