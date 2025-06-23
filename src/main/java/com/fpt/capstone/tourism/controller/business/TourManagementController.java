@@ -4,10 +4,9 @@ import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourDayCreateRequestDTO;
+import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourUpdateRequestDTO;
-import com.fpt.capstone.tourism.dto.response.tourManager.TourDayDTO;
-import com.fpt.capstone.tourism.dto.response.tourManager.TourDetailDTO;
-import com.fpt.capstone.tourism.dto.response.tourManager.TourResponseDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.*;
 import com.fpt.capstone.tourism.service.TourManagementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,4 +85,20 @@ public class TourManagementController {
         return ResponseEntity.ok(tourManagementService.deleteTourDay(tourId, dayId));
     }
 
+    // Chiết tính dịch vụ của tour
+    // postman http://localhost:8080/v1/business/tours/2/services
+    @GetMapping("/tours/{id}/services")
+    public ResponseEntity<GeneralResponse<List<ServiceBreakdownDTO>>> getTourServices(@PathVariable Long id) {
+        return ResponseEntity.ok(tourManagementService.getServiceBreakdown(id));
+    }
+
+    // Tạo cấu hình số lượng khách cho tour
+    @PostMapping("/tours/{id}/pax")
+    // postman http://localhost:8080/v1/business/tours/1/pax
+    //
+    // body{ minQuantity: 1, maxQuantity: 20}
+    public ResponseEntity<GeneralResponse<TourPaxDTO>> createTourPax(@PathVariable Long id,
+                                                                     @RequestBody TourPaxCreateRequestDTO requestDTO) {
+        return ResponseEntity.ok(tourManagementService.createTourPax(id, requestDTO));
+    }
 }

@@ -18,6 +18,7 @@ public class BlogManagementController {
     private final BlogService blogService;
 
     @GetMapping("/blogs")
+    //postman
     public ResponseEntity<GeneralResponse<List<BlogDTO>>> getBlogs() {
         return ResponseEntity.ok(blogService.getBlogs());
     }
