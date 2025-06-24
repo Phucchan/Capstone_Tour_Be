@@ -19,12 +19,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import com.fpt.capstone.tourism.dto.response.homepage.BlogSummaryDTO;
+
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +36,26 @@ public class BlogServiceImpl implements BlogService {
     private final TagRepository tagRepository;
     private final UserService userService;
     private final BlogMapper blogMapper;
+
+
+    @Override
+    public PagingDTO<BlogSummaryDTO> getAllBlogs(Pageable pageable) {
+        // 1. Gọi repository để lấy dữ liệu dạng Page<Blog>
+        Page<Blog> blogPage = blogRepository.findByDeletedFalse(pageable);
+
+        // 2. Chuyển đổi danh sách Blog entities sang danh sách BlogSummaryDTO
+        List<BlogSummaryDTO> blogSummaries = blogPage.getContent().stream()
+                .map(blogMapper::blogToBlogSummaryDTO)
+                .collect(Collectors.toList());
+
+        // 3. Xây dựng và trả về đối tượng PagingDTO
+        return PagingDTO.<BlogSummaryDTO>builder()
+                .page(blogPage.getNumber()) // Trang hiện tại
+                .size(blogPage.getSize()) // Kích thước trang
+                .total(blogPage.getTotalElements()) // Tổng số phần tử
+                .items(blogSummaries) // Danh sách các mục
+                .build();
+    }
 
     @Override
     public GeneralResponse<BlogManagerDTO> createBlog(BlogManagerRequestDTO requestDTO) {
