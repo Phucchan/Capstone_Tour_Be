@@ -3,9 +3,12 @@ package com.fpt.capstone.tourism.service;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourDayCreateRequestDTO;
+import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourUpdateRequestDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.ServiceBreakdownDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourDayDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourDetailDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourResponseDTO;
 import org.springframework.stereotype.Service;
 
@@ -29,4 +32,14 @@ public interface TourManagementService {
     GeneralResponse<TourDayDTO> updateTourDay(Long tourId, Long dayId, TourDayCreateRequestDTO requestDTO);
 
     GeneralResponse<String> deleteTourDay(Long tourId, Long dayId);
+
+    /**
+     * Retrieve a breakdown of all services belonging to the tour.
+     */
+    GeneralResponse<List<ServiceBreakdownDTO>> getServiceBreakdown(Long tourId);
+
+    /**
+     * Create a pax configuration for the specified tour.
+     */
+    GeneralResponse<TourPaxDTO> createTourPax(Long tourId, TourPaxCreateRequestDTO requestDTO);
 }
