@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourDayCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxCreateRequestDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
@@ -238,6 +239,8 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         return GeneralResponse.of(results);
     }
 
+
+
     @Override
     public GeneralResponse<TourPaxDTO> createTourPax(Long tourId, TourPaxCreateRequestDTO requestDTO) {
         Tour tour = tourRepository.findById(tourId)
@@ -257,6 +260,5 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
 
         return GeneralResponse.of(dto, Constants.Message.PAX_CONFIG_CREATE_SUCCESS);
     }
-
 
 }

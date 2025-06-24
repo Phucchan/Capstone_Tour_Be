@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourDayCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxCreateRequestDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.*;
 import org.springframework.stereotype.Service;
