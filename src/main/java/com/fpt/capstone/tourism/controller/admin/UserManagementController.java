@@ -25,6 +25,7 @@ public class UserManagementController {
 
 
     @GetMapping("/users")
+    // postman http://localhost:8080/v1/admin/users?page=1&size=6
     public ResponseEntity<GeneralResponse<PagingDTO<UserManagementDTO>>> getListUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {

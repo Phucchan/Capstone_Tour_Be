@@ -26,7 +26,7 @@ public class TourManagementController {
     private final TourManagementService tourManagementService;
 
     // danh sách tour
-    // postman http://localhost:8080/v1/business/tours
+    // postman http://localhost:8080/v1/business/tours?page=1&size=6
     @GetMapping("/tours")
     public ResponseEntity<GeneralResponse<PagingDTO<TourResponseManagerDTO>>> getListtours(
             @RequestParam(defaultValue = "0") int page,

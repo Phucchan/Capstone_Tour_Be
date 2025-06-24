@@ -20,6 +20,7 @@ public class LocationManagementController {
     @Autowired
     private final LocationService locationService;
     @GetMapping("/locations")
+    //postman http://localhost:8080/v1/business/locations?page=0&size=10
     public ResponseEntity<GeneralResponse<PagingDTO<LocationDTO>>> getLocations(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {

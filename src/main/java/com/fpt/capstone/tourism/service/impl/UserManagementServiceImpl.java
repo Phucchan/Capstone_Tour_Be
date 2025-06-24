@@ -50,20 +50,14 @@ public class UserManagementServiceImpl implements UserManagementService {
         List<UserManagementDTO> userManagementDTOs = users.getContent().stream()
                 .map(user -> new UserManagementDTO(
                         user.getId(),
-                        user.getUsername(),
-                        user.getEmail(),
                         user.getFullName(),
+                        user.getEmail(),
                         user.getGender(),
                         user.getPhone(),
-                        user.getAddress(),
-                        user.getAvatarImage(),
                         user.getUserRoles().stream()
                                 .map(userRole -> userRole.getRole().getRoleName())
                                 .toList(),
-                        user.getDeleted(),
-                        user.getCreatedAt(),
-                        user.getUpdatedAt()
-
+                        user.getDeleted()
                 )).toList();
 
         PagingDTO<UserManagementDTO> pagingDTO = PagingDTO.<UserManagementDTO>builder()
@@ -162,17 +156,12 @@ public class UserManagementServiceImpl implements UserManagementService {
                 .toList();
         return new UserManagementDTO(
                 user.getId(),
-                user.getUsername(),
                 user.getEmail(),
                 user.getFullName(),
                 user.getGender(),
                 user.getPhone(),
-                user.getAddress(),
-                user.getAvatarImage(),
                 roleNames,
-                user.getDeleted(),
-                user.getCreatedAt(),
-                user.getUpdatedAt()
+                user.getDeleted()
         );
     }
 
