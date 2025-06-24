@@ -3,14 +3,14 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
-import com.fpt.capstone.tourism.dto.request.tourManager.TourDayCreateRequestDTO;
-import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxCreateRequestDTO;
-import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxDTO;
-import com.fpt.capstone.tourism.dto.request.tourManager.TourUpdateRequestDTO;
+import com.fpt.capstone.tourism.dto.request.tourManager.TourDayManagerCreateRequestDTO;
+import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxManagerCreateRequestDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxManagerDTO;
+import com.fpt.capstone.tourism.dto.request.tourManager.TourUpdateManagerRequestDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
-import com.fpt.capstone.tourism.mapper.tourManager.TourDayMapper;
-import com.fpt.capstone.tourism.mapper.tourManager.TourDetailMapper;
+import com.fpt.capstone.tourism.mapper.tourManager.TourDayManagerMapper;
+import com.fpt.capstone.tourism.mapper.tourManager.TourDetailManagerMapper;
 import com.fpt.capstone.tourism.mapper.tourManager.TourManagementMapper;
 import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
@@ -42,7 +42,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     private TourManagementMapper tourMapper;
 
     @Autowired
-    private TourDetailMapper tourDetailMapper;
+    private TourDetailManagerMapper tourDetailManagerMapper;
 
     @Autowired
     private TourThemeRepository tourThemeRepository;
@@ -54,7 +54,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     private TourDayRepository tourDayRepository;
 
     @Autowired
-    private TourDayMapper tourDayMapper;
+    private TourDayManagerMapper tourDayManagerMapper;
 
     @Autowired
     private TourPaxRepository tourPaxRepository;
@@ -63,9 +63,9 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     private PartnerServiceRepository partnerServiceRepository;
 
     @Override
-    public GeneralResponse<List<TourResponseDTO>> getListTours() {
+    public GeneralResponse<List<TourResponseManagerDTO>> getListTours() {
         List<Tour> tours = tourRepository.findAll();
-        List<TourResponseDTO> tourResponseDTOs = tours.stream()
+        List<TourResponseManagerDTO> tourResponseDTOs = tours.stream()
                 .map(tourMapper::toTourResponseDTO)
                 .collect(Collectors.toList());
         return GeneralResponse.of(tourResponseDTOs);
@@ -95,12 +95,12 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     public GeneralResponse<Object> getTourDetail(Long id) {
         Tour tour = tourRepository.findById(id)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
-        TourDetailDTO dto = tourDetailMapper.toDTO(tour);
+        TourDetailManagerDTO dto = tourDetailManagerMapper.toDTO(tour);
         return GeneralResponse.of(dto);
     }
 
     @Override
-    public GeneralResponse<TourDetailDTO> updateTour(Long id, TourUpdateRequestDTO requestDTO) {
+    public GeneralResponse<TourDetailManagerDTO> updateTour(Long id, TourUpdateManagerRequestDTO requestDTO) {
         Tour tour = tourRepository.findById(id)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
 
@@ -130,20 +130,20 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         }
 
         Tour saved = tourRepository.save(tour);
-        TourDetailDTO dto = tourDetailMapper.toDTO(saved);
+        TourDetailManagerDTO dto = tourDetailManagerMapper.toDTO(saved);
         return GeneralResponse.of(dto, "Tour updated successfully");
     }
     @Override
-    public GeneralResponse<List<TourDayDTO>> getTourDays(Long tourId) {
+    public GeneralResponse<List<TourDayManagerDTO>> getTourDays(Long tourId) {
         tourRepository.findById(tourId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
         List<TourDay> days = tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId);
-        List<TourDayDTO> dtos = days.stream().map(tourDayMapper::toDTO).collect(Collectors.toList());
+        List<TourDayManagerDTO> dtos = days.stream().map(tourDayManagerMapper::toDTO).collect(Collectors.toList());
         return GeneralResponse.of(dtos);
     }
 
     @Override
-    public GeneralResponse<TourDayDTO> createTourDay(Long tourId, TourDayCreateRequestDTO requestDTO) {
+    public GeneralResponse<TourDayManagerDTO> createTourDay(Long tourId, TourDayManagerCreateRequestDTO requestDTO) {
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
 
@@ -170,11 +170,11 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         }
 
         TourDay saved = tourDayRepository.save(day);
-        return GeneralResponse.of(tourDayMapper.toDTO(saved), "Tour day created successfully");
+        return GeneralResponse.of(tourDayManagerMapper.toDTO(saved), "Tour day created successfully");
     }
 
     @Override
-    public GeneralResponse<TourDayDTO> updateTourDay(Long tourId, Long dayId, TourDayCreateRequestDTO requestDTO) {
+    public GeneralResponse<TourDayManagerDTO> updateTourDay(Long tourId, Long dayId, TourDayManagerCreateRequestDTO requestDTO) {
         tourRepository.findById(tourId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
 
@@ -199,7 +199,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         }
 
         TourDay saved = tourDayRepository.save(day);
-        return GeneralResponse.of(tourDayMapper.toDTO(saved), Constants.Message.TOUR_DAY_UPDATED_SUCCESS);
+        return GeneralResponse.of(tourDayManagerMapper.toDTO(saved), Constants.Message.TOUR_DAY_UPDATED_SUCCESS);
     }
 
     @Override
@@ -242,7 +242,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
 
 
     @Override
-    public GeneralResponse<TourPaxDTO> createTourPax(Long tourId, TourPaxCreateRequestDTO requestDTO) {
+    public GeneralResponse<TourPaxManagerDTO> createTourPax(Long tourId, TourPaxManagerCreateRequestDTO requestDTO) {
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
 
@@ -252,7 +252,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         pax.setMaxQuantity(requestDTO.getMaxQuantity());
         TourPax saved = tourPaxRepository.save(pax);
 
-        TourPaxDTO dto = TourPaxDTO.builder()
+        TourPaxManagerDTO dto = TourPaxManagerDTO.builder()
                 .id(saved.getId())
                 .minQuantity(saved.getMinQuantity())
                 .maxQuantity(saved.getMaxQuantity())

@@ -1,9 +1,9 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.constants.Constants;
-import com.fpt.capstone.tourism.dto.common.BlogDTO;
+import com.fpt.capstone.tourism.dto.common.BlogManagerDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
-import com.fpt.capstone.tourism.dto.request.BlogRequestDTO;
+import com.fpt.capstone.tourism.dto.request.BlogManagerRequestDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.BlogMapper;
 import com.fpt.capstone.tourism.model.User;
@@ -29,7 +29,7 @@ public class BlogServiceImpl implements BlogService {
     private final BlogMapper blogMapper;
 
     @Override
-    public GeneralResponse<BlogDTO> createBlog(BlogRequestDTO requestDTO) {
+    public GeneralResponse<BlogManagerDTO> createBlog(BlogManagerRequestDTO requestDTO) {
         try {
             User author = userService.findById(requestDTO.getAuthorId());
             Blog blog = Blog.builder()
@@ -47,7 +47,7 @@ public class BlogServiceImpl implements BlogService {
             }
 
             Blog saved = blogRepository.save(blog);
-            BlogDTO dto = blogMapper.blogToBlogDTO(saved);
+            BlogManagerDTO dto = blogMapper.blogToBlogDTO(saved);
             return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.BLOG_CREATE_SUCCESS, dto);
         } catch (BusinessException be) {
             throw be;
@@ -57,7 +57,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public GeneralResponse<BlogDTO> updateBlog(Long id, BlogRequestDTO requestDTO) {
+    public GeneralResponse<BlogManagerDTO> updateBlog(Long id, BlogManagerRequestDTO requestDTO) {
         try {
             Blog blog = blogRepository.findById(id)
                     .orElseThrow(() -> BusinessException.of(Constants.Message.BLOG_NOT_FOUND));
@@ -76,7 +76,7 @@ public class BlogServiceImpl implements BlogService {
             }
 
             Blog saved = blogRepository.save(blog);
-            BlogDTO dto = blogMapper.blogToBlogDTO(saved);
+            BlogManagerDTO dto = blogMapper.blogToBlogDTO(saved);
             return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.BLOG_UPDATE_SUCCESS, dto);
         } catch (BusinessException be) {
             throw be;
@@ -100,10 +100,10 @@ public class BlogServiceImpl implements BlogService {
         }
     }
     @Override
-    public GeneralResponse<List<BlogDTO>> getBlogs() {
+    public GeneralResponse<List<BlogManagerDTO>> getBlogs() {
         try {
             List<Blog> blogs = blogRepository.findByDeletedFalseOrderByCreatedAtDesc();
-            List<BlogDTO> dtos = blogs.stream()
+            List<BlogManagerDTO> dtos = blogs.stream()
                     .map(blogMapper::blogToBlogDTO)
                     .toList();
             return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.BLOG_LIST_SUCCESS, dtos);

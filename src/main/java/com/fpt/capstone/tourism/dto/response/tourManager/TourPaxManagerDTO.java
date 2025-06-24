@@ -6,14 +6,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
 @NoArgsConstructor
+@Builder
 @AllArgsConstructor
-public class TourResponseDTO {
+public class TourPaxManagerDTO {
     private Long id;
-    private String name;
-    private String thumbnailImage;
-    private String typeName;
-    private String tourStatus;
-    private Integer durationDays;
+    private int minQuantity;
+    private int maxQuantity;
 }

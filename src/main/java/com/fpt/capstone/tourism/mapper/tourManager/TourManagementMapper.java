@@ -1,6 +1,6 @@
 package com.fpt.capstone.tourism.mapper.tourManager;
 
-import com.fpt.capstone.tourism.dto.response.tourManager.TourResponseDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.TourResponseManagerDTO;
 import com.fpt.capstone.tourism.model.tour.Tour;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -15,7 +15,7 @@ public interface TourManagementMapper {
     @Mapping(target = "typeName", source = "tourType", qualifiedByName = "mapTourType")
     @Mapping(target = "tourStatus", source = "tourStatus", qualifiedByName = "mapTourStatus")
     @Mapping(target = "durationDays", source = "durationDays")
-    TourResponseDTO toTourResponseDTO(Tour tour);
+    TourResponseManagerDTO toTourResponseDTO(Tour tour);
 
     @Named("mapTourType")
     default String mapTourType(Enum<?> tourType) {

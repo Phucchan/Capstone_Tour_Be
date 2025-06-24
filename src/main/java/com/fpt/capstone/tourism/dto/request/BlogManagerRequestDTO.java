@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class BlogRequestDTO {
+public class BlogManagerRequestDTO {
     private String title;
     private String description;
     private String content;

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TourDetailDTO {
+public class TourDetailManagerDTO {
     private Long id;
     private String name;
     private String thumbnailUrl;
