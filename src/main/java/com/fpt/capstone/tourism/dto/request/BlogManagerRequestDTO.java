@@ -14,5 +14,6 @@ public class BlogManagerRequestDTO {
     private String description;
     private String content;
     private String thumbnailImageUrl;
+    private Long authorId;
     private List<Long> tagIds;
 }

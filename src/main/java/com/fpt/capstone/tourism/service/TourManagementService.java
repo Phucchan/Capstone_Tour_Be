@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourDayManagerCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxManagerCreateRequestDTO;
@@ -14,7 +15,7 @@ import java.util.List;
 @Service
 public interface TourManagementService {
 
-    public GeneralResponse<List<TourResponseManagerDTO>> getListTours();
+    GeneralResponse<PagingDTO<TourResponseManagerDTO>> getListTours(int page, int size);
 
     public GeneralResponse<Object> changeStatus(Long id, ChangeStatusDTO changeStatusDTO);
 

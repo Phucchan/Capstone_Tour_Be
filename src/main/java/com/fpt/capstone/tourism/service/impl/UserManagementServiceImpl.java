@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 
+import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.UserManagementDTO;
 import com.fpt.capstone.tourism.dto.request.UserManagementRequestDTO;
 import com.fpt.capstone.tourism.model.Role;
@@ -17,6 +18,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
@@ -39,38 +44,36 @@ public class UserManagementServiceImpl implements UserManagementService {
     private UserService userService;
 
     @Override
-    public GeneralResponse<List<UserManagementDTO>> getListUsers() {
-        List<User> users = userRepository.findAll();
-        if(users != null && !users.isEmpty()) {
-            List<UserManagementDTO> userManagementDTOs = users.stream()
-                    .map(user -> new UserManagementDTO(
-                            user.getId(),
-                            user.getUsername(),
-                            user.getEmail(),
-                            user.getFullName(),
-                            user.getGender(),
-                            user.getPhone(),
-                            user.getAddress(),
-                            user.getAvatarImage(),
-                            user.getUserRoles().stream()
-                                    .map(userRole -> userRole.getRole().getRoleName())
-                                    .toList(),
-                            user.getDeleted(),
-                            user.getCreatedAt(),
-                            user.getUpdatedAt()
+    public GeneralResponse<PagingDTO<UserManagementDTO>> getListUsers(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
+        Page<User> users = userRepository.findAll(pageable);
+        List<UserManagementDTO> userManagementDTOs = users.getContent().stream()
+                .map(user -> new UserManagementDTO(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getEmail(),
+                        user.getFullName(),
+                        user.getGender(),
+                        user.getPhone(),
+                        user.getAddress(),
+                        user.getAvatarImage(),
+                        user.getUserRoles().stream()
+                                .map(userRole -> userRole.getRole().getRoleName())
+                                .toList(),
+                        user.getDeleted(),
+                        user.getCreatedAt(),
+                        user.getUpdatedAt()
 
-                    )).toList();
-            return GeneralResponse.<List<UserManagementDTO>>builder()
-                    .data(userManagementDTOs)
-                    .message("User list retrieved successfully")
-                    .build();
+                )).toList();
 
-        } else{
-            return GeneralResponse.<List<UserManagementDTO>>builder()
-                    .data(List.of())
-                    .message("No users found")
-                    .build();
-        }
+        PagingDTO<UserManagementDTO> pagingDTO = PagingDTO.<UserManagementDTO>builder()
+                .page(users.getNumber())
+                .size(users.getSize())
+                .total(users.getTotalElements())
+                .items(userManagementDTOs)
+                .build();
+
+        return GeneralResponse.of(pagingDTO);
 
     }
 

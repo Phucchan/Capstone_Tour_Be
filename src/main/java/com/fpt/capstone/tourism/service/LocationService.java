@@ -11,6 +11,5 @@ public interface LocationService {
     GeneralResponse<LocationDTO> saveLocation(LocationRequestDTO locationRequestDTO);
     GeneralResponse<LocationDTO> getLocationById(Long id);
     GeneralResponse<LocationDTO> deleteLocation(Long id, boolean isDeleted);
-    GeneralResponse<List<LocationDTO>> getListLocation();;
-    GeneralResponse<List<LocationDTO>> searchLocations(String name);
+    GeneralResponse<PagingDTO<LocationDTO>> getListLocation(int page, int size);
 }

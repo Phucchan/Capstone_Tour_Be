@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourDayManagerCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxManagerCreateRequestDTO;
@@ -27,6 +28,10 @@ import com.fpt.capstone.tourism.repository.tour.TourThemeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -63,12 +68,19 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     private PartnerServiceRepository partnerServiceRepository;
 
     @Override
-    public GeneralResponse<List<TourResponseManagerDTO>> getListTours() {
-        List<Tour> tours = tourRepository.findAll();
-        List<TourResponseManagerDTO> tourResponseDTOs = tours.stream()
+    public GeneralResponse<PagingDTO<TourResponseManagerDTO>> getListTours(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
+        Page<Tour> tours = tourRepository.findAll(pageable);
+        List<TourResponseManagerDTO> tourResponseDTOs = tours.getContent().stream()
                 .map(tourMapper::toTourResponseDTO)
                 .collect(Collectors.toList());
-        return GeneralResponse.of(tourResponseDTOs);
+        PagingDTO<TourResponseManagerDTO> pagingDTO = PagingDTO.<TourResponseManagerDTO>builder()
+                .page(tours.getNumber())
+                .size(tours.getSize())
+                .total(tours.getTotalElements())
+                .items(tourResponseDTOs)
+                .build();
+        return GeneralResponse.of(pagingDTO);
     }
 
 

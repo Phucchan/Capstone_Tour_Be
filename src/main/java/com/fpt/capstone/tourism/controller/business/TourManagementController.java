@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.controller.business;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 
+import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourDayManagerCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxManagerCreateRequestDTO;
@@ -27,9 +28,12 @@ public class TourManagementController {
     // danh sách tour
     // postman http://localhost:8080/v1/business/tours
     @GetMapping("/tours")
-    public ResponseEntity<GeneralResponse<List<TourResponseManagerDTO>>> getListtours() {
-        return ResponseEntity.ok(tourManagementService.getListTours());
+    public ResponseEntity<GeneralResponse<PagingDTO<TourResponseManagerDTO>>> getListtours(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(tourManagementService.getListTours(page, size));
     }
+
 
     // thay đổi trạng thái tour
     // postman http://localhost:8080/v1/business/tours/1/status

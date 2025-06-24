@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.common.BlogManagerDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.BlogManagerRequestDTO;
 import com.fpt.capstone.tourism.dto.response.BlogDetailManagerDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
@@ -15,8 +16,13 @@ import com.fpt.capstone.tourism.repository.blog.TagRepository;
 import com.fpt.capstone.tourism.service.BlogService;
 import com.fpt.capstone.tourism.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
@@ -101,13 +107,20 @@ public class BlogServiceImpl implements BlogService {
         }
     }
     @Override
-    public GeneralResponse<List<BlogManagerDTO>> getBlogs() {
+    public GeneralResponse<PagingDTO<BlogManagerDTO>> getBlogs(int page, int size) {
         try {
-            List<Blog> blogs = blogRepository.findByDeletedFalseOrderByCreatedAtDesc();
-            List<BlogManagerDTO> dtos = blogs.stream()
+            Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+            Page<Blog> blogPage = blogRepository.findByDeletedFalseOrderByCreatedAtDesc(pageable);
+            List<BlogManagerDTO> dtos = blogPage.getContent().stream()
                     .map(blogMapper::blogToBlogDTO)
                     .toList();
-            return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.BLOG_LIST_SUCCESS, dtos);
+            PagingDTO<BlogManagerDTO> pagingDTO = PagingDTO.<BlogManagerDTO>builder()
+                    .page(blogPage.getNumber())
+                    .size(blogPage.getSize())
+                    .total(blogPage.getTotalElements())
+                    .items(dtos)
+                    .build();
+            return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.BLOG_LIST_SUCCESS, pagingDTO);
         } catch (BusinessException be) {
             throw be;
         } catch (Exception ex) {
