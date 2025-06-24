@@ -16,10 +16,8 @@ public class BlogDTO {
     private Long id;
     private String title;
     private String description;
-    private String content;
     private String thumbnailImageUrl;
     private String authorName;
     private List<String> tags;
     private Boolean deleted;
-    private LocalDateTime createdAt;
 }

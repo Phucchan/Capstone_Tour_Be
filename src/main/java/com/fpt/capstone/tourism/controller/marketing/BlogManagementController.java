@@ -18,7 +18,7 @@ public class BlogManagementController {
     private final BlogService blogService;
 
     @GetMapping("/blogs")
-    //postman
+    //postman http://localhost:8080/v1/marketing/blogs
     public ResponseEntity<GeneralResponse<List<BlogDTO>>> getBlogs() {
         return ResponseEntity.ok(blogService.getBlogs());
     }
@@ -29,6 +29,7 @@ public class BlogManagementController {
     }
 
     @PutMapping("/blogs/{id}")
+
     public ResponseEntity<GeneralResponse<BlogDTO>> updateBlog(@PathVariable Long id,
                                                                @RequestBody BlogRequestDTO requestDTO) {
         return ResponseEntity.ok(blogService.updateBlog(id, requestDTO));
