@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.controller.marketing;
 import com.fpt.capstone.tourism.dto.common.BlogManagerDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.BlogManagerRequestDTO;
+import com.fpt.capstone.tourism.dto.response.BlogDetailManagerDTO;
 import com.fpt.capstone.tourism.service.BlogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,11 @@ public class BlogManagementController {
     //postman http://localhost:8080/v1/marketing/blogs
     public ResponseEntity<GeneralResponse<List<BlogManagerDTO>>> getBlogs() {
         return ResponseEntity.ok(blogService.getBlogs());
+    }
+    @GetMapping("/blogs/{id}")
+    //postman http://localhost:8080/v1/marketing/blogs/1
+    public ResponseEntity<GeneralResponse<BlogDetailManagerDTO>> getBlogDetail(@PathVariable Long id) {
+        return ResponseEntity.ok(blogService.getBlog(id));
     }
 
     @PostMapping("/blogs")

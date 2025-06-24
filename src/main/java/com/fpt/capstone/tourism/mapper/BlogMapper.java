@@ -18,6 +18,10 @@ public interface BlogMapper {
 
     @Mapping(source = "author.fullName", target = "authorName")
     @Mapping(target = "tags", expression = "java(mapTags(blog.getBlogTags()))")
+    com.fpt.capstone.tourism.dto.response.BlogDetailManagerDTO blogToBlogDetailDTO(Blog blog);
+
+    @Mapping(source = "author.fullName", target = "authorName")
+    @Mapping(target = "tags", expression = "java(mapTags(blog.getBlogTags()))")
     BlogManagerDTO blogToBlogDTO(Blog blog);
 
     default List<String> mapTags(List<Tag> tags) {
