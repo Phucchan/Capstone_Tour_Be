@@ -24,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -33,8 +34,8 @@ public class TourServiceImpl implements TourService {
     private final FeedbackRepository feedbackRepository;
     private final TourDayRepository tourDayRepository;
     private final TourScheduleRepository tourScheduleRepository;
-    private final TourMapper tourMapper;
     private final TourPaxRepository tourPaxRepository;
+    private final TourMapper tourMapper;
     private final TourDetailMapper tourDetailMapper;
 
 
@@ -90,14 +91,33 @@ public class TourServiceImpl implements TourService {
     }
 
 
+    /**
+     * PHƯƠNG THỨC HELPER ĐƯỢC CẬP NHẬT
+     * Thêm logic lấy ngày khởi hành gần nhất vào đây.
+     */
     private PagingDTO<TourSummaryDTO> mapTourPageToPagingDTO(Page<Tour> tourPage) {
         List<TourSummaryDTO> tourSummaries = tourPage.getContent().stream()
                 .map(tour -> {
+                    // Map các thông tin cơ bản
                     TourSummaryDTO dto = tourMapper.tourToTourSummaryDTO(tour);
+
+                    // Lấy các thông tin phụ
                     Double avgRating = feedbackRepository.findAverageRatingByTourId(tour.getId());
                     Double startingPrice = tourPaxRepository.findStartingPriceByTourId(tour.getId());
+
+                    // LOGIC MỚI: Lấy lịch trình gần nhất
+                    Optional<TourSchedule> nextScheduleOpt = tourScheduleRepository
+                            .findFirstByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(
+                                    tour.getId(),
+                                    LocalDateTime.now()
+                            );
+                    LocalDateTime nextDepartureDate = nextScheduleOpt.map(TourSchedule::getDepartureDate).orElse(null);
+
+                    // Gán các thông tin đã lấy được vào DTO
                     dto.setAverageRating(avgRating);
                     dto.setStartingPrice(startingPrice);
+                    dto.setNextDepartureDate(nextDepartureDate); // Gán thông tin mới
+
                     return dto;
                 })
                 .collect(Collectors.toList());
