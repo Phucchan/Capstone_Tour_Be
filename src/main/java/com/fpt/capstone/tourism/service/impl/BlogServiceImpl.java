@@ -25,6 +25,7 @@ import org.springframework.data.domain.Sort;
 import com.fpt.capstone.tourism.dto.response.homepage.BlogSummaryDTO;
 
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,20 +41,38 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public PagingDTO<BlogSummaryDTO> getAllBlogs(Pageable pageable) {
-        // 1. Gọi repository để lấy dữ liệu dạng Page<Blog>
+        // 1. Lấy dữ liệu dạng Page<Blog> từ DB
         Page<Blog> blogPage = blogRepository.findByDeletedFalse(pageable);
 
         // 2. Chuyển đổi danh sách Blog entities sang danh sách BlogSummaryDTO
         List<BlogSummaryDTO> blogSummaries = blogPage.getContent().stream()
-                .map(blogMapper::blogToBlogSummaryDTO)
+                .map(blog -> {
+                    // Dùng mapper để chuyển đổi các trường cơ bản
+                    BlogSummaryDTO dto = blogMapper.blogToBlogSummaryDTO(blog);
+
+                    // Lấy danh sách Tag entities từ blog, chuyển thành List<String> chứa tên các tag
+                    List<String> tagNames;
+                    if (blog.getBlogTags() != null) {
+                        tagNames = blog.getBlogTags().stream()
+                                .map(Tag::getName)
+                                .collect(Collectors.toList());
+                    } else {
+                        tagNames = Collections.emptyList(); // Trả về danh sách rỗng nếu không có tag
+                    }
+
+                    // Gán danh sách tên tag vào DTO
+                    dto.setTags(tagNames);
+
+                    return dto;
+                })
                 .collect(Collectors.toList());
 
         // 3. Xây dựng và trả về đối tượng PagingDTO
         return PagingDTO.<BlogSummaryDTO>builder()
-                .page(blogPage.getNumber()) // Trang hiện tại
-                .size(blogPage.getSize()) // Kích thước trang
-                .total(blogPage.getTotalElements()) // Tổng số phần tử
-                .items(blogSummaries) // Danh sách các mục
+                .page(blogPage.getNumber())
+                .size(blogPage.getSize())
+                .total(blogPage.getTotalElements())
+                .items(blogSummaries)
                 .build();
     }
 

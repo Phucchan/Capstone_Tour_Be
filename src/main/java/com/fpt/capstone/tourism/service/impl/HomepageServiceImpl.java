@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.dto.response.homepage.HomepageDataDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
 import com.fpt.capstone.tourism.mapper.BlogMapper;
 import com.fpt.capstone.tourism.model.blog.Blog;
+import com.fpt.capstone.tourism.model.blog.Tag;
 import com.fpt.capstone.tourism.model.tour.Tour;
 import com.fpt.capstone.tourism.model.tour.TourSchedule;
 import com.fpt.capstone.tourism.repository.blog.BlogRepository;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import com.fpt.capstone.tourism.dto.common.location.LocationWithoutGeoPositionDTO;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -68,13 +70,32 @@ public class HomepageServiceImpl implements HomepageService {
                 .map(this::mapTourToSummaryDTO)
                 .collect(Collectors.toList());
     }
-    
+
 
     private List<BlogSummaryDTO> getRecentBlogs() {
+        // 1. Lấy 5 bài blog mới nhất từ DB
         List<Blog> blogs = blogRepository.findFirst5ByDeletedFalseOrderByCreatedAtDesc();
-        return blogs.stream()
-                .map(blogMapper::blogToBlogSummaryDTO)
-                .collect(Collectors.toList());
+
+        // 2. Chuyển đổi từ List<Blog> sang List<BlogSummaryDTO>
+        return blogs.stream().map(blog -> {
+            // Dùng mapper để chuyển đổi các trường cơ bản (id, title, authorName,...)
+            BlogSummaryDTO dto = blogMapper.blogToBlogSummaryDTO(blog);
+
+            // Lấy danh sách Tag entities từ blog, chuyển thành List<String> chứa tên các tag
+            List<String> tagNames;
+            if (blog.getBlogTags() != null) {
+                tagNames = blog.getBlogTags().stream()
+                        .map(Tag::getName)
+                        .collect(Collectors.toList());
+            } else {
+                tagNames = Collections.emptyList(); // Trả về danh sách rỗng nếu không có tag
+            }
+
+            // Gán danh sách tên tag vào DTO
+            dto.setTags(tagNames);
+
+            return dto;
+        }).collect(Collectors.toList());
     }
 
     /**
