@@ -63,10 +63,6 @@ public class Tour extends BaseEntity {
     private Location departLocation;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "destination_location_id")
-    private Location destinationLocation;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
 }
