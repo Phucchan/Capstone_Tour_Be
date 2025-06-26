@@ -129,11 +129,6 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
             tour.setDepartLocation(depart);
         }
-        if (requestDTO.getDestinationLocationId() != null) {
-            Location dest = locationRepository.findById(requestDTO.getDestinationLocationId())
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
-            tour.setDestinationLocation(dest);
-        }
         if (requestDTO.getDurationDays() != null) {
             tour.setDurationDays(requestDTO.getDurationDays());
         }

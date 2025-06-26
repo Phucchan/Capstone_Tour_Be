@@ -2,9 +2,12 @@ package com.fpt.capstone.tourism.dto.response.homepage;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class BlogSummaryDTO {
     /**
      * The unique identifier for the blog post.
@@ -30,4 +33,6 @@ public class BlogSummaryDTO {
      * The creation date of the blog post.
      */
     private LocalDateTime createdAt;
+
+    private List<String> tags;
 }

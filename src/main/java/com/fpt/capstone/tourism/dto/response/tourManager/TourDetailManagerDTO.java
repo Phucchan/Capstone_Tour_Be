@@ -15,7 +15,6 @@ public class TourDetailManagerDTO {
     private String thumbnailUrl;
     private String tourThemeName;
     private String departLocationName;
-    private String destinationLocationName;
     private Integer durationDays;
     private String description;
 }

@@ -34,7 +34,7 @@ public class TourDay extends BaseEntity {
     @Column(length = 255)
     private String title;
 
-    @Lob
+    @Column(columnDefinition = "text")
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)

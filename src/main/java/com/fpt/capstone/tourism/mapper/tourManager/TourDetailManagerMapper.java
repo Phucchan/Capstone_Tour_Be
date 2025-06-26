@@ -10,6 +10,5 @@ import org.mapstruct.MappingConstants;
 public interface TourDetailManagerMapper {
     @Mapping(source = "tourTheme.name", target = "tourThemeName")
     @Mapping(source = "departLocation.name", target = "departLocationName")
-    @Mapping(source = "destinationLocation.name", target = "destinationLocationName")
     TourDetailManagerDTO toDTO(Tour tour);
 }
