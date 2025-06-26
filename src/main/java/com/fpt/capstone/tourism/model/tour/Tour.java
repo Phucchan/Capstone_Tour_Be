@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.enums.Region;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
+import com.fpt.capstone.tourism.model.enums.TourTransport;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -34,6 +35,10 @@ public class Tour extends BaseEntity {
 
     @Column(nullable = false)
     private String name;
+
+    @Column(name = "tour_transport")
+    @Enumerated(EnumType.STRING)
+    private TourTransport tourTransport;
 
     // Thêm trường ảnh đại diện cho tour
     @Column(name = "thumbnail_url")
