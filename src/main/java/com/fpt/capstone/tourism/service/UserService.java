@@ -16,4 +16,6 @@ public interface UserService {
     Boolean existsByPhoneNumber(String phone);
 
     GeneralResponse<List<UserBasicDTO>> findFriends(Long userId);
+
+    GeneralResponse<UserBasicDTO> getUserBasic(String username);
 }

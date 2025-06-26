@@ -30,4 +30,6 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
      */
     @Query("SELECT AVG(f.rating) FROM Feedback f WHERE f.booking.tourSchedule.tour.id = :tourId")
     Double findAverageRatingByTourId(Long tourId);
+
+    List<Feedback> findByBooking_TourSchedule_Tour_Id(Long tourId);
 }

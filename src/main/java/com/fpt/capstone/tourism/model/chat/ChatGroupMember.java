@@ -4,10 +4,7 @@ package com.fpt.capstone.tourism.model.chat;
 import com.fpt.capstone.tourism.model.BaseEntity;
 import com.fpt.capstone.tourism.model.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -17,6 +14,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class ChatGroupMember extends BaseEntity {
 
     @Id
@@ -26,10 +25,14 @@ public class ChatGroupMember extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id")
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private ChatGroup chatGroup;
 
     private boolean admin;

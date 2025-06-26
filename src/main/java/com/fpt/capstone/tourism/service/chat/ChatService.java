@@ -1,4 +1,4 @@
-package com.fpt.capstone.tourism.service;
+package com.fpt.capstone.tourism.service.chat;
 
 import com.fpt.capstone.tourism.dto.common.UserDTO;
 import com.fpt.capstone.tourism.dto.response.UserBasicDTO;

@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.controller.admin;
 
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.UserManagementRequestDTO;
 import com.fpt.capstone.tourism.dto.response.UserManagementDTO;
 
@@ -22,9 +23,13 @@ public class UserManagementController {
     @Autowired
     private final UserManagementService userManagementService;
 
+
     @GetMapping("/users")
-    public ResponseEntity<GeneralResponse<List<UserManagementDTO>>> getListUsers() {
-        return ResponseEntity.ok(userManagementService.getListUsers());
+    // postman http://localhost:8080/v1/admin/users?page=1&size=6
+    public ResponseEntity<GeneralResponse<PagingDTO<UserManagementDTO>>> getListUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(userManagementService.getListUsers(page, size));
     }
     @PostMapping("/users")
     public ResponseEntity<GeneralResponse<UserManagementDTO>> createUser(@RequestBody UserManagementRequestDTO requestDTO) {

@@ -9,8 +9,12 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TourPaxDTO {
+public class TourDetailManagerDTO {
     private Long id;
-    private int minQuantity;
-    private int maxQuantity;
+    private String name;
+    private String thumbnailUrl;
+    private String tourThemeName;
+    private String departLocationName;
+    private Integer durationDays;
+    private String description;
 }

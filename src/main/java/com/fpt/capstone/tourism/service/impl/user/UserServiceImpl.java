@@ -75,4 +75,13 @@ public class UserServiceImpl implements UserService {
                 .map(userMapper::toUserBasicDTO)
                 .toList());
     }
+
+    @Override
+    public GeneralResponse<UserBasicDTO> getUserBasic(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND_MESSAGE));
+
+        return GeneralResponse.of(userMapper.toUserBasicDTO(user));
+
+    }
 }

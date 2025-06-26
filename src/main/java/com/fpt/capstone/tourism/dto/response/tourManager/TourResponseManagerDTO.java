@@ -9,13 +9,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TourDetailDTO {
+public class TourResponseManagerDTO {
     private Long id;
     private String name;
-    private String thumbnailUrl;
-    private String tourThemeName;
-    private String departLocationName;
-    private String destinationLocationName;
+    private String thumbnailImage;
+    private String typeName;
+    private String tourStatus;
     private Integer durationDays;
-    private String description;
 }

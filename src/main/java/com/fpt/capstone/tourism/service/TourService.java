@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.service;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
 import org.springframework.data.domain.Pageable;
+import com.fpt.capstone.tourism.dto.response.tour.TourDetailDTO;
 
 public interface TourService {
     /**
@@ -13,4 +14,6 @@ public interface TourService {
     PagingDTO<TourSummaryDTO> getFixedTours(Pageable pageable);
 
     PagingDTO<TourSummaryDTO> getToursByLocation(Long locationId, Pageable pageable);
+
+    TourDetailDTO getTourDetailById(Long tourId);
 }

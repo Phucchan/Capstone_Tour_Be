@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.controller;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
+import com.fpt.capstone.tourism.dto.response.tour.TourDetailDTO;
 import com.fpt.capstone.tourism.service.TourService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/public/tours")
@@ -50,5 +52,11 @@ public class TourController {
         return ResponseEntity.ok(GeneralResponse.of(result, "Tours by location loaded successfully."));
     }
 
-
+    @GetMapping("/{id}")
+    public ResponseEntity<GeneralResponse<TourDetailDTO>> getTourDetailById(@PathVariable Long id) {
+        TourDetailDTO result = tourService.getTourDetailById(id);
+        return ResponseEntity.ok(GeneralResponse.of(result, "Tour detail loaded successfully."));
+    }
 }
+
+

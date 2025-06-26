@@ -240,6 +240,8 @@ public class Constants {
         public static final String BLOG_UPDATE_FAIL = "Cập nhật blog thất bại";
         public static final String BLOG_DELETE_FAIL = "Xóa blog thất bại";
         public static final String BLOG_NOT_FOUND = "Không tìm thấy blog";
+        public static final String BLOG_DETAIL_SUCCESS = "Lấy chi tiết blog thành công";
+        public static final String BLOG_DETAIL_FAIL = "Lấy chi tiết blog thất bại";
         //===================================================
         // Tour Day Related Messages
         //===================================================

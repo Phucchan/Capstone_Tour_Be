@@ -20,6 +20,7 @@ public class Location extends BaseEntity {
     private String name;
     @Column(columnDefinition = "text")
     private String description;
+    @Column(columnDefinition = "text")
     private String image;
     @Column(name = "is_deleted")
     private Boolean deleted;

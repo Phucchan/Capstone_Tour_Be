@@ -4,10 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TourPaxCreateRequestDTO {
-    private int minQuantity;
-    private int maxQuantity;
+public class TourDayManagerCreateRequestDTO {
+    private String title;
+    private Long locationId;
+    private List<Long> serviceIds;
+    private String description;
 }

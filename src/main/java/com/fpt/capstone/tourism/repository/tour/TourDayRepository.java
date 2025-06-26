@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface TourDayRepository extends JpaRepository<TourDay, Long> {
     List<TourDay> findByTourIdOrderByDayNumberAsc(Long tourId);
+
+
 }
