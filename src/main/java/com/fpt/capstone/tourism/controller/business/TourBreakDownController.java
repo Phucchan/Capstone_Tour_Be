@@ -2,8 +2,6 @@ package com.fpt.capstone.tourism.controller.business;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 
-import com.fpt.capstone.tourism.dto.general.PagingDTO;
-import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourDayManagerCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxManagerCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxManagerDTO;
@@ -20,26 +18,23 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/business/")
-public class TourManagementController {
+public class TourBreakDownController {
 
     @Autowired
     private final TourManagementService tourManagementService;
 
-    // danh sách tour
-    // postman http://localhost:8080/v1/business/tours?page=1&size=6
-    @GetMapping("/tours")
-    public ResponseEntity<GeneralResponse<PagingDTO<TourResponseManagerDTO>>> getListtours(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(tourManagementService.getListTours(page, size));
+    // lấy ra danh sách dịch vụ của tour
+    @GetMapping("/tours/{id}/services")
+    public ResponseEntity<GeneralResponse<List<ServiceBreakdownDTO>>> getTourServices(@PathVariable Long id) {
+        return ResponseEntity.ok(tourManagementService.getServiceBreakdown(id));
     }
 
-
-    // thay đổi trạng thái tour
-    // postman http://localhost:8080/v1/business/tours/1/status
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<GeneralResponse<Object>> changeStatus(@PathVariable Long id, @RequestBody ChangeStatusDTO changeStatusDTO) {
-        return ResponseEntity.ok(tourManagementService.changeStatus(id, changeStatusDTO));
+    // Tạo cấu hình số lượng khách cho tour
+    // postman http://localhost:8080/v1/business/tours/1/pax
+    @PostMapping("/tours/{id}/pax")
+    public ResponseEntity<GeneralResponse<TourPaxManagerDTO>> createTourPax(@PathVariable Long id,
+                                                                            @RequestBody TourPaxManagerCreateRequestDTO requestDTO) {
+        return ResponseEntity.ok(tourManagementService.createTourPax(id, requestDTO));
     }
 
 }
