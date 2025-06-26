@@ -6,10 +6,7 @@ import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
 import com.fpt.capstone.tourism.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,5 +22,9 @@ public class UserController {
         return ResponseEntity.ok(userService.findFriends(userId));
     }
 
+    @GetMapping("/info")
+    public ResponseEntity<GeneralResponse<UserBasicDTO>> getUserBasic(@RequestParam String username) {
+        return ResponseEntity.ok(userService.getUserBasic(username));
+    }
 
 }
