@@ -6,6 +6,7 @@ import com.fpt.capstone.tourism.dto.common.UserDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.RegisterRequestDTO;
 import com.fpt.capstone.tourism.dto.response.UserInfoResponseDTO;
+import com.fpt.capstone.tourism.mapper.UserMapper;
 import com.fpt.capstone.tourism.model.enums.RoleName;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.JwtHelper;
@@ -42,6 +43,7 @@ public class AuthServiceImpl implements AuthService {
     private final EmailConfirmationService emailConfirmationService;
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
+    private final UserMapper userMapper;
 
     @Override
     public GeneralResponse<TokenDTO> login(UserDTO userDTO) {
@@ -64,7 +66,7 @@ public class AuthServiceImpl implements AuthService {
             }
             String token = jwtHelper.generateToken(user);
             TokenDTO tokenDTO = TokenDTO.builder()
-                    .username(user.getUsername())
+                    .user(userMapper.toUserBasicDTO(user))
                     .token(token)
                     .expirationTime("24h")
                     .build();

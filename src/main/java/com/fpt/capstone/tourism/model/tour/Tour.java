@@ -20,14 +20,17 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true, exclude = {"departLocation", "destinationLocation", "createdBy", "tourTheme"})
-@ToString(exclude = {"departLocation", "destinationLocation", "createdBy", "tourTheme"})
+@EqualsAndHashCode(callSuper = true, exclude = {"departLocation", "createdBy", "tourTheme"})
+@ToString(exclude = {"departLocation", "createdBy", "tourTheme"})
 public class Tour extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "tour_id")
     private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String code; // Mã tour, có thể là duy nhất
 
     @Column(nullable = false)
     private String name;
