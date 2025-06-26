@@ -30,8 +30,9 @@ public class TourManagementController {
     @GetMapping("/tours")
     public ResponseEntity<GeneralResponse<PagingDTO<TourResponseManagerDTO>>> getListtours(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(tourManagementService.getListTours(page, size));
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword) {
+        return ResponseEntity.ok(tourManagementService.getListTours(page, size, keyword));
     }
 
 

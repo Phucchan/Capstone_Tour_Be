@@ -72,18 +72,5 @@ public class TourDetailManagementController {
                                                                  @PathVariable Long dayId) {
         return ResponseEntity.ok(tourManagementService.deleteTourDay(tourId, dayId));
     }
-    // lấy ra danh sách dịch vụ của tour
-    @GetMapping("/tours/{id}/services")
-    public ResponseEntity<GeneralResponse<List<ServiceBreakdownDTO>>> getTourServices(@PathVariable Long id) {
-        return ResponseEntity.ok(tourManagementService.getServiceBreakdown(id));
-    }
-
-    // Tạo cấu hình số lượng khách cho tour
-    // postman http://localhost:8080/v1/business/tours/1/pax
-    @PostMapping("/tours/{id}/pax")
-    public ResponseEntity<GeneralResponse<TourPaxManagerDTO>> createTourPax(@PathVariable Long id,
-                                                                            @RequestBody TourPaxManagerCreateRequestDTO requestDTO) {
-        return ResponseEntity.ok(tourManagementService.createTourPax(id, requestDTO));
-    }
 
 }

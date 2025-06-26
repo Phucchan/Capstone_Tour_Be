@@ -24,6 +24,7 @@ public class TourBreakDownController {
     private final TourManagementService tourManagementService;
 
     // lấy ra danh sách dịch vụ của tour
+    // postman http://localhost:8080/v1/business/tours/1/services
     @GetMapping("/tours/{id}/services")
     public ResponseEntity<GeneralResponse<List<ServiceBreakdownDTO>>> getTourServices(@PathVariable Long id) {
         return ResponseEntity.ok(tourManagementService.getServiceBreakdown(id));

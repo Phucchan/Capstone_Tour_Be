@@ -94,10 +94,15 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public GeneralResponse<PagingDTO<LocationDTO>> getListLocation(int page, int size) {
+    public GeneralResponse<PagingDTO<LocationDTO>> getListLocation(int page, int size, String keyword) {
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
-            Page<Location> locationPage = locationRepository.findAll(pageable);
+            Page<Location> locationPage;
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                locationPage = locationRepository.findByNameContainingIgnoreCase(keyword.trim(), pageable);
+            } else {
+                locationPage = locationRepository.findAll(pageable);
+            }
             return buildPagedResponse(locationPage);
         } catch (BusinessException be) {
             throw be;

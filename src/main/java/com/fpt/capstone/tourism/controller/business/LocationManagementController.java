@@ -23,8 +23,9 @@ public class LocationManagementController {
     //postman http://localhost:8080/v1/business/locations?page=0&size=10
     public ResponseEntity<GeneralResponse<PagingDTO<LocationDTO>>> getLocations(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(locationService.getListLocation(page, size));
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword) {
+        return ResponseEntity.ok(locationService.getListLocation(page, size, keyword));
     }
 
     @PostMapping("/locations")
