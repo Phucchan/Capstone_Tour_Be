@@ -34,4 +34,10 @@ public interface TourManagementService {
     GeneralResponse<List<ServiceBreakdownDTO>> getServiceBreakdown(Long tourId);
 
     GeneralResponse<TourPaxManagerDTO> createTourPax(Long tourId, TourPaxManagerCreateRequestDTO requestDTO);
+
+    GeneralResponse<TourPaxManagerDTO> getTourPax(Long tourId, Long paxId);
+
+    GeneralResponse<TourPaxManagerDTO> updateTourPax(Long tourId, Long paxId, TourPaxManagerCreateRequestDTO requestDTO);
+
+    GeneralResponse<String> deleteTourPax(Long tourId, Long paxId);
 }
