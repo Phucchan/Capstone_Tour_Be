@@ -52,7 +52,7 @@ public class Tour extends BaseEntity {
     @JoinColumn(name = "tour_theme_id")
     private TourTheme tourTheme; // Consider using Enum if validation needed
 
-    @Lob
+    @Column(name = "description", columnDefinition = "text")
     private String description;
 
     @Column(name = "duration_days", nullable = false)
