@@ -15,6 +15,7 @@ import com.fpt.capstone.tourism.mapper.tourManager.TourDetailManagerMapper;
 import com.fpt.capstone.tourism.mapper.tourManager.TourManagementMapper;
 import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
+import com.fpt.capstone.tourism.model.partner.PartnerService;
 import com.fpt.capstone.tourism.model.tour.Tour;
 import com.fpt.capstone.tourism.model.tour.TourDay;
 import com.fpt.capstone.tourism.model.tour.TourPax;
@@ -250,6 +251,84 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
 
         return GeneralResponse.of(results);
     }
+
+    @Override
+    public GeneralResponse<TourDayManagerDTO> addServiceToTourDay(Long tourId, Long dayId, Long serviceId) {
+        TourDay day = tourDayRepository.findById(dayId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.TOUR_DAY_NOT_FOUND));
+
+        if (!day.getTour().getId().equals(tourId)) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.TOUR_DAY_NOT_BELONG);
+        }
+
+        PartnerService service = partnerServiceRepository.findById(serviceId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.SERVICE_NOT_FOUND));
+
+        if (day.getServices().contains(service)) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.SERVICE_ALREADY_EXISTS);
+        }
+
+        day.getServices().add(service);
+        TourDay saved = tourDayRepository.save(day);
+
+        TourDayManagerDTO dto = tourDayManagerMapper.toDTO(saved);
+        return GeneralResponse.of(dto, Constants.Message.TOUR_DAY_SERVICE_ADDED_SUCCESS);
+    }
+
+    @Override
+    public GeneralResponse<TourDayManagerDTO> updateServiceInTourDay(Long tourId, Long dayId, Long serviceId, Long newServiceId) {
+        TourDay day = tourDayRepository.findById(dayId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.TOUR_DAY_NOT_FOUND));
+
+        if (!day.getTour().getId().equals(tourId)) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.TOUR_DAY_NOT_BELONG);
+        }
+
+        PartnerService oldService = partnerServiceRepository.findById(serviceId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.SERVICE_NOT_FOUND));
+
+        if (!day.getServices().contains(oldService)) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.SERVICE_NOT_ASSOCIATED);
+        }
+
+        PartnerService newService = partnerServiceRepository.findById(newServiceId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.SERVICE_NOT_FOUND));
+
+        if (day.getServices().contains(newService) && !newService.getId().equals(oldService.getId())) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.SERVICE_ALREADY_EXISTS);
+        }
+
+        day.getServices().remove(oldService);
+        day.getServices().add(newService);
+        TourDay saved = tourDayRepository.save(day);
+
+        TourDayManagerDTO dto = tourDayManagerMapper.toDTO(saved);
+        return GeneralResponse.of(dto, Constants.Message.TOUR_DAY_SERVICE_UPDATED_SUCCESS);
+    }
+
+    @Override
+    public GeneralResponse<TourDayManagerDTO> removeServiceFromTourDay(Long tourId, Long dayId, Long serviceId) {
+        TourDay day = tourDayRepository.findById(dayId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.TOUR_DAY_NOT_FOUND));
+
+        if (!day.getTour().getId().equals(tourId)) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.TOUR_DAY_NOT_BELONG);
+        }
+
+        PartnerService service = partnerServiceRepository.findById(serviceId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.SERVICE_NOT_FOUND));
+
+        if (!day.getServices().contains(service)) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.SERVICE_NOT_ASSOCIATED);
+        }
+
+        day.getServices().remove(service);
+        TourDay saved = tourDayRepository.save(day);
+
+        TourDayManagerDTO dto = tourDayManagerMapper.toDTO(saved);
+        return GeneralResponse.of(dto, Constants.Message.TOUR_DAY_SERVICE_REMOVED_SUCCESS);
+    }
+
 
 
 

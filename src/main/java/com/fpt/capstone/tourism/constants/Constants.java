@@ -246,6 +246,9 @@ public class Constants {
         // Tour Day Related Messages
         //===================================================
         // Tour day management
+        public static final String TOUR_DAY_SERVICE_ADDED_SUCCESS = "Thêm dịch vụ vào ngày tour thành công";
+        public static final String TOUR_DAY_SERVICE_UPDATED_SUCCESS = "Cập nhật dịch vụ của ngày tour thành công";
+        public static final String TOUR_DAY_SERVICE_REMOVED_SUCCESS = "Xóa dịch vụ khỏi ngày tour thành công";
         public static final String TOUR_DAY_NOT_FOUND = "Không tìm thấy ngày tour";
         public static final String NO_TOUR_DAY_FOUND = "Không tìm thấy ngày tour nào cho tour này";
         public static final String NO_TOUR_DAYS_FOUND = "Không tìm thấy ngày tour nào";
