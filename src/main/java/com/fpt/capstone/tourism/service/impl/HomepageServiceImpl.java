@@ -110,11 +110,14 @@ public class HomepageServiceImpl implements HomepageService {
         Double startingPrice = tourPaxRepository.findStartingPriceByTourId(tour.getId());
 
         // Lấy lịch trình gần nhất
-        Optional<TourSchedule> nextScheduleOpt = tourScheduleRepository.findFirstByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(
+        List<TourSchedule> futureSchedules  = tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(
                 tour.getId(),
                 LocalDateTime.now()
         );
-        LocalDateTime nextDepartureDate = nextScheduleOpt.map(TourSchedule::getDepartureDate).orElse(null);
+
+        List<LocalDateTime> departureDates = futureSchedules.stream()
+                .map(TourSchedule::getDepartureDate)
+                .collect(Collectors.toList());
 
         // Xây dựng DTO
         return TourSummaryDTO.builder()
@@ -126,7 +129,10 @@ public class HomepageServiceImpl implements HomepageService {
                 .locationName(tour.getDepartLocation() != null ? tour.getDepartLocation().getName() : null)
                 .averageRating(averageRating)
                 .startingPrice(startingPrice)
-                .nextDepartureDate(nextDepartureDate)
+                .code(tour.getCode())
+                .tourTransport(tour.getTourTransport() != null ? tour.getTourTransport().name() : null)
+                .departureDates(departureDates)
                 .build();
+
     }
 }

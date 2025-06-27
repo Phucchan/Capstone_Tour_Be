@@ -18,13 +18,23 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
      */
     List<TourSchedule> findByTourIdAndDepartureDateAfter(Long tourId, LocalDateTime now);
 
+//    /**
+//     * Finds the single next available schedule for a tour.
+//     * It looks for schedules with a departure date after the current time and
+//     * orders them by date to get the soonest one.
+//     * @param tourId The ID of the tour.
+//     * @param now The current date and time.
+//     * @return An Optional containing the next TourSchedule, or empty if none found.
+//     */
+//    Optional<TourSchedule> findFirstByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(Long tourId, LocalDateTime now);
+
     /**
-     * Finds the single next available schedule for a tour.
-     * It looks for schedules with a departure date after the current time and
-     * orders them by date to get the soonest one.
+     * CẬP NHẬT/THAY THẾ:
+     * Finds ALL upcoming schedules for a given tour, ordered by date.
      * @param tourId The ID of the tour.
      * @param now The current date and time.
-     * @return An Optional containing the next TourSchedule, or empty if none found.
+     * @return A List of all upcoming TourSchedule entities.
      */
-    Optional<TourSchedule> findFirstByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(Long tourId, LocalDateTime now);
+    List<TourSchedule> findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(Long tourId, LocalDateTime now);
+
 }

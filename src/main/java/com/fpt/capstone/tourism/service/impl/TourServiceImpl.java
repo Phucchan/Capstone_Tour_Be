@@ -98,27 +98,33 @@ public class TourServiceImpl implements TourService {
     private PagingDTO<TourSummaryDTO> mapTourPageToPagingDTO(Page<Tour> tourPage) {
         List<TourSummaryDTO> tourSummaries = tourPage.getContent().stream()
                 .map(tour -> {
-                    // Map các thông tin cơ bản
-                    TourSummaryDTO dto = tourMapper.tourToTourSummaryDTO(tour);
-
                     // Lấy các thông tin phụ
                     Double avgRating = feedbackRepository.findAverageRatingByTourId(tour.getId());
                     Double startingPrice = tourPaxRepository.findStartingPriceByTourId(tour.getId());
 
-                    // LOGIC MỚI: Lấy lịch trình gần nhất
-                    Optional<TourSchedule> nextScheduleOpt = tourScheduleRepository
-                            .findFirstByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(
-                                    tour.getId(),
-                                    LocalDateTime.now()
-                            );
-                    LocalDateTime nextDepartureDate = nextScheduleOpt.map(TourSchedule::getDepartureDate).orElse(null);
+                    // Lấy danh sách các lịch trình trong tương lai
+                    List<TourSchedule> futureSchedules = tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(
+                            tour.getId(),
+                            LocalDateTime.now()
+                    );
+                    List<LocalDateTime> departureDates = futureSchedules.stream()
+                            .map(TourSchedule::getDepartureDate)
+                            .collect(Collectors.toList());
 
-                    // Gán các thông tin đã lấy được vào DTO
-                    dto.setAverageRating(avgRating);
-                    dto.setStartingPrice(startingPrice);
-                    dto.setNextDepartureDate(nextDepartureDate); // Gán thông tin mới
-
-                    return dto;
+                    // Xây dựng DTO với các trường đã được cập nhật
+                    return TourSummaryDTO.builder()
+                            .id(tour.getId())
+                            .name(tour.getName())
+                            .thumbnailUrl(tour.getThumbnailUrl())
+                            .durationDays(tour.getDurationDays())
+                            .region(tour.getRegion() != null ? tour.getRegion().name() : null)
+                            .locationName(tour.getDepartLocation() != null ? tour.getDepartLocation().getName() : null)
+                            .averageRating(avgRating)
+                            .startingPrice(startingPrice)
+                            .code(tour.getCode())
+                            .tourTransport(tour.getTourTransport() != null ? tour.getTourTransport().name() : null)
+                            .departureDates(departureDates)
+                            .build();
                 })
                 .collect(Collectors.toList());
 

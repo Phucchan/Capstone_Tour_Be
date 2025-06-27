@@ -14,11 +14,14 @@ import java.util.List;
 @AllArgsConstructor
 public class TourDetailDTO {
     private Long id;
+    private String code;
     private String name;
+    private String tourTransport;
     private String description;
     private String thumbnailUrl;
     private int durationDays;
     private String region;
+    private String departLocationName;
     private String tourThemeName;
     private Double averageRating;
     private List<TourDayDetailDTO> days;

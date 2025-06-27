@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.dto.response.homepage;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -47,5 +48,11 @@ public class TourSummaryDTO {
      */
     private Double startingPrice;
 
-    private LocalDateTime nextDepartureDate;
+    private String code;
+
+
+    private String tourTransport;
+
+
+    private List<LocalDateTime> departureDates;
 }
