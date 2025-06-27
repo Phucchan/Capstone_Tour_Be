@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
+import com.fpt.capstone.tourism.dto.response.tour.TourScheduleDTO;
 import com.fpt.capstone.tourism.mapper.TourMapper;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
@@ -35,6 +36,7 @@ public class TourServiceImpl implements TourService {
     private final TourDayRepository tourDayRepository;
     private final TourScheduleRepository tourScheduleRepository;
     private final TourPaxRepository tourPaxRepository;
+    private final BookingRepository bookingRepository;
     private final TourMapper tourMapper;
     private final TourDetailMapper tourDetailMapper;
 
@@ -69,7 +71,7 @@ public class TourServiceImpl implements TourService {
         // 2. Lấy các thông tin liên quan
         List<TourDay> tourDays = tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId);
         List<Feedback> feedbackList = feedbackRepository.findByBooking_TourSchedule_Tour_Id(tourId);
-        List<TourSchedule> schedules = tourScheduleRepository.findByTourIdAndDepartureDateAfter(tourId, LocalDateTime.now());
+        List<TourSchedule> schedules = tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(tourId, LocalDateTime.now());
         Double averageRating = feedbackRepository.findAverageRatingByTourId(tourId);
 
         // 3. Sử dụng mapper để chuyển đổi Tour -> TourDetailDTO
@@ -83,18 +85,28 @@ public class TourServiceImpl implements TourService {
         tourDetailDTO.setFeedback(
                 feedbackList.stream().map(tourDetailMapper::feedbackToFeedbackDTO).collect(Collectors.toList())
         );
-        tourDetailDTO.setSchedules(
-                schedules.stream().map(tourDetailMapper::tourScheduleToTourScheduleDTO).collect(Collectors.toList())
-        );
+        List<TourScheduleDTO> scheduleDTOs = schedules.stream().map(schedule -> {
+            // Map các trường cơ bản từ schedule -> scheduleDTO
+            TourScheduleDTO dto = tourDetailMapper.tourScheduleToTourScheduleDTO(schedule);
+
+            // Tính toán số chỗ trống
+            int totalSlots = schedule.getTourPax().getMaxQuantity();
+            int bookedSlots = bookingRepository.sumGuestsByTourScheduleId(schedule.getId());
+            int availableSeats = totalSlots - bookedSlots;
+
+            // Gán số chỗ trống vào DTO
+            dto.setAvailableSeats(availableSeats);
+
+            return dto;
+        }).collect(Collectors.toList());
+
+        tourDetailDTO.setSchedules(scheduleDTOs);
 
         return tourDetailDTO;
     }
 
 
-    /**
-     * PHƯƠNG THỨC HELPER ĐƯỢC CẬP NHẬT
-     * Thêm logic lấy ngày khởi hành gần nhất vào đây.
-     */
+    // Phương thức helper để map danh sách tour tóm tắt
     private PagingDTO<TourSummaryDTO> mapTourPageToPagingDTO(Page<Tour> tourPage) {
         List<TourSummaryDTO> tourSummaries = tourPage.getContent().stream()
                 .map(tour -> {

@@ -25,6 +25,7 @@ public interface TourDetailMapper {
 
     @Mapping(source = "tourTransport", target = "tourTransport", qualifiedByName = "transportToString")
 
+    @Mapping(source = "departLocation.name", target = "departLocationName")
     TourDetailDTO tourToTourDetailDTO(Tour tour);
 
 
