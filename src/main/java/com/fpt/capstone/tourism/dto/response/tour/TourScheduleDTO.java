@@ -18,4 +18,5 @@ public class TourScheduleDTO {
     private LocalDateTime endDate;
     private double price;
     private int availableSeats;
+    private double extraHotelCost;
 }
