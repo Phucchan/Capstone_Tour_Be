@@ -35,6 +35,22 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     @Query("SELECT f.sender FROM Friendship f WHERE f.receiver.id = :userId AND f.status = 'ACCEPTED'")
     List<User> findFriendsAsReceiver(@Param("userId") Long userId);
 
+    /**
+     * Thống kê số lượng người dùng mới đăng ký theo từng tháng của một năm.
+     *
+     * @param year năm cần thống kê
+     * @return Danh sách Object[] gồm: year, month, userCount
+     */
+    @Query(value = "SELECT EXTRACT(YEAR FROM u.created_at) AS yr, " +
+            "EXTRACT(MONTH FROM u.created_at) AS mon, " +
+            "COUNT(*) AS user_count " +
+            "FROM users u " +
+            "WHERE u.is_deleted = FALSE " +
+            "AND EXTRACT(YEAR FROM u.created_at) = :year " +
+            "GROUP BY yr, mon " +
+            "ORDER BY mon",
+            nativeQuery = true)
+    List<Object[]> countNewUsersByMonth(@Param("year") int year);
 
 
 }
