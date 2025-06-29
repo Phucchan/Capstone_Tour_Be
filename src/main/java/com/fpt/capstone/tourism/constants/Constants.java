@@ -376,6 +376,10 @@ public class Constants {
         //===================================================
         // Wishlist Related Messages
         //===================================================
+        public static final String CREATE_WISHLIST_SUCCESS = "Thêm wishlist thành công";
+        public static final String CREATE_WISHLIST_FAIL = "Thêm wishlist thất bại";
+        public static final String WISHLIST_LOAD_SUCCESS = "Lấy danh sách yêu thích thành công";
+        public static final String WISHLIST_LOAD_FAIL = "Lấy danh sách yêu thích thất bại";
         public static final String WISHLIST_NOT_FOUND = "Không tìm thấy danh sách yêu thích";
         public static final String NO_PERMISSION_TO_DELETE = "Bạn không có quyền xóa dữ liệu này";
         public static final String DELETE_WISHLIST_SUCCESS = "Xóa wishlist thành công";
