@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.mapper;
 import com.fpt.capstone.tourism.dto.common.UserDTO;
 import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
 import com.fpt.capstone.tourism.dto.response.UserFullInformationResponseDTO;
+import com.fpt.capstone.tourism.dto.response.UserProfileResponseDTO;
 import com.fpt.capstone.tourism.dto.response.UserResponseDTO;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.UserRole;
@@ -37,4 +38,9 @@ public interface UserMapper {
     }
 
     UserResponseDTO toResponseDTO(User user);
+
+
+    @Mapping(target = "avatarImg", source = "avatarImage")
+    @Mapping(target = "createAt", expression = "java(user.getCreatedAt() != null ? user.getCreatedAt().toString() : null)")
+    UserProfileResponseDTO toUserProfileResponseDTO(User user);
 }

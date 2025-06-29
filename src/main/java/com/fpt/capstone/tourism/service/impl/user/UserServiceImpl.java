@@ -1,8 +1,12 @@
 package com.fpt.capstone.tourism.service.impl.user;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.request.ChangePasswordRequestDTO;
+import com.fpt.capstone.tourism.dto.request.UpdateProfileRequestDTO;
 import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
+import com.fpt.capstone.tourism.dto.response.UserProfileResponseDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.UserMapper;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.repository.UserRepository;
@@ -15,6 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformation.*;
+import static com.fpt.capstone.tourism.constants.Constants.Message.PASSWORDS_DO_NOT_MATCH_MESSAGE;
+import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformation.PASSWORD_INVALID;
+import static com.fpt.capstone.tourism.constants.Constants.Message.INVALID_OLD_PASSWORD_MESSAGE;
+import static com.fpt.capstone.tourism.constants.Constants.Message.EMPTY_PASSWORD;
+import static com.fpt.capstone.tourism.constants.Constants.Regex.REGEX_PASSWORD;
 
 
 @Service
@@ -22,6 +31,7 @@ import static com.fpt.capstone.tourism.constants.Constants.UserExceptionInformat
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
 
 
@@ -83,5 +93,52 @@ public class UserServiceImpl implements UserService {
 
         return GeneralResponse.of(userMapper.toUserBasicDTO(user));
 
+    }
+
+    @Override
+    public GeneralResponse<UserProfileResponseDTO> getUserProfile(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND_MESSAGE));
+        return GeneralResponse.of(userMapper.toUserProfileResponseDTO(user));
+    }
+
+    @Override
+    public GeneralResponse<UserProfileResponseDTO> updateUserProfile(String username, UpdateProfileRequestDTO requestDTO) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND_MESSAGE));
+
+        if (requestDTO.getFullName() != null) user.setFullName(requestDTO.getFullName());
+        if (requestDTO.getGender() != null) user.setGender(requestDTO.getGender());
+        if (requestDTO.getPhone() != null) user.setPhone(requestDTO.getPhone());
+        if (requestDTO.getAddress() != null) user.setAddress(requestDTO.getAddress());
+        if (requestDTO.getAvatarImg() != null) user.setAvatarImage(requestDTO.getAvatarImg());
+
+        User saved = userRepository.save(user);
+        return GeneralResponse.of(userMapper.toUserProfileResponseDTO(saved));
+    }
+    @Override
+    public GeneralResponse<String> changePassword(String username, ChangePasswordRequestDTO requestDTO) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND_MESSAGE));
+
+        if (!passwordEncoder.matches(requestDTO.getCurrentPassword(), user.getPassword())) {
+            throw BusinessException.of(INVALID_OLD_PASSWORD_MESSAGE);
+        }
+
+        if (requestDTO.getNewPassword() == null || requestDTO.getRePassword() == null) {
+            throw BusinessException.of(EMPTY_PASSWORD);
+        }
+
+        if (!requestDTO.getNewPassword().equals(requestDTO.getRePassword())) {
+            throw BusinessException.of(PASSWORDS_DO_NOT_MATCH_MESSAGE);
+        }
+
+        // validate new password pattern
+        Validator.validateRegex(requestDTO.getNewPassword(), REGEX_PASSWORD, PASSWORD_INVALID);
+
+        user.setPassword(passwordEncoder.encode(requestDTO.getNewPassword()));
+        userRepository.save(user);
+
+        return GeneralResponse.of("Đổi mật khẩu thành công");
     }
 }
