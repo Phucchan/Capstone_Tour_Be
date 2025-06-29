@@ -9,10 +9,12 @@ import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.model.tour.Tour;
 import com.fpt.capstone.tourism.repository.tour.*;
 import com.fpt.capstone.tourism.service.TourService;
+import com.fpt.capstone.tourism.specifications.TourSpecification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import com.fpt.capstone.tourism.dto.response.tour.TourDetailDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
@@ -22,6 +24,7 @@ import com.fpt.capstone.tourism.model.tour.TourDay;
 import com.fpt.capstone.tourism.model.tour.TourSchedule;
 import org.springframework.http.HttpStatus;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
@@ -40,7 +43,21 @@ public class TourServiceImpl implements TourService {
     private final TourMapper tourMapper;
     private final TourDetailMapper tourDetailMapper;
 
+    @Override
+    public PagingDTO<TourSummaryDTO> searchTours(Double priceMin, Double priceMax, Long departId, Long destId, LocalDate date, Pageable pageable) {
+        // 1. Kết hợp các Specification lại với nhau
+        Specification<Tour> spec = Specification
+                .where(TourSpecification.hasPriceInRange(priceMin, priceMax))
+                .and(TourSpecification.hasDepartureLocation(departId))
+                .and(TourSpecification.hasDestination(destId))
+                .and(TourSpecification.hasDepartureDate(date));
 
+        // 2. Gọi phương thức findAll mới của repository với Specification
+        Page<Tour> tourPage = tourRepository.findAll(spec, pageable);
+
+        // 3. Tái sử dụng phương thức map DTO đã có và trả về kết quả
+        return mapTourPageToPagingDTO(tourPage);
+    }
     @Override
     public PagingDTO<TourSummaryDTO> getFixedTours(Pageable pageable) {
         Page<Tour> tourPage = tourRepository.findByTourTypeAndTourStatus(

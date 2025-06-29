@@ -15,6 +15,8 @@ import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "tours")
 @Data
@@ -73,5 +75,15 @@ public class Tour extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
+
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TourDay> tourDays;
+
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TourSchedule> schedules;
+
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TourPax> tourPaxes;
+
 }
 
