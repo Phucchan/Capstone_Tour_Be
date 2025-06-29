@@ -5,6 +5,8 @@ import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
 import org.springframework.data.domain.Pageable;
 import com.fpt.capstone.tourism.dto.response.tour.TourDetailDTO;
 
+import java.time.LocalDate;
+
 public interface TourService {
     /**
      * Retrieves a paginated list of fixed, published tours.
@@ -16,4 +18,6 @@ public interface TourService {
     PagingDTO<TourSummaryDTO> getToursByLocation(Long locationId, Pageable pageable);
 
     TourDetailDTO getTourDetailById(Long tourId);
+
+    PagingDTO<TourSummaryDTO> searchTours(Double priceMin, Double priceMax, Long departId, Long destId, LocalDate date, Pageable pageable);
 }
