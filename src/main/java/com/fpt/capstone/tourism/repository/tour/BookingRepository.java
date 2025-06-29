@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.repository.tour;
 
 import com.fpt.capstone.tourism.model.tour.Booking;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -59,4 +60,16 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "ORDER BY mon",
             nativeQuery = true)
     List<Object[]> findMonthlyRevenueByTour(@Param("tourId") Long tourId, @Param("year") int year);
+
+
+    List<Booking> findByUser_UsernameOrderByCreatedAtDesc(String username);
+
+    /**
+     * Find bookings of a user with pagination and sorting support.
+     *
+     * @param username username of the owner
+     * @param pageable pagination information
+     * @return page of bookings
+     */
+    Page<Booking> findByUser_Username(String username, Pageable pageable);
 }

@@ -1,17 +1,27 @@
 package com.fpt.capstone.tourism.service.impl.user;
 
+import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangePasswordRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateProfileRequestDTO;
+import com.fpt.capstone.tourism.dto.response.BookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
 import com.fpt.capstone.tourism.dto.response.UserProfileResponseDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.UserMapper;
 import com.fpt.capstone.tourism.model.User;
+import com.fpt.capstone.tourism.model.tour.Booking;
 import com.fpt.capstone.tourism.repository.UserRepository;
+import com.fpt.capstone.tourism.repository.tour.BookingRepository;
 import com.fpt.capstone.tourism.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -32,11 +42,11 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-
+    private final BookingRepository bookingRepository;
 
 
     @Override
-    public User     findById(Long id) {
+    public User findById(Long id) {
         return userRepository.findUserById(id).orElseThrow();
     }
 
@@ -45,15 +55,12 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByUsername(username).orElseThrow();
     }
 
-
-
-
     @Override
     public User saveUser(User user) {
         try {
             return userRepository.save(user);
         } catch (Exception e) {
-            throw BusinessException.of(FAIL_TO_SAVE_USER_MESSAGE,e);
+            throw BusinessException.of(FAIL_TO_SAVE_USER_MESSAGE, e);
         }
     }
 
@@ -116,6 +123,7 @@ public class UserServiceImpl implements UserService {
         User saved = userRepository.save(user);
         return GeneralResponse.of(userMapper.toUserProfileResponseDTO(saved));
     }
+
     @Override
     public GeneralResponse<String> changePassword(String username, ChangePasswordRequestDTO requestDTO) {
         User user = userRepository.findByUsername(username)
@@ -140,5 +148,35 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         return GeneralResponse.of("Đổi mật khẩu thành công");
+    }
+
+    @Override
+    public GeneralResponse<PagingDTO<BookingSummaryDTO>> getUserBookings(String username, Pageable pageable) {
+        userRepository.findByUsername(username)
+                .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND_MESSAGE));
+
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                Sort.by(Sort.Direction.ASC, "bookingStatus"));
+
+        Page<Booking> bookings = bookingRepository.findByUser_Username(username, sortedPageable);
+
+        List<BookingSummaryDTO> dtos = bookings.getContent().stream()
+                .map(b -> BookingSummaryDTO.builder()
+                        .bookingCode(b.getBookingCode())
+                        .tourName(b.getTourSchedule().getTour().getName())
+                        .status(b.getBookingStatus() != null ? b.getBookingStatus().name() : null)
+                        .totalAmount(b.getTotalAmount())
+                        .createdAt(b.getCreatedAt())
+                        .build())
+                .toList();
+
+        PagingDTO<BookingSummaryDTO> pagingDTO = PagingDTO.<BookingSummaryDTO>builder()
+                .page(bookings.getNumber())
+                .size(bookings.getSize())
+                .total(bookings.getTotalElements())
+                .items(dtos)
+                .build();
+
+        return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.GET_BOOKING_LIST_SUCCESS, pagingDTO);
     }
 }

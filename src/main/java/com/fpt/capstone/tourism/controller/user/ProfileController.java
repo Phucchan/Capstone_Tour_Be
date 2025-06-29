@@ -1,17 +1,18 @@
 package com.fpt.capstone.tourism.controller.user;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangePasswordRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateProfileRequestDTO;
+import com.fpt.capstone.tourism.dto.response.BookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.UserProfileResponseDTO;
 import com.fpt.capstone.tourism.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 
@@ -42,5 +43,18 @@ public class ProfileController {
             Principal principal) {
         String username = principal.getName();
         return ResponseEntity.ok(userService.changePassword(username, requestDTO));
+    }
+    //postman http://localhost:8080/v1/users/bookings?page=0&size=10&sortField=bookingStatus&sortDirection=asc
+    @GetMapping("/bookings")
+    public ResponseEntity<GeneralResponse<PagingDTO<BookingSummaryDTO>>> getBookings(
+            Principal principal,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "bookingStatus") String sortField,
+            @RequestParam(defaultValue = "asc") String sortDirection) {
+        String username = principal.getName();
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+        return ResponseEntity.ok(userService.getUserBookings(username, pageable));
     }
 }
