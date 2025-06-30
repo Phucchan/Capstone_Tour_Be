@@ -1,6 +1,3 @@
-# Thư mục build
-target/
-
 # Hệ thống / IDE
 .idea/
 .vscode/
@@ -20,7 +17,3 @@ target/
 # Hệ thống tạm
 .DS_Store
 *.swp
-
-# CI/CD tạm
-*.jar
-*.war
