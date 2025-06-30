@@ -6,9 +6,7 @@ FROM eclipse-temurin:17-jre-alpine AS builder
 COPY ./target/*.jar ./app.jar
 
 # Extract layered JAR content
-RUN java -Djarmode=layertools -jar ./app.jar extract
-
-RUN find /app -type d
+RUN java -Djarmode=tools -jar app.jar extract --layers --launcher
 
 # 2. Stage: Final image
 FROM eclipse-temurin:17-jre-alpine
