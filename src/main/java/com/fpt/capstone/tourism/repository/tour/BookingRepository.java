@@ -13,23 +13,13 @@ import java.util.List;
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
-    /**
-     * Tính tổng số khách (người lớn + trẻ em) đã đặt cho một lịch trình cụ thể,
-     * chỉ tính các booking không bị hủy.
-     * @param scheduleId ID của TourSchedule.
-     * @return Tổng số khách đã đặt.
-     */
+
     @Query("SELECT COALESCE(SUM(b.adults + b.children), 0) FROM Booking b " +
             "WHERE b.tourSchedule.id = :scheduleId " +
             "AND b.bookingStatus <> com.fpt.capstone.tourism.model.enums.BookingStatus.CANCELLED")
     Integer sumGuestsByTourScheduleId(@Param("scheduleId") Long scheduleId);
 
-    /**
-     * Lấy danh sách các tour có doanh thu cao nhất.
-     *
-     * @param pageable Pageable để giới hạn số lượng kết quả.
-     * @return Danh sách kết quả dạng Object[] gồm: tourId, name, tourType, revenue.
-     */
+
     @Query(value = "SELECT t.tour_id AS tourId, t.name AS name, t.tour_type AS type, " +
             "SUM(b.total_amount) AS revenue " +
             "FROM bookings b " +
@@ -41,13 +31,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             nativeQuery = true)
     List<Object[]> findTopToursByRevenue(Pageable pageable);
 
-    /**
-     * Thống kê doanh thu theo tháng của một tour trong năm chỉ định.
-     *
-     * @param tourId ID của tour.
-     * @param year   Năm cần thống kê.
-     * @return Danh sách Object[] gồm: year, month, revenue.
-     */
     @Query(value = "SELECT EXTRACT(YEAR FROM b.created_at) AS yr, " +
             "EXTRACT(MONTH FROM b.created_at) AS mon, " +
             "SUM(b.total_amount) AS revenue " +
@@ -64,12 +47,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findByUser_UsernameOrderByCreatedAtDesc(String username);
 
-    /**
-     * Find bookings of a user with pagination and sorting support.
-     *
-     * @param username username of the owner
-     * @param pageable pagination information
-     * @return page of bookings
-     */
+
     Page<Booking> findByUser_Username(String username, Pageable pageable);
+
+
+    Page<Booking> findBySellerIsNullOrderByCreatedAtAsc(Pageable pageable);
+
+
+    Page<Booking> findBySeller_UsernameOrderByUpdatedAtDesc(String username, Pageable pageable);
 }
