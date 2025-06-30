@@ -35,6 +35,7 @@ public class SellerBookingController {
     }
 
     @GetMapping("/edited")
+    //sellerUsername=wangbinh
     public ResponseEntity<GeneralResponse<PagingDTO<SellerBookingSummaryDTO>>> getEditedTours(
             @RequestParam String sellerUsername,
             @RequestParam(defaultValue = "0") int page,
