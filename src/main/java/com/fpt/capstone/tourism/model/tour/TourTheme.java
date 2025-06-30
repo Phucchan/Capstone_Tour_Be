@@ -20,4 +20,10 @@ public class TourTheme  extends BaseEntity {
     private String name; // Name of the tour theme, e.g., "Adventure", "Cultural", etc.
     private String description; // Description of the tour theme
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tour_id")
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Tour tour; // The tour associated with this theme, if applicable
+
 }
