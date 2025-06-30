@@ -15,9 +15,11 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
+import org.springframework.stereotype.Component;
 
+@Component("TourDetailMapper")
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface TourDetailMapper {
+public interface    TourDetailMapper {
 
     @Mapping(source = "tourTheme.name", target = "tourThemeName")
 

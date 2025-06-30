@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.UserManagementRequestDTO;
+import com.fpt.capstone.tourism.dto.response.UserFullInformationResponseDTO;
 import com.fpt.capstone.tourism.dto.response.UserManagementDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +14,27 @@ import java.util.List;
 @Service
 public interface UserManagementService {
 
-    public GeneralResponse<PagingDTO<UserManagementDTO>> getListUsers(int page, int size);
+    GeneralResponse<PagingDTO<UserFullInformationResponseDTO>> getAllUsers(int page,
+                                                                           int size,
+                                                                           String keyword,
+                                                                           Boolean isDeleted,
+                                                                           String roleName,
+                                                                           String sortField,
+                                                                           String sortDirection);
+
+    GeneralResponse<PagingDTO<UserFullInformationResponseDTO>> getAllCustomers(int page,
+                                                                               int size,
+                                                                               String keyword,
+                                                                               Boolean isDeleted,
+                                                                               String sortField,
+                                                                               String sortDirection);
+
+    GeneralResponse<PagingDTO<UserFullInformationResponseDTO>> getAllStaff(int page,
+                                                                           int size,
+                                                                           String keyword,
+                                                                           Boolean isDeleted,
+                                                                           String sortField,
+                                                                           String sortDirection);
 
     GeneralResponse<UserManagementDTO> createUser(UserManagementRequestDTO requestDTO);
 

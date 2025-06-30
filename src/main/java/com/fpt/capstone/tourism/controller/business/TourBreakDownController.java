@@ -30,6 +30,7 @@ public class TourBreakDownController {
         return ResponseEntity.ok(tourManagementService.getServiceBreakdown(id));
     }
     // Thêm dịch vụ vào một ngày trong tour
+    //  postman http://localhost:8080/v1/business/tours/1/days/1/services/1
     @PostMapping("/tours/{tourId}/days/{dayId}/services/{serviceId}")
     public ResponseEntity<GeneralResponse<TourDayManagerDTO>> addServiceToTourDay(
             @PathVariable Long tourId,
