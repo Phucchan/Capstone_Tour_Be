@@ -1,0 +1,23 @@
+name: Spring CD Pipeline
+on:
+  push:
+    branches:
+      [main]
+  pull_request:
+    branches:
+      [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: didau
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_BE }}
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/tourism-be:latest
