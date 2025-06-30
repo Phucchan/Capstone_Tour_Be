@@ -32,4 +32,4 @@ jobs:
         run: mvn clean package -DskipTests
         
       - name: Build Docker image
-        run: docker build -t tourism-image:latest .
+        run: docker build -t tourism-be:latest .
