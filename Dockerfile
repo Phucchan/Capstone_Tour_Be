@@ -21,7 +21,7 @@ COPY --from=builder /app/application/ ./application/
 EXPOSE 8080
 
 # Spring Boot sẽ tìm đúng cấu trúc đã extract
-ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]
+ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
 
 
 
