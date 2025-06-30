@@ -3,8 +3,11 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 
+import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.UserFullInformationResponseDTO;
 import com.fpt.capstone.tourism.dto.response.UserManagementDTO;
 import com.fpt.capstone.tourism.dto.request.UserManagementRequestDTO;
+import com.fpt.capstone.tourism.mapper.UserMapper;
 import com.fpt.capstone.tourism.model.Role;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.UserRole;
@@ -13,11 +16,20 @@ import com.fpt.capstone.tourism.repository.UserRepository;
 import com.fpt.capstone.tourism.repository.UserRoleRepository;
 import com.fpt.capstone.tourism.service.UserManagementService;
 import com.fpt.capstone.tourism.service.UserService;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -38,40 +50,67 @@ public class UserManagementServiceImpl implements UserManagementService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private UserMapper userMapper;
+
+    public GeneralResponse<PagingDTO<UserFullInformationResponseDTO>> getAllUsers(int page,
+                                                                                  int size,
+                                                                                  String keyword,
+                                                                                  Boolean isDeleted,
+                                                                                  String roleName,
+                                                                                  String sortField,
+                                                                                  String sortDirection) {
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortField);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Specification<User> specification = buildSpecification(keyword, isDeleted, roleName, null);
+        Page<User> users = userRepository.findAll(specification, pageable);
+        List<UserFullInformationResponseDTO> dtos = users.getContent().stream()
+                .map(userMapper::toDTO)
+                .toList();
+
+        PagingDTO<UserFullInformationResponseDTO> pagingDTO = PagingDTO.<UserFullInformationResponseDTO>builder()
+                .page(users.getNumber())
+                .size(users.getSize())
+                .total(users.getTotalElements())
+                .items(dtos)
+                .build();
+
+        return GeneralResponse.of(pagingDTO);
+
+    }
     @Override
-    public GeneralResponse<List<UserManagementDTO>> getListUsers() {
-        List<User> users = userRepository.findAll();
-        if(users != null && !users.isEmpty()) {
-            List<UserManagementDTO> userManagementDTOs = users.stream()
-                    .map(user -> new UserManagementDTO(
-                            user.getId(),
-                            user.getUsername(),
-                            user.getEmail(),
-                            user.getFullName(),
-                            user.getGender(),
-                            user.getPhone(),
-                            user.getAddress(),
-                            user.getAvatarImage(),
-                            user.getUserRoles().stream()
-                                    .map(userRole -> userRole.getRole().getRoleName())
-                                    .toList(),
-                            user.getDeleted(),
-                            user.getCreatedAt(),
-                            user.getUpdatedAt()
+    public GeneralResponse<PagingDTO<UserFullInformationResponseDTO>> getAllCustomers(int page,
+                                                                                      int size,
+                                                                                      String keyword,
+                                                                                      Boolean isDeleted,
+                                                                                      String sortField,
+                                                                                      String sortDirection) {
+        return getAllUsers(page, size, keyword, isDeleted, "CUSTOMER", sortField, sortDirection);
+    }
 
-                    )).toList();
-            return GeneralResponse.<List<UserManagementDTO>>builder()
-                    .data(userManagementDTOs)
-                    .message("User list retrieved successfully")
-                    .build();
+    @Override
+    public GeneralResponse<PagingDTO<UserFullInformationResponseDTO>> getAllStaff(int page,
+                                                                                  int size,
+                                                                                  String keyword,
+                                                                                  Boolean isDeleted,
+                                                                                  String sortField,
+                                                                                  String sortDirection) {
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortField);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Specification<User> specification = buildSpecification(keyword, isDeleted, null, "CUSTOMER");
+        Page<User> users = userRepository.findAll(specification, pageable);
+        List<UserFullInformationResponseDTO> dtos = users.getContent().stream()
+                .map(userMapper::toDTO)
+                .toList();
 
-        } else{
-            return GeneralResponse.<List<UserManagementDTO>>builder()
-                    .data(List.of())
-                    .message("No users found")
-                    .build();
-        }
+        PagingDTO<UserFullInformationResponseDTO> pagingDTO = PagingDTO.<UserFullInformationResponseDTO>builder()
+                .page(users.getNumber())
+                .size(users.getSize())
+                .total(users.getTotalElements())
+                .items(dtos)
+                .build();
 
+        return GeneralResponse.of(pagingDTO);
     }
 
     @Override
@@ -159,18 +198,48 @@ public class UserManagementServiceImpl implements UserManagementService {
                 .toList();
         return new UserManagementDTO(
                 user.getId(),
-                user.getUsername(),
                 user.getEmail(),
                 user.getFullName(),
                 user.getGender(),
                 user.getPhone(),
-                user.getAddress(),
-                user.getAvatarImage(),
                 roleNames,
-                user.getDeleted(),
-                user.getCreatedAt(),
-                user.getUpdatedAt()
+                user.getDeleted()
         );
+
+    }
+    private Specification<User> buildSpecification(String keyword,
+                                                   Boolean isDeleted,
+                                                   String roleName,
+                                                   String excludeRole) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                String likeKeyword = "%" + keyword.trim().toLowerCase() + "%";
+                Predicate fullName = cb.like(cb.lower(root.get("fullName")), likeKeyword);
+                Predicate email = cb.like(cb.lower(root.get("email")), likeKeyword);
+                Predicate username = cb.like(cb.lower(root.get("username")), likeKeyword);
+                predicates.add(cb.or(fullName, email, username));
+            }
+
+            if (isDeleted != null) {
+                predicates.add(cb.equal(root.get("deleted"), isDeleted));
+            }
+
+            if ((roleName != null && !roleName.isBlank()) || excludeRole != null) {
+                Join<User, UserRole> urJoin = root.join("userRoles", JoinType.LEFT);
+                Join<UserRole, Role> roleJoin = urJoin.join("role", JoinType.LEFT);
+                if (roleName != null && !roleName.isBlank()) {
+                    predicates.add(cb.equal(roleJoin.get("roleName"), roleName));
+                }
+                if (excludeRole != null) {
+                    predicates.add(cb.notEqual(roleJoin.get("roleName"), excludeRole));
+                }
+                query.distinct(true);
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
     }
 
 

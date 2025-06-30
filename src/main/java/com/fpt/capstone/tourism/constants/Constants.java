@@ -34,7 +34,7 @@ public class Constants {
 
         // Password related
         public static final String PASSWORDS_DO_NOT_MATCH_MESSAGE = "Mật khẩu và xác nhận mật khẩu không trùng khớp";
-
+        public static final String INVALID_OLD_PASSWORD_MESSAGE = "Mật khẩu hiện tại không chính xác";
         // Registration & Email confirmation
         public static final String EMAIL_CONFIRMATION_REQUEST_MESSAGE = "Cảm ơn bạn đã đăng ký. Vui lòng kiểm tra email để hoàn tất xác minh";
         public static final String REGISTER_FAIL_MESSAGE = "Đăng ký tài khoản thất bại do lỗi hệ thống!";
@@ -240,10 +240,15 @@ public class Constants {
         public static final String BLOG_UPDATE_FAIL = "Cập nhật blog thất bại";
         public static final String BLOG_DELETE_FAIL = "Xóa blog thất bại";
         public static final String BLOG_NOT_FOUND = "Không tìm thấy blog";
+        public static final String BLOG_DETAIL_SUCCESS = "Lấy chi tiết blog thành công";
+        public static final String BLOG_DETAIL_FAIL = "Lấy chi tiết blog thất bại";
         //===================================================
         // Tour Day Related Messages
         //===================================================
         // Tour day management
+        public static final String TOUR_DAY_SERVICE_ADDED_SUCCESS = "Thêm dịch vụ vào ngày tour thành công";
+        public static final String TOUR_DAY_SERVICE_UPDATED_SUCCESS = "Cập nhật dịch vụ của ngày tour thành công";
+        public static final String TOUR_DAY_SERVICE_REMOVED_SUCCESS = "Xóa dịch vụ khỏi ngày tour thành công";
         public static final String TOUR_DAY_NOT_FOUND = "Không tìm thấy ngày tour";
         public static final String NO_TOUR_DAY_FOUND = "Không tìm thấy ngày tour nào cho tour này";
         public static final String NO_TOUR_DAYS_FOUND = "Không tìm thấy ngày tour nào";
@@ -371,6 +376,10 @@ public class Constants {
         //===================================================
         // Wishlist Related Messages
         //===================================================
+        public static final String CREATE_WISHLIST_SUCCESS = "Thêm wishlist thành công";
+        public static final String CREATE_WISHLIST_FAIL = "Thêm wishlist thất bại";
+        public static final String WISHLIST_LOAD_SUCCESS = "Lấy danh sách yêu thích thành công";
+        public static final String WISHLIST_LOAD_FAIL = "Lấy danh sách yêu thích thất bại";
         public static final String WISHLIST_NOT_FOUND = "Không tìm thấy danh sách yêu thích";
         public static final String NO_PERMISSION_TO_DELETE = "Bạn không có quyền xóa dữ liệu này";
         public static final String DELETE_WISHLIST_SUCCESS = "Xóa wishlist thành công";

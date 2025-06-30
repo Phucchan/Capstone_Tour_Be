@@ -94,28 +94,16 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public GeneralResponse<List<LocationDTO>> getListLocation() {
+    public GeneralResponse<PagingDTO<LocationDTO>> getListLocation(int page, int size, String keyword) {
         try {
-            List<Location> locations = locationRepository.findAll();
-            List<LocationDTO> dtos = locations.stream()
-                    .map(locationMapper::toDTO)
-                    .collect(Collectors.toList());
-            return new GeneralResponse<>(HttpStatus.OK.value(), GET_LOCATIONS_SUCCESS, dtos);
-        } catch (BusinessException be) {
-            throw be;
-        } catch (Exception ex) {
-            throw BusinessException.of(GET_LOCATIONS_FAIL, ex);
-        }
-    }
-
-    @Override
-    public GeneralResponse<List<LocationDTO>> searchLocations(String name) {
-        try {
-            List<Location> locations = locationRepository.findByNameContainingIgnoreCase(name);
-            List<LocationDTO> dtos = locations.stream()
-                    .map(locationMapper::toDTO)
-                    .collect(Collectors.toList());
-            return new GeneralResponse<>(HttpStatus.OK.value(), GET_LOCATIONS_SUCCESS, dtos);
+            Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+            Page<Location> locationPage;
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                locationPage = locationRepository.findByNameContainingIgnoreCase(keyword.trim(), pageable);
+            } else {
+                locationPage = locationRepository.findAll(pageable);
+            }
+            return buildPagedResponse(locationPage);
         } catch (BusinessException be) {
             throw be;
         } catch (Exception ex) {

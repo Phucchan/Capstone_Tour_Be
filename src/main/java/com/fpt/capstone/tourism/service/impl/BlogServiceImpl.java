@@ -1,9 +1,11 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.constants.Constants;
-import com.fpt.capstone.tourism.dto.common.BlogDTO;
+import com.fpt.capstone.tourism.dto.common.BlogManagerDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
-import com.fpt.capstone.tourism.dto.request.BlogRequestDTO;
+import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.request.BlogManagerRequestDTO;
+import com.fpt.capstone.tourism.dto.response.BlogDetailManagerDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.BlogMapper;
 import com.fpt.capstone.tourism.model.User;
@@ -14,10 +16,18 @@ import com.fpt.capstone.tourism.repository.blog.TagRepository;
 import com.fpt.capstone.tourism.service.BlogService;
 import com.fpt.capstone.tourism.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import com.fpt.capstone.tourism.dto.response.homepage.BlogSummaryDTO;
 
+
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,8 +38,46 @@ public class BlogServiceImpl implements BlogService {
     private final UserService userService;
     private final BlogMapper blogMapper;
 
+
     @Override
-    public GeneralResponse<BlogDTO> createBlog(BlogRequestDTO requestDTO) {
+    public PagingDTO<BlogSummaryDTO> getAllBlogs(Pageable pageable) {
+        // 1. Lấy dữ liệu dạng Page<Blog> từ DB
+        Page<Blog> blogPage = blogRepository.findByDeletedFalse(pageable);
+
+        // 2. Chuyển đổi danh sách Blog entities sang danh sách BlogSummaryDTO
+        List<BlogSummaryDTO> blogSummaries = blogPage.getContent().stream()
+                .map(blog -> {
+                    // Dùng mapper để chuyển đổi các trường cơ bản
+                    BlogSummaryDTO dto = blogMapper.blogToBlogSummaryDTO(blog);
+
+                    // Lấy danh sách Tag entities từ blog, chuyển thành List<String> chứa tên các tag
+                    List<String> tagNames;
+                    if (blog.getBlogTags() != null) {
+                        tagNames = blog.getBlogTags().stream()
+                                .map(Tag::getName)
+                                .collect(Collectors.toList());
+                    } else {
+                        tagNames = Collections.emptyList(); // Trả về danh sách rỗng nếu không có tag
+                    }
+
+                    // Gán danh sách tên tag vào DTO
+                    dto.setTags(tagNames);
+
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        // 3. Xây dựng và trả về đối tượng PagingDTO
+        return PagingDTO.<BlogSummaryDTO>builder()
+                .page(blogPage.getNumber())
+                .size(blogPage.getSize())
+                .total(blogPage.getTotalElements())
+                .items(blogSummaries)
+                .build();
+    }
+
+    @Override
+    public GeneralResponse<BlogManagerDTO> createBlog(BlogManagerRequestDTO requestDTO) {
         try {
             User author = userService.findById(requestDTO.getAuthorId());
             Blog blog = Blog.builder()
@@ -47,7 +95,7 @@ public class BlogServiceImpl implements BlogService {
             }
 
             Blog saved = blogRepository.save(blog);
-            BlogDTO dto = blogMapper.blogToBlogDTO(saved);
+            BlogManagerDTO dto = blogMapper.blogToBlogDTO(saved);
             return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.BLOG_CREATE_SUCCESS, dto);
         } catch (BusinessException be) {
             throw be;
@@ -57,7 +105,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public GeneralResponse<BlogDTO> updateBlog(Long id, BlogRequestDTO requestDTO) {
+    public GeneralResponse<BlogManagerDTO> updateBlog(Long id, BlogManagerRequestDTO requestDTO) {
         try {
             Blog blog = blogRepository.findById(id)
                     .orElseThrow(() -> BusinessException.of(Constants.Message.BLOG_NOT_FOUND));
@@ -76,7 +124,7 @@ public class BlogServiceImpl implements BlogService {
             }
 
             Blog saved = blogRepository.save(blog);
-            BlogDTO dto = blogMapper.blogToBlogDTO(saved);
+            BlogManagerDTO dto = blogMapper.blogToBlogDTO(saved);
             return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.BLOG_UPDATE_SUCCESS, dto);
         } catch (BusinessException be) {
             throw be;
@@ -100,17 +148,37 @@ public class BlogServiceImpl implements BlogService {
         }
     }
     @Override
-    public GeneralResponse<List<BlogDTO>> getBlogs() {
+    public GeneralResponse<PagingDTO<BlogManagerDTO>> getBlogs(int page, int size) {
         try {
-            List<Blog> blogs = blogRepository.findByDeletedFalseOrderByCreatedAtDesc();
-            List<BlogDTO> dtos = blogs.stream()
+            Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+            Page<Blog> blogPage = blogRepository.findByDeletedFalseOrderByCreatedAtDesc(pageable);
+            List<BlogManagerDTO> dtos = blogPage.getContent().stream()
                     .map(blogMapper::blogToBlogDTO)
                     .toList();
-            return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.BLOG_LIST_SUCCESS, dtos);
+            PagingDTO<BlogManagerDTO> pagingDTO = PagingDTO.<BlogManagerDTO>builder()
+                    .page(blogPage.getNumber())
+                    .size(blogPage.getSize())
+                    .total(blogPage.getTotalElements())
+                    .items(dtos)
+                    .build();
+            return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.BLOG_LIST_SUCCESS, pagingDTO);
         } catch (BusinessException be) {
             throw be;
         } catch (Exception ex) {
             throw BusinessException.of(Constants.Message.BLOG_LIST_FAIL, ex);
+        }
+    }
+    @Override
+    public GeneralResponse<BlogDetailManagerDTO> getBlog(Long id) {
+        try {
+            Blog blog = blogRepository.findById(id)
+                    .orElseThrow(() -> BusinessException.of(Constants.Message.BLOG_NOT_FOUND));
+            BlogDetailManagerDTO dto = blogMapper.blogToBlogDetailDTO(blog);
+            return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.BLOG_DETAIL_SUCCESS, dto);
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception ex) {
+            throw BusinessException.of(Constants.Message.BLOG_DETAIL_FAIL, ex);
         }
     }
 }

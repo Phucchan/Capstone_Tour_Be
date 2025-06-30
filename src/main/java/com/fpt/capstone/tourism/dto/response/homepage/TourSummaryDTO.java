@@ -1,8 +1,12 @@
 package com.fpt.capstone.tourism.dto.response.homepage;
 import lombok.*;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class TourSummaryDTO {
     /**
      * The unique identifier for the tour.
@@ -43,4 +47,12 @@ public class TourSummaryDTO {
      * The starting price for the tour, typically for the smallest group size.
      */
     private Double startingPrice;
+
+    private String code;
+
+
+    private String tourTransport;
+
+
+    private List<LocalDateTime> departureDates;
 }

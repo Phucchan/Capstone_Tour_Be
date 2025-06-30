@@ -5,10 +5,7 @@ import com.fpt.capstone.tourism.model.BaseEntity;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.enums.MessageType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -18,6 +15,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class ChatMessage extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,10 +33,14 @@ public class ChatMessage extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id")
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private ChatGroup chatGroup;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private User user;
 
 

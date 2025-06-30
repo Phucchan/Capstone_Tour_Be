@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.enums.Region;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
+import com.fpt.capstone.tourism.model.enums.TourTransport;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -14,14 +15,16 @@ import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "tours")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true, exclude = {"departLocation", "destinationLocation", "createdBy", "tourTheme"})
-@ToString(exclude = {"departLocation", "destinationLocation", "createdBy", "tourTheme"})
+@EqualsAndHashCode(callSuper = true, exclude = {"departLocation", "createdBy", "tourTheme"})
+@ToString(exclude = {"departLocation", "createdBy", "tourTheme"})
 public class Tour extends BaseEntity {
 
     @Id
@@ -29,8 +32,15 @@ public class Tour extends BaseEntity {
     @Column(name = "tour_id")
     private Long id;
 
+    @Column(nullable = false, unique = true)
+    private String code; // Mã tour, có thể là duy nhất
+
     @Column(nullable = false)
     private String name;
+
+    @Column(name = "tour_transport")
+    @Enumerated(EnumType.STRING)
+    private TourTransport tourTransport;
 
     // Thêm trường ảnh đại diện cho tour
     @Column(name = "thumbnail_url")
@@ -44,7 +54,7 @@ public class Tour extends BaseEntity {
     @JoinColumn(name = "tour_theme_id")
     private TourTheme tourTheme; // Consider using Enum if validation needed
 
-    @Lob
+    @Column(name = "description", columnDefinition = "text")
     private String description;
 
     @Column(name = "duration_days", nullable = false)
@@ -63,11 +73,17 @@ public class Tour extends BaseEntity {
     private Location departLocation;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "destination_location_id")
-    private Location destinationLocation;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
+
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TourDay> tourDays;
+
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TourSchedule> schedules;
+
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TourPax> tourPaxes;
+
 }
 

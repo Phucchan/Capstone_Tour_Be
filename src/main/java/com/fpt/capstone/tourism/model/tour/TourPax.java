@@ -36,4 +36,7 @@ public class TourPax extends BaseEntity {
     @Column(name = "fixed_price")
     private double fixedPrice;
 
+    @Column(name = "extra_hotel_cost")
+    private double extraHotelCost;
+
 }

@@ -1,0 +1,19 @@
+# Hệ thống / IDE
+.idea/
+.vscode/
+*.iml
+
+# Git
+.git
+.gitignore
+
+# File cấu hình môi trường
+.env
+*.env
+
+# File log
+*.log
+
+# Hệ thống tạm
+.DS_Store
+*.swp
