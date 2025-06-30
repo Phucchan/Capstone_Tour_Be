@@ -8,7 +8,7 @@ WORKDIR /app
 COPY target/*.jar app.jar
 
 # Extract layered JAR content
-RUN java -Djarmode=tools -jar app.jar extract --destination=layertemp
+RUN java -Djarmode=tools -jar app.jar extract --launcher=false --destination=layertemp
 
 # 2. Stage: Final image
 FROM eclipse-temurin:17-jre-alpine
