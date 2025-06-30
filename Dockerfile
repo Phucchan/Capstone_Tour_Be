@@ -14,10 +14,10 @@ RUN java -Djarmode=tools -jar app.jar extract --launcher=false --destination=lay
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 # Copy các layer đã extract từ builder stage
-COPY --from=builder /app/layertemp/dependencies/ ./dependencies/
-COPY --from=builder /app/layertemp/spring-boot-loader/ ./spring-boot-loader/
-COPY --from=builder /app/layertemp/snapshot-dependencies/ ./snapshot-dependencies/
-COPY --from=builder /app/layertemp/application/ ./application/
+COPY --from=builder /app/dependencies/ ./
+COPY --from=builder /app/spring-boot-loader/ ./
+COPY --from=builder /app/snapshot-dependencies/ ./
+COPY --from=builder /app/application/ ./
 
 # 4. Mở cổng mặc định Spring Boot (nếu cần dùng bên ngoài)
 EXPOSE 8080
