@@ -10,6 +10,8 @@ COPY target/*.jar app.jar
 # Extract layered JAR content
 RUN java -Djarmode=tools -jar app.jar extract
 
+RUN ls -R
+
 # 2. Stage: Final image
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
