@@ -8,7 +8,7 @@ WORKDIR /app
 COPY target/*.jar app.jar
 
 # Extract layered JAR content
-RUN java -Djarmode=tools -jar app.jar extract
+RUN java -Djarmode=tools -Dspring-boot.jarmode.extract.target-dir=/app/layertemp -jar app.jar extract
 
 RUN ls -R
 
@@ -16,10 +16,10 @@ RUN ls -R
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 # Copy các layer đã extract từ builder stage
-COPY --from=builder /app/dependencies/ ./
-COPY --from=builder /app/spring-boot-loader/ ./
-COPY --from=builder /app/snapshot-dependencies/ ./
-COPY --from=builder /app/application/ ./
+COPY --from=builder /app/layertemp/dependencies/ ./
+COPY --from=builder /app/layertemp/spring-boot-loader/ ./
+COPY --from=builder /app/layertemp/snapshot-dependencies/ ./
+COPY --from=builder /app/layertemp/application/ ./
 
 # 4. Mở cổng mặc định Spring Boot (nếu cần dùng bên ngoài)
 EXPOSE 8080
