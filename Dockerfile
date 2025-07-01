@@ -17,11 +17,13 @@ COPY --from=builder /app/spring-boot-loader/ ./
 COPY --from=builder /app/snapshot-dependencies/ ./
 COPY --from=builder /app/application/ ./
 
+RUN echo "=== Checking copied files ===" && ls -R
+
 # 4. Mở cổng mặc định Spring Boot (nếu cần dùng bên ngoài)
 EXPOSE 8080
 
 # Spring Boot sẽ tìm đúng cấu trúc đã extract
-ENTRYPOINT ["java", "-cp", "dependencies/*:spring-boot-loader/*:snapshot-dependencies/*:application", "org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher.class"]
 
 
 
