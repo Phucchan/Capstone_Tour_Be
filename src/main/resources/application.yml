@@ -95,6 +95,7 @@ expired-time: 86400000
 server:
   servlet:
     context-path: /v1
+  port: ${SERVER_PORT:8080}
 
 springdoc:
   swagger-ui:
