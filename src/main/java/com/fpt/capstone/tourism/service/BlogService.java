@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.dto.common.BlogManagerDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.BlogManagerRequestDTO;
+import com.fpt.capstone.tourism.dto.response.BlogDetailDTO;
 import com.fpt.capstone.tourism.dto.response.BlogDetailManagerDTO;
 
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
@@ -18,7 +19,7 @@ public interface BlogService {
     GeneralResponse<String> deleteBlog(Long id);
     GeneralResponse<PagingDTO<BlogManagerDTO>> getBlogs(int page, int size);
     GeneralResponse<BlogDetailManagerDTO> getBlog(Long id);
-
+    BlogDetailDTO getBlogDetailById(Long id);
     /**
      * PHƯƠNG THỨC MỚI
      * Lấy danh sách tất cả các bài blog đã xuất bản, có phân trang.
