@@ -10,8 +10,6 @@ RUN java -Djarmode=tools -jar ./app.jar extract --layers --launcher
 
 # 2. Stage: Final image
 FROM eclipse-temurin:17-jre-alpine
-
-# Copy các layer đã extract từ builder stage
 COPY --from=builder /app/dependencies/ ./
 COPY --from=builder /app/spring-boot-loader/ ./
 COPY --from=builder /app/snapshot-dependencies/ ./
@@ -21,7 +19,7 @@ COPY --from=builder /app/application/ ./
 EXPOSE 8080
 
 # Spring Boot sẽ tìm đúng cấu trúc đã extract
-ENTRYPOINT ["java", "-cp", "dependencies/*:spring-boot-loader/*:snapshot-dependencies/*:application", "org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
 
 
 
