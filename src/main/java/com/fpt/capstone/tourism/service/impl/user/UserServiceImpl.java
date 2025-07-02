@@ -105,19 +105,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public GeneralResponse<UserProfileResponseDTO> getUserProfile(String username) {
-        User user = userRepository.findByUsername(username)
+    public GeneralResponse<UserProfileResponseDTO> getUserProfile(Long userId) {
+        User user = userRepository.findUserById(userId)
                 .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND_MESSAGE));
         UserProfileResponseDTO dto = userMapper.toUserProfileResponseDTO(user);
-        dto.setTotalToursBooked(Math.toIntExact(bookingRepository.countByUser_Username(username)));
-        Integer points = userPointRepository.sumPointsByUserId(user.getId());
+        dto.setTotalToursBooked(Math.toIntExact(bookingRepository.countByUser_Id(userId)));
+        Integer points = userPointRepository.sumPointsByUserId(userId);
         dto.setPoints(points != null ? points : 0);
         return GeneralResponse.of(dto);
     }
 
     @Override
-    public GeneralResponse<UserProfileResponseDTO> updateUserProfile(String username, UpdateProfileRequestDTO requestDTO) {
-        User user = userRepository.findByUsername(username)
+    public GeneralResponse<UserProfileResponseDTO> updateUserProfile(Long userId, UpdateProfileRequestDTO requestDTO) {
+        User user = userRepository.findUserById(userId)
                 .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND_MESSAGE));
 
         if (requestDTO.getFullName() != null) user.setFullName(requestDTO.getFullName());
@@ -130,15 +130,15 @@ public class UserServiceImpl implements UserService {
 
         User saved = userRepository.save(user);
         UserProfileResponseDTO dto = userMapper.toUserProfileResponseDTO(saved);
-        dto.setTotalToursBooked(Math.toIntExact(bookingRepository.countByUser_Username(username)));
-        Integer points = userPointRepository.sumPointsByUserId(saved.getId());
+        dto.setTotalToursBooked(Math.toIntExact(bookingRepository.countByUser_Id(userId)));
+        Integer points = userPointRepository.sumPointsByUserId(userId);
         dto.setPoints(points != null ? points : 0);
         return GeneralResponse.of(dto);
     }
 
     @Override
-    public GeneralResponse<String> changePassword(String username, ChangePasswordRequestDTO requestDTO) {
-        User user = userRepository.findByUsername(username)
+    public GeneralResponse<String> changePassword(Long userId, ChangePasswordRequestDTO requestDTO) {
+        User user = userRepository.findUserById(userId)
                 .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND_MESSAGE));
 
         if (!passwordEncoder.matches(requestDTO.getCurrentPassword(), user.getPassword())) {
@@ -163,14 +163,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public GeneralResponse<PagingDTO<BookingSummaryDTO>> getUserBookings(String username, Pageable pageable) {
-        userRepository.findByUsername(username)
+    public GeneralResponse<PagingDTO<BookingSummaryDTO>> getUserBookings(Long userId, Pageable pageable) {
+        userRepository.findUserById(userId)
                 .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND_MESSAGE));
 
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
                 Sort.by(Sort.Direction.ASC, "bookingStatus"));
 
-        Page<Booking> bookings = bookingRepository.findByUser_Username(username, sortedPageable);
+        Page<Booking> bookings = bookingRepository.findByUser_Id(userId, sortedPageable);
 
         List<BookingSummaryDTO> dtos = bookings.getContent().stream()
                 .map(b -> BookingSummaryDTO.builder()

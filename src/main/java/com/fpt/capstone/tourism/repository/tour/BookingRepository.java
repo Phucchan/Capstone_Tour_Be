@@ -47,6 +47,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findByUser_UsernameOrderByCreatedAtDesc(String username);
 
+    Page<Booking> findByUser_Id(Long userId, Pageable pageable);
 
     Page<Booking> findByUser_Username(String username, Pageable pageable);
 
@@ -56,5 +57,5 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     Page<Booking> findBySeller_UsernameOrderByUpdatedAtDesc(String username, Pageable pageable);
 
-    long countByUser_Username(String username);
+    long countByUser_Id(Long userId);
 }

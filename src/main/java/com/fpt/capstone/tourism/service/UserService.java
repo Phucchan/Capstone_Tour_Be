@@ -26,11 +26,11 @@ public interface UserService {
     GeneralResponse<UserBasicDTO> getUserBasic(String username);
 
 
-    GeneralResponse<UserProfileResponseDTO> getUserProfile(String username);
+    GeneralResponse<UserProfileResponseDTO> getUserProfile(Long userId);
 
-    GeneralResponse<UserProfileResponseDTO> updateUserProfile(String username, UpdateProfileRequestDTO requestDTO);
+    GeneralResponse<UserProfileResponseDTO> updateUserProfile(Long userId, UpdateProfileRequestDTO requestDTO);
 
-    GeneralResponse<String> changePassword(String username, ChangePasswordRequestDTO requestDTO);
+    GeneralResponse<String> changePassword(Long userId, ChangePasswordRequestDTO requestDTO);
 
-    GeneralResponse<PagingDTO<BookingSummaryDTO>> getUserBookings(String username, Pageable pageable);
+    GeneralResponse<PagingDTO<BookingSummaryDTO>> getUserBookings(Long userId, Pageable pageable);
 }
