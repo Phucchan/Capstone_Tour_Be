@@ -55,4 +55,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
 
     Page<Booking> findBySeller_UsernameOrderByUpdatedAtDesc(String username, Pageable pageable);
+
+    long countByUser_Username(String username);
 }

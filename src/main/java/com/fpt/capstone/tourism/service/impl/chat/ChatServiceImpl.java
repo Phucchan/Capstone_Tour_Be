@@ -5,7 +5,7 @@ import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
 import com.fpt.capstone.tourism.mapper.UserMapper;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.enums.UserStatus;
-import com.fpt.capstone.tourism.repository.UserRepository;
+import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.service.chat.ChatService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

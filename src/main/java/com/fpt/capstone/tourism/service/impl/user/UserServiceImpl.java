@@ -13,7 +13,8 @@ import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.UserMapper;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.tour.Booking;
-import com.fpt.capstone.tourism.repository.UserRepository;
+import com.fpt.capstone.tourism.repository.user.UserPointRepository;
+import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.repository.tour.BookingRepository;
 import com.fpt.capstone.tourism.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final BookingRepository bookingRepository;
+    private final UserPointRepository userPointRepository;
 
 
     @Override
@@ -106,7 +108,11 @@ public class UserServiceImpl implements UserService {
     public GeneralResponse<UserProfileResponseDTO> getUserProfile(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND_MESSAGE));
-        return GeneralResponse.of(userMapper.toUserProfileResponseDTO(user));
+        UserProfileResponseDTO dto = userMapper.toUserProfileResponseDTO(user);
+        dto.setTotalToursBooked(Math.toIntExact(bookingRepository.countByUser_Username(username)));
+        Integer points = userPointRepository.sumPointsByUserId(user.getId());
+        dto.setPoints(points != null ? points : 0);
+        return GeneralResponse.of(dto);
     }
 
     @Override
@@ -115,13 +121,19 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND_MESSAGE));
 
         if (requestDTO.getFullName() != null) user.setFullName(requestDTO.getFullName());
+        if (requestDTO.getEmail() != null) user.setEmail(requestDTO.getEmail());
         if (requestDTO.getGender() != null) user.setGender(requestDTO.getGender());
         if (requestDTO.getPhone() != null) user.setPhone(requestDTO.getPhone());
         if (requestDTO.getAddress() != null) user.setAddress(requestDTO.getAddress());
         if (requestDTO.getAvatarImg() != null) user.setAvatarImage(requestDTO.getAvatarImg());
+        if (requestDTO.getDateOfBirth() != null) user.setDateOfBirth(requestDTO.getDateOfBirth());
 
         User saved = userRepository.save(user);
-        return GeneralResponse.of(userMapper.toUserProfileResponseDTO(saved));
+        UserProfileResponseDTO dto = userMapper.toUserProfileResponseDTO(saved);
+        dto.setTotalToursBooked(Math.toIntExact(bookingRepository.countByUser_Username(username)));
+        Integer points = userPointRepository.sumPointsByUserId(saved.getId());
+        dto.setPoints(points != null ? points : 0);
+        return GeneralResponse.of(dto);
     }
 
     @Override

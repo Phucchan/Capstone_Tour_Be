@@ -2,8 +2,7 @@ package com.fpt.capstone.tourism.helper;
 
 import com.fpt.capstone.tourism.helper.IHelper.JwtHelper;
 import com.fpt.capstone.tourism.model.User;
-import com.fpt.capstone.tourism.repository.UserRepository;
-import com.fpt.capstone.tourism.repository.oauth2.OAuthAccountRepository;
+import com.fpt.capstone.tourism.repository.user.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

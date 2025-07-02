@@ -16,7 +16,7 @@ import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.UserRole;
 import com.fpt.capstone.tourism.repository.RoleRepository;
-import com.fpt.capstone.tourism.repository.UserRoleRepository;
+import com.fpt.capstone.tourism.repository.user.UserRoleRepository;
 import com.fpt.capstone.tourism.service.AuthService;
 import com.fpt.capstone.tourism.service.EmailConfirmationService;
 import com.fpt.capstone.tourism.service.UserService;

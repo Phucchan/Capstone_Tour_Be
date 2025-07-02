@@ -5,7 +5,7 @@ import com.fpt.capstone.tourism.dto.response.analytic.*;
 import com.fpt.capstone.tourism.dto.response.analytic.MonthlyRevenueDTO;
 import com.fpt.capstone.tourism.dto.response.analytic.TourRevenueDTO;
 import com.fpt.capstone.tourism.repository.tour.BookingRepository;
-import com.fpt.capstone.tourism.repository.UserRepository;
+import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.service.AnalyticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;

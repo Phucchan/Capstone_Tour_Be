@@ -41,6 +41,6 @@ public interface UserMapper {
 
 
     @Mapping(target = "avatarImg", source = "avatarImage")
-    @Mapping(target = "createAt", expression = "java(user.getCreatedAt() != null ? user.getCreatedAt().toString() : null)")
+    @Mapping(target = "dateOfBirth", source = "dateOfBirth")
     UserProfileResponseDTO toUserProfileResponseDTO(User user);
 }
