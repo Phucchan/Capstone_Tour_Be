@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.specifications;
 
+import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.tour.Tour;
 import com.fpt.capstone.tourism.model.tour.TourDay;
 import com.fpt.capstone.tourism.model.tour.TourPax;
@@ -10,6 +11,17 @@ import org.springframework.data.jpa.domain.Specification;
 import java.time.LocalDate;
 
 public class TourSpecification {
+    /**
+     *
+     * Lọc các tour đã được PUBLISHED và không bị xóa.
+     */
+    public static Specification<Tour> isPublished() {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.and(
+                        criteriaBuilder.equal(root.get("tourStatus"), TourStatus.PUBLISHED),
+                        criteriaBuilder.isFalse(root.get("deleted"))
+                );
+    }
 
     /**
      * Lọc các tour có giá trong một khoảng nhất định.

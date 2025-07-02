@@ -13,4 +13,6 @@ public interface LocationService {
     GeneralResponse<LocationDTO> deleteLocation(Long id, boolean isDeleted);
     GeneralResponse<PagingDTO<LocationDTO>> getListLocation(int page, int size, String keyword);
 
+    List<LocationDTO> getAllDepartures();
+    List<LocationDTO> getAllDestinations();
 }

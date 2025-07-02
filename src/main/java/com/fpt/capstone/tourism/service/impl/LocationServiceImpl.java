@@ -9,6 +9,7 @@ import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.LocationMapper;
 import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.repository.LocationRepository;
+import com.fpt.capstone.tourism.repository.tour.TourRepository;
 import com.fpt.capstone.tourism.service.LocationService;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,23 @@ import static com.fpt.capstone.tourism.constants.Constants.Message.*;
 public class LocationServiceImpl implements LocationService {
     private final LocationRepository locationRepository;
     private final LocationMapper locationMapper;
+    private final TourRepository tourRepository;
 
+    @Override
+    public List<LocationDTO> getAllDepartures() {
+        List<Location> locations = tourRepository.findDistinctDepartLocations();
+        return locations.stream()
+                .map(locationMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<LocationDTO> getAllDestinations() {
+        List<Location> locations = tourRepository.findDistinctDestinations();
+        return locations.stream()
+                .map(locationMapper::toDTO)
+                .collect(Collectors.toList());
+    }
     @Override
     public GeneralResponse<LocationDTO> saveLocation(LocationRequestDTO locationRequestDTO) {
         try {
