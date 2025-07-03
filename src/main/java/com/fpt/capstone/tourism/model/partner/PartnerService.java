@@ -37,7 +37,7 @@ public class PartnerService extends BaseEntity {
     @Column(name = "image_url")
     private String imageUrl;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "nett_price")

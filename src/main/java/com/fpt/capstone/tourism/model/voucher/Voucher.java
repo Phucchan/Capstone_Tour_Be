@@ -25,7 +25,7 @@ public class Voucher extends BaseEntity {
     @Column(nullable = false, unique = true, length = 50)
     private String code;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "discount_amount", nullable = false)
