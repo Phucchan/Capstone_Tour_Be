@@ -6,6 +6,7 @@ import com.fpt.capstone.tourism.dto.common.UserDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.RegisterRequestDTO;
 import com.fpt.capstone.tourism.dto.response.UserInfoResponseDTO;
+import com.fpt.capstone.tourism.helper.PasswordGenerateImpl;
 import com.fpt.capstone.tourism.mapper.UserMapper;
 import com.fpt.capstone.tourism.model.enums.RoleName;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
@@ -19,6 +20,7 @@ import com.fpt.capstone.tourism.repository.RoleRepository;
 import com.fpt.capstone.tourism.repository.user.UserRoleRepository;
 import com.fpt.capstone.tourism.service.AuthService;
 import com.fpt.capstone.tourism.service.EmailConfirmationService;
+import com.fpt.capstone.tourism.service.EmailService;
 import com.fpt.capstone.tourism.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +44,8 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final EmailConfirmationService emailConfirmationService;
     private final RoleRepository roleRepository;
+    private final EmailService emailService;
+    private final PasswordGenerateImpl passwordGenerate;
     private final UserRoleRepository userRoleRepository;
     private final UserMapper userMapper;
 
@@ -175,6 +179,29 @@ public class AuthServiceImpl implements AuthService {
             throw BusinessException.of(CONFIRM_EMAIL_FAILED);
         }
 
+    }
+    @Override
+    @Transactional
+    public GeneralResponse<String> forgotPassword(String email, String username) {
+        try {
+            User user = userService.findUserByUsername(username);
+            if (!user.getEmail().equals(email)) {
+                throw BusinessException.of(USER_NOT_FOUND_MESSAGE);
+            }
+            String newPassword = passwordGenerate.generatePassword();
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userService.saveUser(user);
+
+            String subject = "Cấp Lại Mật Khẩu";
+            String content = "Mật khẩu mới của bạn là: " + newPassword;
+            emailService.sendEmail(user.getEmail(), subject, content);
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), RESET_PASSWORD_EMAIL_SENT, null);
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception e) {
+            throw BusinessException.of(SEND_EMAIL_ACCOUNT_FAIL, e);
+        }
     }
 
     @Override

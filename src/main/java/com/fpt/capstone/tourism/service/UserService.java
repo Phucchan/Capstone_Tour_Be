@@ -20,6 +20,7 @@ public interface UserService {
     Boolean existsByUsername(String userName);
     Boolean exitsByEmail(String email);
     Boolean existsByPhoneNumber(String phone);
+    User findUserByEmail(String email);
 
     GeneralResponse<List<UserBasicDTO>> findFriends(Long userId);
 

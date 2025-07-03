@@ -4,6 +4,7 @@ package com.fpt.capstone.tourism.controller;
 import com.fpt.capstone.tourism.dto.common.TokenDTO;
 import com.fpt.capstone.tourism.dto.common.UserDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.request.ForgotPasswordRequestDTO;
 import com.fpt.capstone.tourism.dto.request.RegisterRequestDTO;
 import com.fpt.capstone.tourism.dto.response.UserInfoResponseDTO;
 import com.fpt.capstone.tourism.model.Role;
@@ -34,6 +35,11 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<GeneralResponse<UserInfoResponseDTO>> register(@RequestBody RegisterRequestDTO registerRequestDTO) {
         return ResponseEntity.ok(authService.register(registerRequestDTO));
+    }
+    @PostMapping("/forgot-password")
+    //postman http://localhost:8080/v1/auth/forgot-password
+    public ResponseEntity<GeneralResponse<String>> forgotPassword(@RequestBody ForgotPasswordRequestDTO request) {
+        return ResponseEntity.ok(authService.forgotPassword(request.getEmail(), request.getUsername()));
     }
 
     @GetMapping("/roles")
