@@ -245,7 +245,12 @@ public class Constants {
         public static final String BLOG_DETAIL_SUCCESS = "Lấy chi tiết blog thành công";
         public static final String BLOG_DETAIL_FAIL = "Lấy chi tiết blog thất bại";
         //===================================================
-        // Tour Day Related Messages
+        // Voucher Related Messages
+        public static final String VOUCHER_CREATE_SUCCESS = "Tạo voucher thành công";
+        public static final String VOUCHER_CREATE_FAIL = "Tạo voucher thất bại";
+        public static final String VOUCHER_CODE_EXISTS = "Mã voucher đã tồn tại";
+        public static final String VOUCHER_LIST_SUCCESS = "Lấy danh sách voucher thành công";
+        public static final String VOUCHER_LIST_FAIL = "Lấy danh sách voucher thất bại";
         //===================================================
         // Tour day management
         public static final String TOUR_DAY_SERVICE_ADDED_SUCCESS = "Thêm dịch vụ vào ngày tour thành công";
