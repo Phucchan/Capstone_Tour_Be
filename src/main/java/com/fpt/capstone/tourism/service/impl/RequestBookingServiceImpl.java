@@ -18,9 +18,10 @@ public class RequestBookingServiceImpl implements RequestBookingService {
     private final RequestBookingMapper requestBookingMapper;
 
     @Override
-    public GeneralResponse<RequestBooking> createRequest(RequestBookingDTO requestBookingDTO) {
+    public GeneralResponse<RequestBookingDTO> createRequest(RequestBookingDTO requestBookingDTO) {
         RequestBooking requestBooking = requestBookingMapper.toEntity(requestBookingDTO);
         RequestBooking saved = requestBookingRepository.save(requestBooking);
-        return new GeneralResponse<>(HttpStatus.OK.value(), "Request saved", saved);
+        RequestBookingDTO savedDto = requestBookingMapper.toDTO(saved);
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Request saved", savedDto);
     }
 }

@@ -23,11 +23,8 @@ public class RequestBooking extends BaseEntity {
     @Column(name = "request_booking_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "location_id")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Location location;
+    @Column(columnDefinition = "text")
+    private String location;
 
     @Column(name = "location_detail", columnDefinition = "text")
     private String locationDetail;

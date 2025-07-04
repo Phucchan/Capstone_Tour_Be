@@ -2,7 +2,6 @@ package com.fpt.capstone.tourism.controller.booking;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.RequestBookingDTO;
-import com.fpt.capstone.tourism.model.RequestBooking;
 import com.fpt.capstone.tourism.service.RequestBookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +15,7 @@ public class RequestBookingController {
     private final RequestBookingService requestBookingService;
 
     @PostMapping
-    public ResponseEntity<GeneralResponse<RequestBooking>> create(@RequestBody RequestBookingDTO requestBookingDTO) {
+    public ResponseEntity<GeneralResponse<RequestBookingDTO>> create(@RequestBody RequestBookingDTO requestBookingDTO) {
         return ResponseEntity.ok(requestBookingService.createRequest(requestBookingDTO));
     }
 }

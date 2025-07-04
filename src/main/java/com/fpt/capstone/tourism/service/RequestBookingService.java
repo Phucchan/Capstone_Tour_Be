@@ -5,5 +5,5 @@ import com.fpt.capstone.tourism.dto.request.RequestBookingDTO;
 import com.fpt.capstone.tourism.model.RequestBooking;
 
 public interface RequestBookingService {
-    GeneralResponse<RequestBooking> createRequest(RequestBookingDTO requestBookingDTO);
+    GeneralResponse<RequestBookingDTO> createRequest(RequestBookingDTO requestBookingDTO);
 }

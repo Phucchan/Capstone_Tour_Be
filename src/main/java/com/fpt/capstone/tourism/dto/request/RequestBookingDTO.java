@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RequestBookingDTO {
-    private Long locationId;
+    private String location;
     private String locationDetail;
     private LocalDate startDate;
     private LocalDate endDate;
