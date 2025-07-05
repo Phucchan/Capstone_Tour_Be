@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.controller.admin;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.UserManagementRequestDTO;
 import com.fpt.capstone.tourism.dto.response.UserFullInformationResponseDTO;
 import com.fpt.capstone.tourism.dto.response.UserManagementDTO;
@@ -65,15 +66,11 @@ public class UserManagementController {
     public ResponseEntity<GeneralResponse<UserManagementDTO>> createUser(@RequestBody UserManagementRequestDTO requestDTO) {
         return ResponseEntity.ok(userManagementService.createUser(requestDTO));
     }
-
-    @PutMapping("/users/{id}")
-    public ResponseEntity<GeneralResponse<UserManagementDTO>> updateUser(@PathVariable Long id,
-                                                                         @RequestBody UserManagementRequestDTO requestDTO) {
-        return ResponseEntity.ok(userManagementService.updateUser(id, requestDTO));
+    @PatchMapping("/users/{id}/status")
+    // postman http://localhost:8080/v1/admin/users/1/status
+    public ResponseEntity<GeneralResponse<UserManagementDTO>> changeStatus(@PathVariable Long id,
+                                                                           @RequestBody ChangeStatusDTO changeStatusDTO) {
+        return ResponseEntity.ok(userManagementService.changeStatus(id, changeStatusDTO));
     }
 
-    @DeleteMapping("/users/{id}")
-    public ResponseEntity<GeneralResponse<String>> deleteUser(@PathVariable Long id) {
-        return ResponseEntity.ok(userManagementService.deleteUser(id));
-    }
 }
