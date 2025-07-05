@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
+import com.fpt.capstone.tourism.dto.request.tourManager.TourCreateManagerRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourDayManagerCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxManagerCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxManagerDTO;
@@ -93,6 +94,36 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .build();
         return GeneralResponse.of(pagingDTO);
     }
+    @Override
+    public GeneralResponse<TourDetailManagerDTO> createTour(TourCreateManagerRequestDTO requestDTO) {
+        Tour tour = new Tour();
+        tour.setCode(requestDTO.getCode());
+        tour.setName(requestDTO.getName());
+        tour.setThumbnailUrl(requestDTO.getThumbnailUrl());
+
+        if (requestDTO.getTourThemeId() != null) {
+            TourTheme theme = tourThemeRepository.findById(requestDTO.getTourThemeId())
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour theme not found"));
+            tour.setTourTheme(theme);
+        }
+
+        if (requestDTO.getDepartLocationId() != null) {
+            Location depart = locationRepository.findById(requestDTO.getDepartLocationId())
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
+            tour.setDepartLocation(depart);
+        }
+
+        if (requestDTO.getDurationDays() != null) {
+            tour.setDurationDays(requestDTO.getDurationDays());
+        }
+
+        tour.setDescription(requestDTO.getDescription());
+        tour.setTourStatus(TourStatus.DRAFT);
+
+        Tour saved = tourRepository.save(tour);
+        TourDetailManagerDTO dto = tourDetailManagerMapper.toDTO(saved);
+        return GeneralResponse.of(dto, "Tour created successfully");
+    }
 
 
 
@@ -126,7 +157,12 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     public GeneralResponse<TourDetailManagerDTO> updateTour(Long id, TourUpdateManagerRequestDTO requestDTO) {
         Tour tour = tourRepository.findById(id)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
-
+        if (requestDTO.getCode() != null) {
+            tour.setCode(requestDTO.getCode());
+        }
+        if (requestDTO.getName() != null) {
+            tour.setName(requestDTO.getName());
+        }
         if (requestDTO.getThumbnailUrl() != null) {
             tour.setThumbnailUrl(requestDTO.getThumbnailUrl());
         }

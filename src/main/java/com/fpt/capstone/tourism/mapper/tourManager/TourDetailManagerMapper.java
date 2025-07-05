@@ -13,5 +13,6 @@ import org.springframework.stereotype.Component;
 public interface TourDetailManagerMapper {
     @Mapping(source = "tourTheme.name", target = "tourThemeName")
     @Mapping(source = "departLocation.name", target = "departLocationName")
+    @Mapping(source = "code", target = "code")
     TourDetailManagerDTO toDTO(Tour tour);
 }

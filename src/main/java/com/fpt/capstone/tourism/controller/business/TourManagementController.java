@@ -4,10 +4,8 @@ import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
-import com.fpt.capstone.tourism.dto.request.tourManager.TourDayManagerCreateRequestDTO;
-import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxManagerCreateRequestDTO;
-import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxManagerDTO;
-import com.fpt.capstone.tourism.dto.request.tourManager.TourUpdateManagerRequestDTO;
+
+import com.fpt.capstone.tourism.dto.request.tourManager.TourCreateManagerRequestDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.*;
 import com.fpt.capstone.tourism.service.TourManagementService;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -38,12 +35,17 @@ public class TourManagementController {
 
     }
 
-
     // thay đổi trạng thái tour
     // postman http://localhost:8080/v1/business/tours/1/status
     @PatchMapping("/{id}/status")
     public ResponseEntity<GeneralResponse<Object>> changeStatus(@PathVariable Long id, @RequestBody ChangeStatusDTO changeStatusDTO) {
         return ResponseEntity.ok(tourManagementService.changeStatus(id, changeStatusDTO));
+    }
+
+    @PostMapping("/tours")
+    // postman http://localhost:8080/v1/business/tours
+    public ResponseEntity<GeneralResponse<TourDetailManagerDTO>> createTour(@RequestBody TourCreateManagerRequestDTO requestDTO) {
+        return ResponseEntity.ok(tourManagementService.createTour(requestDTO));
     }
 
 }
