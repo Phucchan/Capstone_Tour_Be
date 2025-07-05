@@ -69,8 +69,13 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     private PartnerServiceRepository partnerServiceRepository;
 
     @Override
-    public GeneralResponse<PagingDTO<TourResponseManagerDTO>> getListTours(int page, int size, String keyword) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
+    public GeneralResponse<PagingDTO<TourResponseManagerDTO>> getListTours(int page,
+                                                                           int size,
+                                                                           String keyword,
+                                                                           String sortField,
+                                                                           String sortDirection) {
+        Sort.Direction direction = Sort.Direction.fromString(sortDirection);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
         Page<Tour> tours;
         if (keyword != null && !keyword.trim().isEmpty()) {
             tours = tourRepository.findByNameContainingIgnoreCase(keyword.trim(), pageable);

@@ -15,7 +15,11 @@ import java.util.List;
 @Service
 public interface TourManagementService {
 
-    GeneralResponse<PagingDTO<TourResponseManagerDTO>> getListTours(int page, int size, String keyword);
+    GeneralResponse<PagingDTO<TourResponseManagerDTO>> getListTours(int page,
+                                                                    int size,
+                                                                    String keyword,
+                                                                    String sortField,
+                                                                    String sortDirection);
 
     public GeneralResponse<Object> changeStatus(Long id, ChangeStatusDTO changeStatusDTO);
 

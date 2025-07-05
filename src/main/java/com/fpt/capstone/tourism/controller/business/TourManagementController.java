@@ -31,8 +31,11 @@ public class TourManagementController {
     public ResponseEntity<GeneralResponse<PagingDTO<TourResponseManagerDTO>>> getListtours(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String keyword) {
-        return ResponseEntity.ok(tourManagementService.getListTours(page, size, keyword));
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "id") String sortField,
+            @RequestParam(defaultValue = "asc") String sortDirection) {
+        return ResponseEntity.ok(tourManagementService.getListTours(page, size, keyword, sortField, sortDirection));
+
     }
 
 
