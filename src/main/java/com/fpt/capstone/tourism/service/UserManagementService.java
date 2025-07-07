@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.service;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.UserManagementRequestDTO;
 import com.fpt.capstone.tourism.dto.response.UserFullInformationResponseDTO;
 import com.fpt.capstone.tourism.dto.response.UserManagementDTO;
@@ -41,4 +42,7 @@ public interface UserManagementService {
     GeneralResponse<UserManagementDTO> updateUser(Long id, UserManagementRequestDTO requestDTO);
 
     GeneralResponse<String> deleteUser(Long id);
+
+    GeneralResponse<UserManagementDTO> changeStatus(Long id, ChangeStatusDTO changeStatusDTO);
 }
+

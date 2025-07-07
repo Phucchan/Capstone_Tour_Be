@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TourUpdateManagerRequestDTO {
+public class TourCreateManagerRequestDTO {
     private String code;
     private String name;
     private String thumbnailUrl;
