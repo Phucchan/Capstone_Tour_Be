@@ -7,6 +7,8 @@ import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 
 import com.fpt.capstone.tourism.dto.request.tourManager.TourCreateManagerRequestDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.*;
+import com.fpt.capstone.tourism.model.enums.TourStatus;
+import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.service.TourManagementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,9 +31,9 @@ public class TourManagementController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "id") String sortField,
-            @RequestParam(defaultValue = "asc") String sortDirection) {
-        return ResponseEntity.ok(tourManagementService.getListTours(page, size, keyword, sortField, sortDirection));
+            @RequestParam(required = false) TourType tourType,
+            @RequestParam(required = false) TourStatus tourStatus) {
+        return ResponseEntity.ok(tourManagementService.getListTours(page, size, keyword, tourType, tourStatus));
 
     }
 
