@@ -16,13 +16,4 @@ import org.springframework.stereotype.Repository;
 
         Page<Tour> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
-
-        @Query("SELECT t FROM Tour t WHERE " +
-                "(:keyword IS NULL OR LOWER(t.name) LIKE CONCAT('%', :keyword, '%')) AND " +
-                "(:tourType IS NULL OR t.tourType = :tourType) AND " +
-                "(:tourStatus IS NULL OR t.tourStatus = :tourStatus)")
-        Page<Tour> searchTours(@Param("keyword") String keyword,
-                               @Param("tourType") TourType tourType,
-                               @Param("tourStatus") TourStatus tourStatus,
-                               Pageable pageable);
     }

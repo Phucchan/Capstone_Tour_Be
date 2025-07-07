@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/cordinator/service-types")
+@RequestMapping("/cordinator")
 @RequiredArgsConstructor
 public class ServiceTypeController {
 
     private final ServiceTypeService serviceTypeService;
 
-    @GetMapping
+    @GetMapping("/service-types")
     public ResponseEntity<GeneralResponse<List<ServiceTypeDTO>>> getServiceTypes() {
         return ResponseEntity.ok(serviceTypeService.getServiceTypes());
     }

@@ -19,7 +19,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/admin/")
+@RequestMapping("/admin")
 public class UserManagementController {
 
     @Autowired

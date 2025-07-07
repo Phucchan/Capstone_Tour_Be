@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/business/")
+@RequestMapping("/business")
 public class TourManagementController {
 
     @Autowired
