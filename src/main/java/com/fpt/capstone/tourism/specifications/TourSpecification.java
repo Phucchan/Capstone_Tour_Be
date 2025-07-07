@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.specifications;
 
 import com.fpt.capstone.tourism.model.enums.TourStatus;
+import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.model.tour.Tour;
 import com.fpt.capstone.tourism.model.tour.TourDay;
 import com.fpt.capstone.tourism.model.tour.TourPax;
@@ -85,5 +86,30 @@ public class TourSpecification {
                     date
             );
         };
+    }
+    public static Specification<Tour> hasNameLike(String keyword) {
+        return (root, query, criteriaBuilder) -> {
+            if (keyword == null || keyword.trim().isEmpty()) {
+                return null;
+            }
+            String pattern = "%" + keyword.trim().toLowerCase() + "%";
+            return criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern);
+        };
+    }
+
+    /**
+     * Lọc tour theo loại tour.
+     */
+    public static Specification<Tour> hasTourType(TourType tourType) {
+        return (root, query, criteriaBuilder) ->
+                tourType == null ? null : criteriaBuilder.equal(root.get("tourType"), tourType);
+    }
+
+    /**
+     * Lọc tour theo trạng thái.
+     */
+    public static Specification<Tour> hasTourStatus(TourStatus tourStatus) {
+        return (root, query, criteriaBuilder) ->
+                tourStatus == null ? null : criteriaBuilder.equal(root.get("tourStatus"), tourStatus);
     }
 }

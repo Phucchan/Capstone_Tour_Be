@@ -29,12 +29,14 @@ import com.fpt.capstone.tourism.repository.tour.TourDayRepository;
 import com.fpt.capstone.tourism.repository.tour.TourPaxRepository;
 import com.fpt.capstone.tourism.repository.tour.TourThemeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import com.fpt.capstone.tourism.specifications.TourSpecification;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -74,15 +76,18 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     public GeneralResponse<PagingDTO<TourResponseManagerDTO>> getListTours(int page, int size, String keyword,
                                                                            TourType tourType, TourStatus tourStatus) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
-        String searchKeyword = null;
+        Specification<Tour> spec = Specification.where(null);
         if (keyword != null && !keyword.trim().isEmpty()) {
-            searchKeyword = keyword.trim().toLowerCase();
+            spec = spec.and(TourSpecification.hasNameLike(keyword));
         }
-        Page<Tour> tours = tourRepository.searchTours(
-                keyword != null && !keyword.trim().isEmpty() ? keyword.trim() : null,
-                tourType,
-                tourStatus,
-                pageable);
+        if (tourType != null) {
+            spec = spec.and(TourSpecification.hasTourType(tourType));
+        }
+        if (tourStatus != null) {
+            spec = spec.and(TourSpecification.hasTourStatus(tourStatus));
+        }
+        Page<Tour> tours = tourRepository.findAll(spec, pageable);
+
         List<TourResponseManagerDTO> tourResponseDTOs = tours.getContent().stream()
                 .map(tourMapper::toTourResponseDTO)
                 .collect(Collectors.toList());
