@@ -28,8 +28,5 @@ public class SaleTourDTO {
     private String code;
     private String tourTransport;
     private List<LocalDateTime> departureDates;
-    /**
-     * The active discount percent for this tour.
-     */
     private double discountPercent;
 }
