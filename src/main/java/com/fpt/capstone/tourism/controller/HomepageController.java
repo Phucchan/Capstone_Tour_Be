@@ -15,6 +15,7 @@ public class HomepageController {
     private final HomepageService homepageService;
 
     @GetMapping
+    //postman http://localhost:8080/v1/public/homepage
     public ResponseEntity<GeneralResponse<HomepageDataDTO>> getHomepageData() {
         HomepageDataDTO data = homepageService.getHomepageData();
         return ResponseEntity.ok(GeneralResponse.of(data, "Homepage data loaded successfully"));
