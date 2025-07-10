@@ -1,16 +1,16 @@
 package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.dto.response.homepage.BlogSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.HomepageDataDTO;
+import com.fpt.capstone.tourism.dto.response.homepage.SaleTourDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
 import com.fpt.capstone.tourism.mapper.BlogMapper;
 import com.fpt.capstone.tourism.model.blog.Blog;
 import com.fpt.capstone.tourism.model.blog.Tag;
 import com.fpt.capstone.tourism.model.tour.Tour;
+import com.fpt.capstone.tourism.model.tour.TourDiscount;
 import com.fpt.capstone.tourism.model.tour.TourSchedule;
 import com.fpt.capstone.tourism.repository.blog.BlogRepository;
-import com.fpt.capstone.tourism.repository.tour.FeedbackRepository;
-import com.fpt.capstone.tourism.repository.tour.TourRepository;
-import com.fpt.capstone.tourism.repository.tour.TourScheduleRepository;
+import com.fpt.capstone.tourism.repository.tour.*;
 import com.fpt.capstone.tourism.service.HomepageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 import com.fpt.capstone.tourism.mapper.LocationMapper;
 import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.repository.LocationRepository;
-import com.fpt.capstone.tourism.repository.tour.TourPaxRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +37,7 @@ public class HomepageServiceImpl implements HomepageService {
     private final TourPaxRepository tourPaxRepository;
     private final TourRepository tourRepository;
     private final TourScheduleRepository tourScheduleRepository;
+    private final TourDiscountRepository tourDiscountRepository;
 
     // Các mapper
     private final BlogMapper blogMapper;
@@ -49,10 +49,12 @@ public class HomepageServiceImpl implements HomepageService {
         List<LocationWithoutGeoPositionDTO> locations = getHomepageLocations();
         List<TourSummaryDTO> highlyRatedTours = getHighlyRatedTours();
         List<BlogSummaryDTO> recentBlogs = getRecentBlogs();
+        List<SaleTourDTO> saleTours = getSaleTours();
 
         return HomepageDataDTO.builder()
                 .locations(locations)
                 .highlyRatedTours(highlyRatedTours)
+                .saleTours(saleTours)
                 .recentBlogs(recentBlogs)
                 .build();
     }
@@ -70,6 +72,17 @@ public class HomepageServiceImpl implements HomepageService {
                 .map(this::mapTourToSummaryDTO)
                 .collect(Collectors.toList());
     }
+    private List<SaleTourDTO> getSaleTours() {
+        List<TourDiscount> discounts = tourDiscountRepository.findTopDiscountedTours(
+                LocalDateTime.now(),
+                PageRequest.of(0, 4)
+        );
+        return discounts.stream()
+                .map(this::mapDiscountToSaleDTO)
+                .collect(Collectors.toList());
+    }
+
+
 
 
     private List<BlogSummaryDTO> getRecentBlogs() {
@@ -98,6 +111,36 @@ public class HomepageServiceImpl implements HomepageService {
         }).collect(Collectors.toList());
     }
 
+    private SaleTourDTO mapDiscountToSaleDTO(TourDiscount discount) {
+        Tour tour = discount.getTour();
+
+        Double averageRating = feedbackRepository.findAverageRatingByTourId(tour.getId());
+        Double startingPrice = tourPaxRepository.findStartingPriceByTourId(tour.getId());
+
+        List<TourSchedule> futureSchedules = tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(
+                tour.getId(),
+                LocalDateTime.now()
+        );
+
+        List<LocalDateTime> departureDates = futureSchedules.stream()
+                .map(TourSchedule::getDepartureDate)
+                .collect(Collectors.toList());
+
+        return SaleTourDTO.builder()
+                .id(tour.getId())
+                .name(tour.getName())
+                .thumbnailUrl(tour.getThumbnailUrl())
+                .durationDays(tour.getDurationDays())
+                .region(tour.getRegion() != null ? tour.getRegion().name() : null)
+                .locationName(tour.getDepartLocation() != null ? tour.getDepartLocation().getName() : null)
+                .averageRating(averageRating)
+                .startingPrice(startingPrice)
+                .code(tour.getCode())
+                .tourTransport(tour.getTourTransport() != null ? tour.getTourTransport().name() : null)
+                .departureDates(departureDates)
+                .discountPercent(discount.getDiscountPercent())
+                .build();
+    }
     /**
      * PHƯƠNG THỨC HELPER MỚI
      * Tách logic chuyển đổi từ Tour -> TourSummaryDTO ra một nơi chung để tái sử dụng.

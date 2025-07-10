@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 
 @Configuration
 @EnableMongoRepositories(
-    basePackages = "com.fpt.capstone.tourism.repository.mongo"
+//    basePackages = "com.fpt.capstone.tourism.repository.mongo"
 )
 public class MongoConfig {
 }

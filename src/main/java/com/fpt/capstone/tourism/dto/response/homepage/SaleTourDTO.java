@@ -1,13 +1,22 @@
 package com.fpt.capstone.tourism.dto.response.homepage;
-import lombok.*;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * DTO representing a tour currently on sale.
+ * Contains basic tour information along with the discount percentage.
+ */
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class TourSummaryDTO {
+@AllArgsConstructor
+public class SaleTourDTO {
     private Long id;
     private String name;
     private String thumbnailUrl;
@@ -19,4 +28,5 @@ public class TourSummaryDTO {
     private String code;
     private String tourTransport;
     private List<LocalDateTime> departureDates;
+    private double discountPercent;
 }
