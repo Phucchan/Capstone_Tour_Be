@@ -7,6 +7,7 @@ import com.fpt.capstone.tourism.mapper.TourMapper;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.model.tour.Tour;
+import com.fpt.capstone.tourism.repository.booking.BookingRepository;
 import com.fpt.capstone.tourism.repository.tour.*;
 import com.fpt.capstone.tourism.service.TourService;
 import com.fpt.capstone.tourism.specifications.TourSpecification;
@@ -29,7 +30,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
