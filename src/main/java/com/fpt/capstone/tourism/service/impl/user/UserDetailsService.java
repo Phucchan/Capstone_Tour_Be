@@ -1,6 +1,6 @@
 package com.fpt.capstone.tourism.service.impl.user;
 
-import com.fpt.capstone.tourism.repository.UserRepository;
+import com.fpt.capstone.tourism.repository.user.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;

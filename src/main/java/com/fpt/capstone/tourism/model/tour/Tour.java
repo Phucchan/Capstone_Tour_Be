@@ -8,11 +8,8 @@ import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourTransport;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import com.fpt.capstone.tourism.model.tour.TourDiscount;
 
-import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.List;
@@ -85,5 +82,7 @@ public class Tour extends BaseEntity {
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TourPax> tourPaxes;
 
+    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TourDiscount> tourDiscounts;
 }
 

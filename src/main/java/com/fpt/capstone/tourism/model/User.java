@@ -11,8 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -56,6 +55,8 @@ public class User extends BaseEntity implements UserDetails {
 
     private String address;
 
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
 
     @Column(name="avatar_img")
     private String avatarImage;

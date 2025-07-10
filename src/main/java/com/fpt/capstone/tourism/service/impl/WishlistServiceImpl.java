@@ -8,7 +8,7 @@ import com.fpt.capstone.tourism.mapper.TourMapper;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.tour.Tour;
 import com.fpt.capstone.tourism.model.Wishlist;
-import com.fpt.capstone.tourism.repository.UserRepository;
+import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.repository.tour.FeedbackRepository;
 import com.fpt.capstone.tourism.repository.tour.TourPaxRepository;
 import com.fpt.capstone.tourism.repository.tour.TourRepository;

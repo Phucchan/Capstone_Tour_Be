@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.dto.common.BlogManagerDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.BlogManagerRequestDTO;
+import com.fpt.capstone.tourism.dto.response.BlogDetailDTO;
 import com.fpt.capstone.tourism.dto.response.BlogDetailManagerDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.BlogMapper;
@@ -180,5 +181,14 @@ public class BlogServiceImpl implements BlogService {
         } catch (Exception ex) {
             throw BusinessException.of(Constants.Message.BLOG_DETAIL_FAIL, ex);
         }
+    }
+    @Override
+    public BlogDetailDTO getBlogDetailById(Long id) {
+        Blog blog = blogRepository.findById(id)
+                .orElseThrow(() -> BusinessException.of(Constants.Message.BLOG_NOT_FOUND));
+        if (Boolean.TRUE.equals(blog.getDeleted())) {
+            throw BusinessException.of(Constants.Message.BLOG_NOT_FOUND);
+        }
+        return blogMapper.blogToBlogDetailCustomerDTO(blog);
     }
 }

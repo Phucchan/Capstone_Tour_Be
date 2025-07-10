@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TourUpdateManagerRequestDTO {
+    private String code;
+    private String name;
     private String thumbnailUrl;
     private Long tourThemeId;
     private Long departLocationId;

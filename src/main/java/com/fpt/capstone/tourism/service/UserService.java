@@ -20,17 +20,18 @@ public interface UserService {
     Boolean existsByUsername(String userName);
     Boolean exitsByEmail(String email);
     Boolean existsByPhoneNumber(String phone);
+    User findUserByEmail(String email);
 
     GeneralResponse<List<UserBasicDTO>> findFriends(Long userId);
 
     GeneralResponse<UserBasicDTO> getUserBasic(String username);
 
 
-    GeneralResponse<UserProfileResponseDTO> getUserProfile(String username);
+    GeneralResponse<UserProfileResponseDTO> getUserProfile(Long userId);
 
-    GeneralResponse<UserProfileResponseDTO> updateUserProfile(String username, UpdateProfileRequestDTO requestDTO);
+    GeneralResponse<UserProfileResponseDTO> updateUserProfile(Long userId, UpdateProfileRequestDTO requestDTO);
 
-    GeneralResponse<String> changePassword(String username, ChangePasswordRequestDTO requestDTO);
+    GeneralResponse<String> changePassword(Long userId, ChangePasswordRequestDTO requestDTO);
 
-    GeneralResponse<PagingDTO<BookingSummaryDTO>> getUserBookings(String username, Pageable pageable);
+    GeneralResponse<PagingDTO<BookingSummaryDTO>> getUserBookings(Long userId, Pageable pageable);
 }

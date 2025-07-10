@@ -10,6 +10,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -31,7 +32,9 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity,  CustomOAuth2UserService oauth2UserService) throws Exception {
-        httpSecurity.csrf(AbstractHttpConfigurer::disable)
+        httpSecurity
+                .cors(Customizer.withDefaults())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/swagger-ui/**", "/v1/v3/api-docs/**","/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui.html", "/webjars/**").permitAll()
                         .requestMatchers("/public/**", "/auth/**", "/oauth2/**").permitAll()
@@ -39,11 +42,11 @@ public class SecurityConfig {
                         .requestMatchers("/forgot-password", "/reset-password").permitAll()
                         .requestMatchers("/v1/admin/**").hasAnyAuthority("ADMIN")
                         .requestMatchers("/v1/marketing/**").hasAnyAuthority("MARKETING_MANAGER", "BUSINESS_DEPARTMENT", "ADMIN")
-                        .requestMatchers("/v1/salesman/**").hasAnyAuthority("SELLER", "BUSINESS_DEPARTMENT", "ADMIN")
-                        .requestMatchers("/v1/operator/**").hasAnyAuthority("SERVICE_COORDINATOR", "BUSINESS_DEPARTMENT", "ADMIN")
+                        .requestMatchers("/v1/business/**").hasAnyAuthority("BUSINESS_DEPARTMENT", "ADMIN")
+                        .requestMatchers("/v1/seller/**").hasAnyAuthority("SELLER", "BUSINESS_DEPARTMENT", "ADMIN")
+                        .requestMatchers("/v1/cordinator/**").hasAnyAuthority("SERVICE_COORDINATOR", "BUSINESS_DEPARTMENT", "ADMIN")
                         .requestMatchers("/v1/accountant/**").hasAnyAuthority("ACCOUNTANT", "BUSINESS_DEPARTMENT", "ADMIN")
                         .requestMatchers("/v1/service-provider/**").hasAnyAuthority("BUSINESS_DEPARTMENT", "ADMIN")
-                        .requestMatchers("/v1/head-of-business/**").hasAnyAuthority("BUSINESS_DEPARTMENT", "ADMIN")
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2

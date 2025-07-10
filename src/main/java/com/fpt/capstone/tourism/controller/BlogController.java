@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.controller;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.BlogDetailDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.BlogSummaryDTO;
 import com.fpt.capstone.tourism.service.BlogService;
 import lombok.RequiredArgsConstructor;
@@ -9,10 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/public/blogs") // Endpoint chung cho blog
@@ -28,14 +26,16 @@ public class BlogController {
             @RequestParam(defaultValue = "createdAt") String sortField,
             @RequestParam(defaultValue = "desc") String sortDirection
     ) {
-        // Tạo đối tượng Sort dựa trên tham số truyền vào
         Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
-
-        // Gọi service để lấy dữ liệu
         PagingDTO<BlogSummaryDTO> result = blogService.getAllBlogs(pageable);
-
-        // Trả về kết quả
         return ResponseEntity.ok(GeneralResponse.of(result, "Blogs loaded successfully."));
+    }
+
+    @GetMapping("/{id}")
+    //postman http://localhost:8080/v1/public/blogs/2
+    public ResponseEntity<GeneralResponse<BlogDetailDTO>> getBlogDetail(@PathVariable Long id) {
+        BlogDetailDTO result = blogService.getBlogDetailById(id);
+        return ResponseEntity.ok(GeneralResponse.of(result, "Blog detail loaded successfully."));
     }
 }

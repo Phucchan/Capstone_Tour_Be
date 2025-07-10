@@ -35,6 +35,8 @@ public class Constants {
         // Password related
         public static final String PASSWORDS_DO_NOT_MATCH_MESSAGE = "Mật khẩu và xác nhận mật khẩu không trùng khớp";
         public static final String INVALID_OLD_PASSWORD_MESSAGE = "Mật khẩu hiện tại không chính xác";
+        public static final String RESET_PASSWORD_EMAIL_SENT = "Mật khẩu mới đã được gửi về email của bạn";
+
         // Registration & Email confirmation
         public static final String EMAIL_CONFIRMATION_REQUEST_MESSAGE = "Cảm ơn bạn đã đăng ký. Vui lòng kiểm tra email để hoàn tất xác minh";
         public static final String REGISTER_FAIL_MESSAGE = "Đăng ký tài khoản thất bại do lỗi hệ thống!";
@@ -243,7 +245,12 @@ public class Constants {
         public static final String BLOG_DETAIL_SUCCESS = "Lấy chi tiết blog thành công";
         public static final String BLOG_DETAIL_FAIL = "Lấy chi tiết blog thất bại";
         //===================================================
-        // Tour Day Related Messages
+        // Voucher Related Messages
+        public static final String VOUCHER_CREATE_SUCCESS = "Tạo voucher thành công";
+        public static final String VOUCHER_CREATE_FAIL = "Tạo voucher thất bại";
+        public static final String VOUCHER_CODE_EXISTS = "Mã voucher đã tồn tại";
+        public static final String VOUCHER_LIST_SUCCESS = "Lấy danh sách voucher thành công";
+        public static final String VOUCHER_LIST_FAIL = "Lấy danh sách voucher thất bại";
         //===================================================
         // Tour day management
         public static final String TOUR_DAY_SERVICE_ADDED_SUCCESS = "Thêm dịch vụ vào ngày tour thành công";

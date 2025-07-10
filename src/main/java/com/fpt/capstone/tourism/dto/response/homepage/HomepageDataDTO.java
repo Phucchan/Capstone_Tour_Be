@@ -17,7 +17,7 @@ public class HomepageDataDTO {
     /**
      * A list of tours currently on sale or promotion.
      */
-    private List<TourSummaryDTO> saleTours;
+    private List<SaleTourDTO> saleTours;
     /**
      * A list of recent blog posts.
      */

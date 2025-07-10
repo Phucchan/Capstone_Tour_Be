@@ -1,4 +1,4 @@
-package com.fpt.capstone.tourism.repository;
+package com.fpt.capstone.tourism.repository.user;
 
 import com.fpt.capstone.tourism.model.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;

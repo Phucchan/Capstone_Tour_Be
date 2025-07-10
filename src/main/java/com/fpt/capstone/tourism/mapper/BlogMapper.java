@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.mapper;
 
 import com.fpt.capstone.tourism.dto.common.BlogManagerDTO;
+import com.fpt.capstone.tourism.dto.response.BlogDetailDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.BlogSummaryDTO;
 import com.fpt.capstone.tourism.model.blog.Blog;
 import com.fpt.capstone.tourism.model.blog.Tag;
@@ -19,6 +20,10 @@ public interface BlogMapper {
     @Mapping(source = "author.fullName", target = "authorName")
     @Mapping(target = "tags", expression = "java(mapTags(blog.getBlogTags()))")
     com.fpt.capstone.tourism.dto.response.BlogDetailManagerDTO blogToBlogDetailDTO(Blog blog);
+
+    @Mapping(source = "author.fullName", target = "authorName")
+    @Mapping(target = "tags", expression = "java(mapTags(blog.getBlogTags()))")
+    BlogDetailDTO blogToBlogDetailCustomerDTO(Blog blog);
 
     @Mapping(source = "author.fullName", target = "authorName")
     @Mapping(target = "tags", expression = "java(mapTags(blog.getBlogTags()))")

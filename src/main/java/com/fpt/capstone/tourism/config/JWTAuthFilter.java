@@ -35,7 +35,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader("Authorization");
         final String jwtToken;
         final String username;
-        if (authHeader == null || authHeader.isBlank()) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -54,5 +54,11 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return path.startsWith("/auth") || path.startsWith("/oauth2") || path.startsWith("/swagger");
     }
 }

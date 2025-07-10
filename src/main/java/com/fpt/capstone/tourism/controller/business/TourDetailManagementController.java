@@ -19,7 +19,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/business/")
+@RequestMapping("/business")
 public class TourDetailManagementController {
 
     @Autowired

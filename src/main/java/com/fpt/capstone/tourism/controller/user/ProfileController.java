@@ -24,37 +24,35 @@ public class ProfileController {
     private final UserService userService;
 
     @GetMapping("/profile")
-    //postman http://localhost:8080/v1/users/profile
-    public ResponseEntity<GeneralResponse<UserProfileResponseDTO>> getProfile(Principal principal) {
-        String username = principal.getName();
-        return ResponseEntity.ok(userService.getUserProfile(username));
+    //postman http://localhost:8080/v1/users/profile?userId=1
+    public ResponseEntity<GeneralResponse<UserProfileResponseDTO>> getProfile(@RequestParam Long userId) {
+        return ResponseEntity.ok(userService.getUserProfile(userId));
     }
 
     @PutMapping("/profile")
+    //postman http://localhost:8080/v1/users/profile?userId=1
     public ResponseEntity<GeneralResponse<UserProfileResponseDTO>> updateProfile(
-            @RequestBody UpdateProfileRequestDTO requestDTO,
-            Principal principal) {
-        String username = principal.getName();
-        return ResponseEntity.ok(userService.updateUserProfile(username, requestDTO));
+            @RequestParam Long userId,
+            @RequestBody UpdateProfileRequestDTO requestDTO) {
+        return ResponseEntity.ok(userService.updateUserProfile(userId, requestDTO));
     }
+
     @PutMapping("/change-password")
     public ResponseEntity<GeneralResponse<String>> changePassword(
-            @RequestBody ChangePasswordRequestDTO requestDTO,
-            Principal principal) {
-        String username = principal.getName();
-        return ResponseEntity.ok(userService.changePassword(username, requestDTO));
+            @RequestParam Long userId,
+            @RequestBody ChangePasswordRequestDTO requestDTO) {
+        return ResponseEntity.ok(userService.changePassword(userId, requestDTO));
     }
     //postman http://localhost:8080/v1/users/bookings?page=0&size=10&sortField=bookingStatus&sortDirection=asc
     @GetMapping("/bookings")
     public ResponseEntity<GeneralResponse<PagingDTO<BookingSummaryDTO>>> getBookings(
-            Principal principal,
+            @RequestParam Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "bookingStatus") String sortField,
             @RequestParam(defaultValue = "asc") String sortDirection) {
-        String username = principal.getName();
         Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
-        return ResponseEntity.ok(userService.getUserBookings(username, pageable));
+        return ResponseEntity.ok(userService.getUserBookings(userId, pageable));
     }
 }

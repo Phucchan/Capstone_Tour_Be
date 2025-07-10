@@ -47,19 +47,32 @@ public class TourServiceImpl implements TourService {
 
     @Override
     public PagingDTO<TourSummaryDTO> searchTours(Double priceMin, Double priceMax, Long departId, Long destId, LocalDate date, Pageable pageable) {
-        // 1. Kết hợp các Specification lại với nhau
-        Specification<Tour> spec = Specification
-                .where(TourSpecification.hasPriceInRange(priceMin, priceMax))
-                .and(TourSpecification.hasDepartureLocation(departId))
-                .and(TourSpecification.hasDestination(destId))
-                .and(TourSpecification.hasDepartureDate(date));
 
-        // 2. Gọi phương thức findAll mới của repository với Specification
+        // 1. Bắt đầu với một Specification cơ sở (luôn lọc các tour đã publish)
+        // KHÔNG DÙNG .where() nữa
+        Specification<Tour> spec = TourSpecification.isPublished();
+
+        // 2. Tuần tự thêm các điều kiện lọc nếu tham số của chúng tồn tại
+        if (priceMin != null || priceMax != null) {
+            spec = spec.and(TourSpecification.hasPriceInRange(priceMin, priceMax));
+        }
+        if (departId != null) {
+            spec = spec.and(TourSpecification.hasDepartureLocation(departId));
+        }
+        if (destId != null) {
+            spec = spec.and(TourSpecification.hasDestination(destId));
+        }
+        if (date != null) {
+            spec = spec.and(TourSpecification.hasDepartureDate(date));
+        }
+
+        // 3. Gọi repository với specification đã được xây dựng hoàn chỉnh
         Page<Tour> tourPage = tourRepository.findAll(spec, pageable);
 
-        // 3. Tái sử dụng phương thức map DTO đã có và trả về kết quả
+        // 4. Map kết quả sang DTO và trả về
         return mapTourPageToPagingDTO(tourPage);
     }
+
     @Override
     public PagingDTO<TourSummaryDTO> getFixedTours(Pageable pageable) {
         Page<Tour> tourPage = tourRepository.findByTourTypeAndTourStatus(

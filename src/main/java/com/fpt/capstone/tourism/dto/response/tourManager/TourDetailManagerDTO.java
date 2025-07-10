@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TourDetailManagerDTO {
+    private String code;
     private Long id;
     private String name;
     private String thumbnailUrl;

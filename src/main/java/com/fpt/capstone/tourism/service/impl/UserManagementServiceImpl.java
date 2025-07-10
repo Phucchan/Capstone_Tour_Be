@@ -4,22 +4,26 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.response.UserFullInformationResponseDTO;
 import com.fpt.capstone.tourism.dto.response.UserManagementDTO;
 import com.fpt.capstone.tourism.dto.request.UserManagementRequestDTO;
+import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.UserMapper;
 import com.fpt.capstone.tourism.model.Role;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.UserRole;
+import com.fpt.capstone.tourism.model.enums.UserStatus;
 import com.fpt.capstone.tourism.repository.RoleRepository;
-import com.fpt.capstone.tourism.repository.UserRepository;
-import com.fpt.capstone.tourism.repository.UserRoleRepository;
+import com.fpt.capstone.tourism.repository.user.UserRepository;
+import com.fpt.capstone.tourism.repository.user.UserRoleRepository;
 import com.fpt.capstone.tourism.service.UserManagementService;
 import com.fpt.capstone.tourism.service.UserService;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -87,6 +91,25 @@ public class UserManagementServiceImpl implements UserManagementService {
                                                                                       String sortDirection) {
         return getAllUsers(page, size, keyword, isDeleted, "CUSTOMER", sortField, sortDirection);
     }
+    @Transactional
+    public GeneralResponse<UserManagementDTO> changeStatus(Long id, ChangeStatusDTO changeStatusDTO) {
+        User user = userService.findById(id);
+        String statusValue = changeStatusDTO.getNewStatus();
+        if (statusValue == null) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "User status must not be null");
+        }
+        try {
+            UserStatus newStatus = UserStatus.valueOf(statusValue.toUpperCase());
+            user.setUserStatus(newStatus);
+            userRepository.save(user);
+        } catch (IllegalArgumentException e) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST,
+                    "Invalid user status: " + statusValue,
+                    e);
+        }
+        return GeneralResponse.of(toDTO(user), "Status updated successfully");
+    }
+
 
     @Override
     public GeneralResponse<PagingDTO<UserFullInformationResponseDTO>> getAllStaff(int page,
