@@ -85,6 +85,12 @@ public class TourBookingServiceImpl implements TourBookingService {
                     .paymentUrl(paymentUrl)
                     .expiredAt(LocalDateTime.now().plusHours(9))
                     .totalAmount(bookingRequestDTO.getTotal())
+                    .needHelp(bookingRequestDTO.isNeedHelp())
+                    .adults(bookingRequestDTO.getAdults() != null ? bookingRequestDTO.getAdults().size() : 0)
+                    .children(bookingRequestDTO.getChildren() != null ? bookingRequestDTO.getChildren().size() : 0)
+                    .infants(bookingRequestDTO.getInfants() != null ? bookingRequestDTO.getInfants().size() : 0)
+                    .toddlers(bookingRequestDTO.getToddlers() != null ? bookingRequestDTO.getToddlers().size() : 0)
+                    .singleRooms(bookingRequestDTO.getNumberSingleRooms())
                     .build();
 
 
@@ -243,6 +249,7 @@ public class TourBookingServiceImpl implements TourBookingService {
                     .paymentUrl(tourBooking.getPaymentUrl())
                     .status(tourBooking.getBookingStatus())
                     .needHelp(tourBooking.isNeedHelp())
+                    .singleRooms(tourBooking.getSingleRooms())
                     .build();
         } catch (Exception ex) {
             throw BusinessException.of("Lấy Thông Tin Tour Thất Bại", ex);

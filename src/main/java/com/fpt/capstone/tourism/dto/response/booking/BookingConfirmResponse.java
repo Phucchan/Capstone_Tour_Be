@@ -31,4 +31,5 @@ public class BookingConfirmResponse {
     private String paymentUrl;
     private BookingStatus status;
     private boolean needHelp;
+    private int singleRooms;
 }
