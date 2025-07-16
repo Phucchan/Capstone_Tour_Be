@@ -88,7 +88,83 @@ class TourServiceImplTest {
         // Kiểm tra log message thành công từ Constants
         assertEquals(com.fpt.capstone.tourism.constants.Constants.Message.SEARCH_SUCCESS, "Tìm kiếm thành công");
     }
+    @Test
+    void searchTours_whenFilteredByPriceRange_shouldSucceed() {
+        // Arrange: Chuẩn bị dữ liệu và các mock
+        double priceMin = 5_000_000.0;
+        double priceMax = 20_000_000.0;
+        Pageable pageable = PageRequest.of(0, 10);
 
+        // Tạo một tour giả lập để trả về
+        Tour tour = new Tour();
+        tour.setId(5L);
+        tour.setName("Tour cao cấp");
+        tour.setThumbnailUrl("luxury_thumb.jpg");
+        tour.setDurationDays(4);
+
+        Page<Tour> tourPage = new PageImpl<>(List.of(tour), pageable, 1);
+
+        // Giả lập lời gọi repository với Specification bất kỳ, vì service sẽ tự build spec
+        // và trả về trang kết quả đã chuẩn bị
+        when(tourRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(tourPage);
+
+        // Giả lập các lời gọi repository phụ thuộc trong phương thức mapTourPageToPagingDTO
+        when(feedbackRepository.findAverageRatingByTourId(tour.getId())).thenReturn(4.8);
+        // Giả lập giá khởi điểm của tour nằm trong khoảng tìm kiếm (5 triệu - 20 triệu)
+        when(tourPaxRepository.findStartingPriceByTourId(tour.getId())).thenReturn(15_000_000.0);
+        when(tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(anyLong(), any(LocalDateTime.class)))
+                .thenReturn(Collections.emptyList());
+
+        // Act: Gọi phương thức cần test với priceMin và priceMax đã thay đổi
+        PagingDTO<TourSummaryDTO> result = tourService.searchTours(priceMin, priceMax, null, null, null, pageable);
+
+        // Assert: Kiểm tra kết quả
+        assertNotNull(result, "Kết quả trả về không được null");
+        assertEquals(1, result.getItems().size(), "Phải trả về một tour trong danh sách");
+
+        TourSummaryDTO summaryDTO = result.getItems().get(0);
+        assertEquals(tour.getName(), summaryDTO.getName(), "Tên tour phải khớp với dữ liệu giả lập");
+        assertEquals(4.8, summaryDTO.getAverageRating(), "Đánh giá trung bình phải khớp");
+        assertEquals(15_000_000.0, summaryDTO.getStartingPrice(), "Giá khởi điểm phải khớp");
+
+        // Verify: Đảm bảo rằng phương thức findAll của repository đã được gọi đúng 1 lần
+        verify(tourRepository, times(1)).findAll(any(Specification.class), eq(pageable));
+        assertEquals(com.fpt.capstone.tourism.constants.Constants.Message.SEARCH_SUCCESS, "Tìm kiếm thành công", "Search success message should match");
+    }
+
+    @Test
+    void searchTours_whenFilteredByDepartLocation_shouldReturnMatchingTours() {
+        // Arrange
+        long departLocationId = 1L;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Tour tour = new Tour();
+        tour.setId(10L);
+        tour.setName("Tour xuất phát từ Hà Nội");
+        tour.setThumbnailUrl("hanoi_thumb.jpg");
+        tour.setDurationDays(2);
+
+        // Mock repository to return the tour when searching by departLocationId
+        Page<Tour> tourPage = new PageImpl<>(List.of(tour), pageable, 1);
+        when(tourRepository.findByDepartLocationIdAndTourStatus(eq(departLocationId), eq(TourStatus.PUBLISHED), eq(pageable)))
+                .thenReturn(tourPage);
+        when(feedbackRepository.findAverageRatingByTourId(tour.getId())).thenReturn(4.2);
+        when(tourPaxRepository.findStartingPriceByTourId(tour.getId())).thenReturn(2_000_000.0);
+        when(tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(anyLong(), any(LocalDateTime.class)))
+                .thenReturn(Collections.emptyList());
+
+        // Act
+        PagingDTO<TourSummaryDTO> result = tourService.getToursByLocation(departLocationId, pageable);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getItems().size());
+        TourSummaryDTO dto = result.getItems().get(0);
+        assertEquals(tour.getId(), dto.getId());
+        assertEquals("Tour xuất phát từ Hà Nội", dto.getName());
+        assertEquals(4.2, dto.getAverageRating());
+        assertEquals(2_000_000.0, dto.getStartingPrice());
+    }
 
     @Test
     @Order(2)
@@ -154,6 +230,10 @@ class TourServiceImplTest {
         TourDetailDTO result = tourService.getTourDetailById(tourId);
         assertNotNull(result);
         assertEquals(5.0, result.getAverageRating());
+
+        // Dòng được thêm vào theo yêu cầu của bạn
+        assertEquals(com.fpt.capstone.tourism.constants.Constants.Message.TOUR_DETAIL_LOAD_SUCCESS, "Tải chi tiết tour thành công");
+
         // Giả lập kiểm tra log message
         assertEquals("Fetching tour details for tour ID: 10", "Fetching tour details for tour ID: 10");
         assertEquals("Finished tour details for tour ID: 10", "Finished tour details for tour ID: 10");

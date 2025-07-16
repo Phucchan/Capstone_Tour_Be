@@ -74,7 +74,7 @@ class AuthServiceImplTest {
         userDTO.setPassword("Motconvit!");
 
         User user = User.builder().username("testuser").deleted(false).emailConfirmed(true).build();
-
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(null);
         when(userService.findUserByUsername("testuser")).thenReturn(user);
         when(jwtHelper.generateToken(user)).thenReturn("token");
         when(userMapper.toUserBasicDTO(user)).thenReturn(null);

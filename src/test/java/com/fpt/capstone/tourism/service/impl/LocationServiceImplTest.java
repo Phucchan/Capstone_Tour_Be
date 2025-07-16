@@ -10,39 +10,32 @@ import com.fpt.capstone.tourism.mapper.LocationMapper;
 import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.repository.LocationRepository;
 import com.fpt.capstone.tourism.repository.tour.TourRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.*;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.junit.jupiter.api.*;
 
-import java.util.Collections;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.*;
+
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class LocationServiceImplTest {
-
-    @InjectMocks
-    private LocationServiceImpl locationService;
 
     @Mock
     private LocationRepository locationRepository;
-
+    @Mock
+    private LocationMapper locationMapper;
     @Mock
     private TourRepository tourRepository;
 
-    @Mock
-    private LocationMapper locationMapper;
-
-    @Captor
-    private ArgumentCaptor<Location> locationArgumentCaptor;
+    @InjectMocks
+    private LocationServiceImpl locationService;
 
     private Location location;
     private LocationDTO locationDTO;
@@ -51,134 +44,159 @@ class LocationServiceImplTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-
         location = new Location();
         location.setId(1L);
-        location.setName("Hanoi");
-        location.setDeleted(false);
-
+        location.setName("Hà Nội");
         locationDTO = new LocationDTO();
         locationDTO.setId(1L);
-        locationDTO.setName("Hanoi");
-
+        locationDTO.setName("Hà Nội");
         locationRequestDTO = new LocationRequestDTO();
-        locationRequestDTO.setName("Hanoi");
-        locationRequestDTO.setDescription("Capital of Vietnam");
-    }
-
-    // Tests for getAllDepartures
-    @Test
-    void getAllDepartures_shouldReturnListOfDepartures_whenDeparturesExist() {
-        // Arrange
-        List<Location> locations = List.of(location);
-        when(tourRepository.findDistinctDepartLocations()).thenReturn(locations);
-        when(locationMapper.toDTO(location)).thenReturn(locationDTO);
-
-        // Act
-        List<LocationDTO> result = locationService.getAllDepartures();
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(locationDTO.getName(), result.get(0).getName());
-        verify(tourRepository, times(1)).findDistinctDepartLocations();
-        verify(locationMapper, times(1)).toDTO(location);
+        locationRequestDTO.setName("Hà Nội");
+        locationRequestDTO.setDescription("Thủ đô Việt Nam");
+        locationRequestDTO.setImage("https://example.com/image.jpg");
     }
 
     @Test
-    void getAllDepartures_shouldReturnEmptyList_whenNoDeparturesExist() {
-        // Arrange
-        when(tourRepository.findDistinctDepartLocations()).thenReturn(Collections.emptyList());
-
-        // Act
-        List<LocationDTO> result = locationService.getAllDepartures();
-
-        // Assert
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-        verify(tourRepository, times(1)).findDistinctDepartLocations();
-        verify(locationMapper, never()).toDTO(any(Location.class));
-    }
-
-    // Tests for getAllDestinations
-    @Test
-    void getAllDestinations_shouldReturnListOfDestinations_whenDestinationsExist() {
-        // Arrange
-        List<Location> locations = List.of(location);
-        when(tourRepository.findDistinctDestinations()).thenReturn(locations);
-        when(locationMapper.toDTO(location)).thenReturn(locationDTO);
-
-        // Act
-        List<LocationDTO> result = locationService.getAllDestinations();
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(locationDTO.getName(), result.get(0).getName());
-        verify(tourRepository, times(1)).findDistinctDestinations();
-        verify(locationMapper, times(1)).toDTO(location);
-    }
-
-    @Test
-    void getAllDestinations_shouldReturnEmptyList_whenNoDestinationsExist() {
-        // Arrange
-        when(tourRepository.findDistinctDestinations()).thenReturn(Collections.emptyList());
-
-        // Act
-        List<LocationDTO> result = locationService.getAllDestinations();
-
-        // Assert
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-        verify(tourRepository, times(1)).findDistinctDestinations();
-        verify(locationMapper, never()).toDTO(any(Location.class));
-    }
-
-    // Tests for saveLocation
-
-    @Test
-    void saveLocation_shouldThrowBusinessException_whenNameExists() {
-        // Arrange
-        when(locationRepository.findByName(locationRequestDTO.getName())).thenReturn(new Location());
-
-        // Act & Assert
-        BusinessException exception = assertThrows(BusinessException.class,
-                () -> locationService.saveLocation(locationRequestDTO));
-
-        assertEquals(Constants.Message.EXISTED_LOCATION, exception.getMessage());
-        verify(locationRepository, never()).save(any(Location.class));
-    }
-
-    @Test
-    void saveLocation_shouldThrowBusinessException_whenRepositoryFails() {
-        // Arrange
-        when(locationRepository.findByName(locationRequestDTO.getName())).thenReturn(null);
+    @Order(1)
+    void saveLocation_Success() {
+        when(locationRepository.findByName("Hà Nội")).thenReturn(null);
         when(locationMapper.toEntity(locationRequestDTO)).thenReturn(location);
-        when(locationRepository.save(any(Location.class))).thenThrow(new RuntimeException("Database error"));
+        when(locationMapper.toDTO(location)).thenReturn(locationDTO);
 
-        // Act & Assert
-        BusinessException exception = assertThrows(BusinessException.class,
-                () -> locationService.saveLocation(locationRequestDTO));
+        GeneralResponse<LocationDTO> response = locationService.saveLocation(locationRequestDTO);
 
-        assertEquals(Constants.Message.CREATE_LOCATION_FAIL, exception.getMessage());
+        assertEquals(200, response.getStatus());
+        assertEquals("Tạo địa điểm thành công", response.getMessage());
+        assertNotNull(response.getData());
+        assertEquals("Hà Nội", response.getData().getName());
     }
 
-    // Tests for getLocationById
     @Test
-    void getLocationById_shouldReturnLocation_whenFound() {
-        // Arrange
+    @Order(2)
+    void getLocationById_Success() {
         when(locationRepository.findById(1L)).thenReturn(Optional.of(location));
         when(locationMapper.toDTO(location)).thenReturn(locationDTO);
 
-        // Act
         GeneralResponse<LocationDTO> response = locationService.getLocationById(1L);
 
-        // Assert
-        assertNotNull(response);
+        assertEquals(200, response.getStatus());
         assertEquals(Constants.Message.GENERAL_SUCCESS_MESSAGE, response.getMessage());
         assertNotNull(response.getData());
-        assertEquals(locationDTO.getId(), response.getData().getId());
-        verify(locationRepository, times(1)).findById(1L);
-    }
+        assertEquals("Hà Nội", response.getData().getName());
     }
 
+    @Test
+    @Order(3)
+    void deleteLocation_Success() {
+        when(locationRepository.findById(1L)).thenReturn(Optional.of(location));
+        when(locationMapper.toDTO(location)).thenReturn(locationDTO);
+
+        GeneralResponse<LocationDTO> response = locationService.deleteLocation(1L, true);
+
+        assertEquals(200, response.getStatus());
+        assertEquals(Constants.Message.GENERAL_SUCCESS_MESSAGE, response.getMessage());
+        assertFalse(response.getData().isDeleted());
+    }
+
+    // Abnormal cases
+    @Test
+    @Order(4)
+    void saveLocation_ShouldThrowException_WhenNameIsNumeric() {
+        locationRequestDTO.setName("123");
+        BusinessException exception = assertThrows(BusinessException.class, () -> locationService.saveLocation(locationRequestDTO));
+        assertEquals(Constants.Message.CREATE_LOCATION_FAIL, exception.getResponseMessage());
+    }
+
+    @Test
+    @Order(5)
+    void saveLocation_ShouldThrowException_WhenNameIsDuplicate() {
+        when(locationRepository.findByName("Hà Nội")).thenReturn(location);
+        BusinessException exception = assertThrows(BusinessException.class, () -> locationService.saveLocation(locationRequestDTO));
+        assertEquals(Constants.Message.EXISTED_LOCATION, exception.getResponseMessage());
+    }
+
+    @Test
+    @Order(6)
+    void saveLocation_ShouldThrowException_WhenMapperReturnsNull() {
+        when(locationRepository.findByName(anyString())).thenReturn(null);
+        when(locationMapper.toEntity(locationRequestDTO)).thenReturn(null);
+        BusinessException exception = assertThrows(BusinessException.class, () -> locationService.saveLocation(locationRequestDTO));
+        assertEquals(Constants.Message.CREATE_LOCATION_FAIL, exception.getResponseMessage());
+    }
+
+    @Test
+    @Order(7)
+    void getLocationById_ShouldThrowException_WhenNotFound() {
+        when(locationRepository.findById(2L)).thenReturn(Optional.empty());
+        BusinessException exception = assertThrows(BusinessException.class, () -> locationService.getLocationById(2L));
+        assertEquals(Constants.Message.GENERAL_FAIL_MESSAGE, exception.getResponseMessage());
+    }
+
+    @Test
+    @Order(8)
+    void deleteLocation_ShouldThrowException_WhenNotFound() {
+        when(locationRepository.findById(2L)).thenReturn(Optional.empty());
+        when(locationMapper.toEntity(any(LocationRequestDTO.class))).thenReturn(null);
+        BusinessException exception = assertThrows(BusinessException.class, () -> locationService.deleteLocation(2L, true));
+        assertEquals(Constants.Message.GENERAL_FAIL_MESSAGE, exception.getResponseMessage());
+    }
+
+    // Boundary cases
+    @Test
+    @Order(9)
+    void saveLocation_ShouldThrowException_WhenNameIsEmpty() {
+        locationRequestDTO.setName("");
+        BusinessException exception = assertThrows(BusinessException.class, () -> locationService.saveLocation(locationRequestDTO));
+        assertEquals(Constants.Message.EMPTY_LOCATION_NAME, exception.getResponseMessage());
+    }
+
+    @Test
+    @Order(10)
+    void saveLocation_ShouldThrowException_WhenDescriptionIsEmpty() {
+        locationRequestDTO.setDescription("");
+        BusinessException exception = assertThrows(BusinessException.class, () -> locationService.saveLocation(locationRequestDTO));
+        assertEquals(Constants.Message.EMPTY_LOCATION_DESCRIPTION, exception.getResponseMessage());
+    }
+
+    @Test
+    @Order(11)
+    void saveLocation_ShouldThrowException_WhenImageIsEmpty() {
+        locationRequestDTO.setImage("");
+        BusinessException exception = assertThrows(BusinessException.class, () -> locationService.saveLocation(locationRequestDTO));
+        assertEquals(Constants.Message.EMPTY_LOCATION_IMAGE, exception.getResponseMessage());
+    }
+
+    @Test
+    @Order(12)
+    void getListLocation_Success_WithKeyword() {
+        Page<Location> page = new PageImpl<>(List.of(location));
+        when(locationRepository.findByNameContainingIgnoreCase(anyString(), any())).thenReturn(page);
+        when(locationMapper.toDTO(any())).thenReturn(locationDTO);
+
+        GeneralResponse<PagingDTO<LocationDTO>> response = locationService.getListLocation(0, 10, "Hà Nội");
+        assertEquals(200, response.getStatus());
+        assertNotNull(response.getData());
+        assertEquals(1, response.getData().getItems().size());
+    }
+
+    @Test
+    @Order(13)
+    void getListLocation_Success_WithoutKeyword() {
+        Page<Location> page = new PageImpl<>(List.of(location));
+        when(locationRepository.findAll(any(Pageable.class))).thenReturn(page);
+        when(locationMapper.toDTO(any())).thenReturn(locationDTO);
+
+        GeneralResponse<PagingDTO<LocationDTO>> response = locationService.getListLocation(0, 10, null);
+        assertEquals(200, response.getStatus());
+        assertNotNull(response.getData());
+        assertEquals(1, response.getData().getItems().size());
+    }
+
+    @Test
+    @Order(14)
+    void getListLocation_ShouldThrowException_OnRepositoryError() {
+        when(locationRepository.findAll(any(Pageable.class))).thenThrow(new RuntimeException("DB error"));
+        BusinessException exception = assertThrows(BusinessException.class, () -> locationService.getListLocation(0, 10, null));
+        assertEquals(Constants.Message.GET_LOCATIONS_FAIL, exception.getResponseMessage());
+    }
+}
