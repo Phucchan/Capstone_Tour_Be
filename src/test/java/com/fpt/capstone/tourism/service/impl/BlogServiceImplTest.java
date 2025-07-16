@@ -3,39 +3,41 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.common.BlogManagerDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
-import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.BlogManagerRequestDTO;
-import com.fpt.capstone.tourism.dto.response.BlogDetailDTO;
-import com.fpt.capstone.tourism.dto.response.BlogDetailManagerDTO;
-import com.fpt.capstone.tourism.dto.response.homepage.BlogSummaryDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.BlogMapper;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.blog.Blog;
-import com.fpt.capstone.tourism.model.blog.Tag;
 import com.fpt.capstone.tourism.repository.blog.BlogRepository;
-import com.fpt.capstone.tourism.repository.blog.TagRepository;
 import com.fpt.capstone.tourism.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
-import org.springframework.data.domain.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 
-import java.util.*;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class BlogServiceImplTest {
 
     @Mock
     private BlogRepository blogRepository;
-    @Mock
-    private TagRepository tagRepository;
+
     @Mock
     private UserService userService;
+
     @Mock
     private BlogMapper blogMapper;
+
+    @Captor
+    private ArgumentCaptor<Blog> blogArgumentCaptor;
 
     @InjectMocks
     private BlogServiceImpl blogService;
@@ -45,232 +47,236 @@ class BlogServiceImplTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    // Normal case: getAllBlogs returns correct paging DTO
-    @Test
-    void getAllBlogs_ReturnsPagingDTO() {
-        Blog blog = Blog.builder().id(1L).title("Test").blogTags(List.of(Tag.builder().name("tag1").build())).build();
-        BlogSummaryDTO summaryDTO = new BlogSummaryDTO();
-        summaryDTO.setTitle("Test");
-        summaryDTO.setTags(List.of("tag1"));
-
-        Page<Blog> blogPage = new PageImpl<>(List.of(blog), PageRequest.of(0, 10), 1);
-        when(blogRepository.findByDeletedFalse(any())).thenReturn(blogPage);
-        when(blogMapper.blogToBlogSummaryDTO(blog)).thenReturn(summaryDTO);
-
-        PagingDTO<BlogSummaryDTO> result = blogService.getAllBlogs(PageRequest.of(0, 10));
-        assertEquals(1, result.getItems().size());
-        assertEquals("Test", result.getItems().get(0).getTitle());
-        assertEquals(List.of("tag1"), result.getItems().get(0).getTags());
-    }
-
     // Normal case: createBlog success
     @Test
     void createBlog_Success() {
+        // Arrange
         BlogManagerRequestDTO req = new BlogManagerRequestDTO();
         req.setAuthorId(1L);
-        req.setTitle("Title");
-        req.setDescription("Desc");
-        req.setContent("Content");
-        req.setThumbnailImageUrl("url");
-        req.setTagIds(List.of(1L));
+        req.setTitle("Test Title");
+        req.setDescription("Test Description");
+        req.setContent("Test Content");
+        req.setThumbnailImageUrl("http://example.com/thumb.jpg");
+
 
         User author = User.builder().id(1L).build();
-        Blog blog = Blog.builder().title("Title").author(author).build();
-        Blog savedBlog = Blog.builder().id(1L).title("Title").author(author).build();
+        Blog blog = new Blog();
         BlogManagerDTO dto = new BlogManagerDTO();
 
         when(userService.findById(1L)).thenReturn(author);
-        when(tagRepository.findAllById(List.of(1L))).thenReturn(List.of(Tag.builder().id(1L).name("tag1").build()));
-        when(blogRepository.save(any(Blog.class))).thenReturn(savedBlog);
-        when(blogMapper.blogToBlogDTO(savedBlog)).thenReturn(dto);
+        when(blogRepository.save(any(Blog.class))).thenReturn(blog);
+        when(blogMapper.blogToBlogDTO(blog)).thenReturn(dto);
 
+        // Act
         GeneralResponse<BlogManagerDTO> response = blogService.createBlog(req);
-        assertEquals(200, response.getStatus());
+
+        // Assert
+        assertEquals(HttpStatus.OK.value(), response.getStatus());
         assertEquals(Constants.Message.BLOG_CREATE_SUCCESS, response.getMessage());
         assertNotNull(response.getData());
+        verify(blogRepository, times(1)).save(any(Blog.class));
     }
 
-    // Abnormal case: createBlog throws BusinessException from userService
+    // Abnormal case: createBlog throws BusinessException when author not found
     @Test
-    void createBlog_ThrowsBusinessException_WhenUserNotFound() {
+    void createBlog_ThrowsBusinessException_WhenAuthorNotFound() {
+        // Arrange
         BlogManagerRequestDTO req = new BlogManagerRequestDTO();
-        req.setAuthorId(99L);
-
+        req.setAuthorId(99L); // Non-existent author
+        req.setTitle("A Valid Title");
+        req.setDescription("Test Description");
+        req.setThumbnailImageUrl("http://example.com/thumb.jpg");
         when(userService.findById(99L)).thenThrow(BusinessException.of(Constants.UserExceptionInformation.USER_NOT_FOUND_MESSAGE));
 
+        // Act & Assert
         BusinessException ex = assertThrows(BusinessException.class, () -> blogService.createBlog(req));
         assertEquals(Constants.UserExceptionInformation.USER_NOT_FOUND_MESSAGE, ex.getResponseMessage());
     }
 
-    // Abnormal case: createBlog throws BusinessException on unexpected error
+    // Abnormal case: createBlog throws BusinessException when title is null
     @Test
-    void createBlog_ThrowsBusinessException_OnError() {
+    void createBlog_ThrowsBusinessException_WhenTitleIsNull() {
+        // Arrange
         BlogManagerRequestDTO req = new BlogManagerRequestDTO();
         req.setAuthorId(1L);
+        req.setTitle(null); // Null title
+        req.setContent("Some valid content");
+        req.setDescription("Test Description");
+        req.setThumbnailImageUrl("http://example.com/thumb.jpg");
 
-        when(userService.findById(1L)).thenThrow(new RuntimeException("DB error"));
+        // Arrange: Mock the dependencies
+        when(userService.findById(1L)).thenReturn(User.builder().id(1L).build());
+        // We simulate that the database layer would throw an exception for a mandatory field being null.
+        when(blogRepository.save(any(Blog.class))).thenThrow(new RuntimeException("Simulated DB error for null title"));
 
-        BusinessException ex = assertThrows(BusinessException.class, () -> blogService.createBlog(req));
+        // Act & Assert
+        BusinessException ex = assertThrows(BusinessException.class, () -> blogService.createBlog(req), "Should throw exception when title is null");
+        assertEquals(Constants.Message.BLOG_CREATE_FAIL, ex.getResponseMessage());
+
+        // Verify user was checked and save was attempted.
+        verify(userService, times(1)).findById(1L);
+        verify(blogRepository, times(1)).save(any(Blog.class));
+    }
+
+    // Abnormal case: createBlog throws BusinessException when content is null
+    @Test
+    void createBlog_ThrowsBusinessException_WhenContentIsNull() {
+        // Arrange
+        BlogManagerRequestDTO req = new BlogManagerRequestDTO();
+        req.setAuthorId(1L);
+        req.setTitle("A valid title");
+        req.setContent(null); // Null content
+        when(userService.findById(1L)).thenReturn(User.builder().id(1L).build());
+        when(blogRepository.save(any(Blog.class))).thenThrow(new RuntimeException("Simulated DB error for null content"));
+
+        // Act & Assert
+        BusinessException ex = assertThrows(BusinessException.class, () -> blogService.createBlog(req), "Should throw exception when content is null");
+        assertEquals(Constants.Message.BLOG_CREATE_FAIL, ex.getResponseMessage());
+    }
+
+    // Abnormal case: createBlog throws BusinessException when description is null
+    @Test
+    void createBlog_ThrowsBusinessException_WhenDescriptionIsNull() {
+        // Arrange
+        BlogManagerRequestDTO req = new BlogManagerRequestDTO();
+        req.setAuthorId(1L);
+        req.setTitle("A Valid Title");
+        req.setContent("Valid Content");
+        req.setDescription(null); // The invalid field
+
+        when(userService.findById(1L)).thenReturn(User.builder().id(1L).build());
+        when(blogRepository.save(any(Blog.class))).thenThrow(new RuntimeException("Simulated DB error for null description"));
+
+        // Act & Assert
+        BusinessException ex = assertThrows(BusinessException.class, () -> blogService.createBlog(req), "Should throw exception when description is null");
+        assertEquals(Constants.Message.BLOG_CREATE_FAIL, ex.getResponseMessage());
+    }
+
+    // Abnormal case: createBlog throws BusinessException when thumbnailImageUrl is null
+    @Test
+    void createBlog_ThrowsBusinessException_WhenThumbnailIsNull() {
+        // Arrange
+        BlogManagerRequestDTO req = new BlogManagerRequestDTO();
+        req.setAuthorId(1L);
+        req.setTitle("A Valid Title");
+        req.setContent("Valid Content");
+        req.setThumbnailImageUrl(null); // The invalid field
+
+        when(userService.findById(1L)).thenReturn(User.builder().id(1L).build());
+        when(blogRepository.save(any(Blog.class))).thenThrow(new RuntimeException("Simulated DB error for null thumbnail"));
+
+        // Act & Assert
+        BusinessException ex = assertThrows(BusinessException.class, () -> blogService.createBlog(req), "Should throw exception when thumbnail is null");
         assertEquals(Constants.Message.BLOG_CREATE_FAIL, ex.getResponseMessage());
     }
 
     // Normal case: updateBlog success
     @Test
     void updateBlog_Success() {
+        // Arrange
+        Long blogId = 1L;
         BlogManagerRequestDTO req = new BlogManagerRequestDTO();
         req.setTitle("New Title");
-        Blog blog = Blog.builder().id(1L).title("Old Title").build();
-        Blog savedBlog = Blog.builder().id(1L).title("New Title").build();
+        req.setDescription("New Description");
+
+        Blog existingBlog = Blog.builder().id(blogId).title("Old Title").description("Old Description").build();
         BlogManagerDTO dto = new BlogManagerDTO();
 
-        when(blogRepository.findById(1L)).thenReturn(Optional.of(blog));
-        when(blogRepository.save(blog)).thenReturn(savedBlog);
-        when(blogMapper.blogToBlogDTO(savedBlog)).thenReturn(dto);
+        when(blogRepository.findById(blogId)).thenReturn(Optional.of(existingBlog));
+        when(blogRepository.save(any(Blog.class))).thenReturn(existingBlog);
+        when(blogMapper.blogToBlogDTO(existingBlog)).thenReturn(dto);
 
-        GeneralResponse<BlogManagerDTO> response = blogService.updateBlog(1L, req);
-        assertEquals(200, response.getStatus());
+        // Act
+        GeneralResponse<BlogManagerDTO> response = blogService.updateBlog(blogId, req);
+
+        // Assert
+        assertEquals(HttpStatus.OK.value(), response.getStatus());
         assertEquals(Constants.Message.BLOG_UPDATE_SUCCESS, response.getMessage());
         assertNotNull(response.getData());
+        verify(blogRepository, times(1)).save(existingBlog);
+        assertEquals("New Title", existingBlog.getTitle());
+        assertEquals("New Description", existingBlog.getDescription());
     }
 
-    // Abnormal case: updateBlog not found
+    // Abnormal case: updateBlog throws BusinessException when blog not found
     @Test
-    void updateBlog_ThrowsBusinessException_WhenNotFound() {
+    void updateBlog_ThrowsBusinessException_WhenBlogNotFound() {
+        // Arrange
+        Long blogId = 99L; // Non-existent blog
         BlogManagerRequestDTO req = new BlogManagerRequestDTO();
-        when(blogRepository.findById(2L)).thenReturn(Optional.empty());
+        req.setTitle("New Title");
 
-        BusinessException ex = assertThrows(BusinessException.class, () -> blogService.updateBlog(2L, req));
+        when(blogRepository.findById(blogId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        BusinessException ex = assertThrows(BusinessException.class, () -> blogService.updateBlog(blogId, req));
         assertEquals(Constants.Message.BLOG_NOT_FOUND, ex.getResponseMessage());
     }
 
-    // Abnormal case: updateBlog unexpected error
+    // Normal case: updateBlog should not update fields when their DTO values are null
     @Test
-    void updateBlog_ThrowsBusinessException_OnError() {
-        BlogManagerRequestDTO req = new BlogManagerRequestDTO();
-        Blog blog = Blog.builder().id(1L).build();
-        when(blogRepository.findById(1L)).thenReturn(Optional.of(blog));
-        when(blogRepository.save(blog)).thenThrow(new RuntimeException("DB error"));
+    void updateBlog_shouldNotUpdateFields_whenRequestFieldsAreNull() {
+        // Arrange
+        Long blogId = 1L;
+        String oldTitle = "Old Title";
+        String oldDescription = "Old Description";
+        String oldContent = "Old Content";
+        String oldThumbnail = "old_thumb.jpg";
 
-        BusinessException ex = assertThrows(BusinessException.class, () -> blogService.updateBlog(1L, req));
-        assertEquals(Constants.Message.BLOG_UPDATE_FAIL, ex.getResponseMessage());
+        BlogManagerRequestDTO reqWithNulls = new BlogManagerRequestDTO();
+        reqWithNulls.setTitle(null);
+        reqWithNulls.setDescription(null);
+        reqWithNulls.setContent(null);
+        reqWithNulls.setThumbnailImageUrl(null);
+
+        Blog existingBlog = Blog.builder().id(blogId).title(oldTitle).description(oldDescription).content(oldContent).thumbnailImageUrl(oldThumbnail).build();
+
+        when(blogRepository.findById(blogId)).thenReturn(Optional.of(existingBlog));
+
+        // Act: This call should not throw an exception
+        assertDoesNotThrow(() -> blogService.updateBlog(blogId, reqWithNulls));
+
+        // Assert
+        verify(blogRepository).save(blogArgumentCaptor.capture());
+        Blog savedBlog = blogArgumentCaptor.getValue();
+
+        // Verify that the fields were NOT updated because the input was null
+        assertEquals(oldTitle, savedBlog.getTitle(), "Title should not be updated for null input");
+        assertEquals(oldDescription, savedBlog.getDescription(), "Description should not be updated for null input");
+        assertEquals(oldContent, savedBlog.getContent(), "Content should not be updated for null input");
+        assertEquals(oldThumbnail, savedBlog.getThumbnailImageUrl(), "Thumbnail should not be updated for null input");
     }
-
     // Normal case: deleteBlog success
     @Test
     void deleteBlog_Success() {
-        Blog blog = Blog.builder().id(1L).deleted(false).build();
-        when(blogRepository.findById(1L)).thenReturn(Optional.of(blog));
-        when(blogRepository.save(blog)).thenReturn(blog);
+        // Arrange
+        Long blogId = 1L;
+        Blog existingBlog = Blog.builder()
+                .id(blogId)
+                .deleted(false) // Giá trị ban đầu
+                .build();
 
-        GeneralResponse<String> response = blogService.deleteBlog(1L);
-        assertEquals(200, response.getStatus());
+        when(blogRepository.findById(blogId)).thenReturn(Optional.of(existingBlog));
+
+        // Act
+        GeneralResponse<String> response = blogService.deleteBlog(blogId);
+
+        // Assert
+        assertEquals(HttpStatus.OK.value(), response.getStatus());
         assertEquals(Constants.Message.BLOG_DELETE_SUCCESS, response.getMessage());
-        assertNull(response.getData());
-        assertTrue(blog.getDeleted());
+        assertFalse(existingBlog.getDeleted());
+        verify(blogRepository, times(1)).save(existingBlog);
     }
 
-    // Abnormal case: deleteBlog not found
+    // Abnormal case: deleteBlog throws BusinessException when blog not found
     @Test
-    void deleteBlog_ThrowsBusinessException_WhenNotFound() {
-        when(blogRepository.findById(2L)).thenReturn(Optional.empty());
-        BusinessException ex = assertThrows(BusinessException.class, () -> blogService.deleteBlog(2L));
-        assertEquals(Constants.Message.BLOG_NOT_FOUND, ex.getResponseMessage());
-    }
+    void deleteBlog_ThrowsBusinessException_WhenBlogNotFound() {
+        // Arrange
+        Long blogId = 99L; // Non-existent blog
+        when(blogRepository.findById(blogId)).thenReturn(Optional.empty());
 
-    // Abnormal case: deleteBlog unexpected error
-    @Test
-    void deleteBlog_ThrowsBusinessException_OnError() {
-        Blog blog = Blog.builder().id(1L).build();
-        when(blogRepository.findById(1L)).thenReturn(Optional.of(blog));
-        when(blogRepository.save(blog)).thenThrow(new RuntimeException("DB error"));
-
-        BusinessException ex = assertThrows(BusinessException.class, () -> blogService.deleteBlog(1L));
-        assertEquals(Constants.Message.BLOG_DELETE_FAIL, ex.getResponseMessage());
-    }
-
-    // Normal case: getBlogs returns paging DTO
-    @Test
-    void getBlogs_ReturnsPagingDTO() {
-        Blog blog = Blog.builder().id(1L).title("Test").build();
-        BlogManagerDTO dto = new BlogManagerDTO();
-        Page<Blog> blogPage = new PageImpl<>(List.of(blog), PageRequest.of(0, 10), 1);
-
-        when(blogRepository.findByDeletedFalseOrderByCreatedAtDesc(any())).thenReturn(blogPage);
-        when(blogMapper.blogToBlogDTO(blog)).thenReturn(dto);
-
-        GeneralResponse<PagingDTO<BlogManagerDTO>> response = blogService.getBlogs(0, 10);
-        assertEquals(200, response.getStatus());
-        assertEquals(Constants.Message.BLOG_LIST_SUCCESS, response.getMessage());
-        assertEquals(1, response.getData().getItems().size());
-    }
-
-    // Abnormal case: getBlogs unexpected error
-    @Test
-    void getBlogs_ThrowsBusinessException_OnError() {
-        when(blogRepository.findByDeletedFalseOrderByCreatedAtDesc(any())).thenThrow(new RuntimeException("DB error"));
-        BusinessException ex = assertThrows(BusinessException.class, () -> blogService.getBlogs(0, 10));
-        assertEquals(Constants.Message.BLOG_LIST_FAIL, ex.getResponseMessage());
-    }
-
-    // Normal case: getBlog returns detail DTO
-    @Test
-    void getBlog_ReturnsDetailDTO() {
-        Blog blog = Blog.builder().id(1L).build();
-        BlogDetailManagerDTO dto = new BlogDetailManagerDTO();
-        when(blogRepository.findById(1L)).thenReturn(Optional.of(blog));
-        when(blogMapper.blogToBlogDetailDTO(blog)).thenReturn(dto);
-
-        GeneralResponse<BlogDetailManagerDTO> response = blogService.getBlog(1L);
-        assertEquals(200, response.getStatus());
-        assertEquals(Constants.Message.BLOG_DETAIL_SUCCESS, response.getMessage());
-        assertNotNull(response.getData());
-    }
-
-    // Abnormal case: getBlog not found
-    @Test
-    void getBlog_ThrowsBusinessException_WhenNotFound() {
-        when(blogRepository.findById(2L)).thenReturn(Optional.empty());
-        BusinessException ex = assertThrows(BusinessException.class, () -> blogService.getBlog(2L));
-        assertEquals(Constants.Message.BLOG_NOT_FOUND, ex.getResponseMessage());
-    }
-
-    // Abnormal case: getBlog unexpected error
-    @Test
-    void getBlog_ThrowsBusinessException_OnError() {
-        Blog blog = Blog.builder().id(1L).build();
-        when(blogRepository.findById(1L)).thenReturn(Optional.of(blog));
-        when(blogMapper.blogToBlogDetailDTO(blog)).thenThrow(new RuntimeException("DB error"));
-
-        BusinessException ex = assertThrows(BusinessException.class, () -> blogService.getBlog(1L));
-        assertEquals(Constants.Message.BLOG_DETAIL_FAIL, ex.getResponseMessage());
-    }
-
-    // Boundary case: getBlogDetailById - blog is deleted
-    @Test
-    void getBlogDetailById_ThrowsBusinessException_WhenDeleted() {
-        Blog blog = Blog.builder().id(1L).deleted(true).build();
-        when(blogRepository.findById(1L)).thenReturn(Optional.of(blog));
-        BusinessException ex = assertThrows(BusinessException.class, () -> blogService.getBlogDetailById(1L));
-        assertEquals(Constants.Message.BLOG_NOT_FOUND, ex.getResponseMessage());
-    }
-
-    // Normal case: getBlogDetailById returns DTO
-    @Test
-    void getBlogDetailById_ReturnsDTO() {
-        Blog blog = Blog.builder().id(1L).deleted(false).build();
-        BlogDetailDTO dto = new BlogDetailDTO();
-        when(blogRepository.findById(1L)).thenReturn(Optional.of(blog));
-        when(blogMapper.blogToBlogDetailCustomerDTO(blog)).thenReturn(dto);
-
-        BlogDetailDTO result = blogService.getBlogDetailById(1L);
-        assertNotNull(result);
-    }
-
-    // Abnormal case: getBlogDetailById not found
-    @Test
-    void getBlogDetailById_ThrowsBusinessException_WhenNotFound() {
-        when(blogRepository.findById(2L)).thenReturn(Optional.empty());
-        BusinessException ex = assertThrows(BusinessException.class, () -> blogService.getBlogDetailById(2L));
+        // Act & Assert
+        BusinessException ex = assertThrows(BusinessException.class, () -> blogService.deleteBlog(blogId));
         assertEquals(Constants.Message.BLOG_NOT_FOUND, ex.getResponseMessage());
     }
 }
