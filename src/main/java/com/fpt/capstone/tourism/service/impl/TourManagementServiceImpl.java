@@ -1,12 +1,15 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.constants.Constants;
+import com.fpt.capstone.tourism.dto.common.location.LocationDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourCreateManagerRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourDayManagerCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxManagerCreateRequestDTO;
+import com.fpt.capstone.tourism.dto.response.tour.TourOptionsDTO;
+import com.fpt.capstone.tourism.dto.response.tour.TourThemeOptionDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxManagerDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourUpdateManagerRequestDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.*;
@@ -28,6 +31,7 @@ import com.fpt.capstone.tourism.repository.partner.PartnerServiceRepository;
 import com.fpt.capstone.tourism.repository.tour.TourDayRepository;
 import com.fpt.capstone.tourism.repository.tour.TourPaxRepository;
 import com.fpt.capstone.tourism.repository.tour.TourThemeRepository;
+import com.fpt.capstone.tourism.service.LocationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -53,6 +57,9 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
 
     @Autowired
     private TourDetailManagerMapper tourDetailManagerMapper;
+
+    @Autowired
+    private LocationService locationService;
 
     @Autowired
     private TourThemeRepository tourThemeRepository;
@@ -107,12 +114,8 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         tour.setName(requestDTO.getName());
         tour.setThumbnailUrl(requestDTO.getThumbnailUrl());
 
-        if (requestDTO.getTourThemeId() != null) {
-            TourTheme theme = tourThemeRepository.findById(requestDTO.getTourThemeId())
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour theme not found"));
-            tour.setTourTheme(theme);
-        }
-
+        tour.setTourType(TourType.FIXED);
+        tour.setTourStatus(TourStatus.DRAFT);
         if (requestDTO.getDepartLocationId() != null) {
             Location depart = locationRepository.findById(requestDTO.getDepartLocationId())
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
@@ -127,6 +130,29 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         tour.setTourStatus(TourStatus.DRAFT);
 
         Tour saved = tourRepository.save(tour);
+        if (requestDTO.getTourThemeIds() != null) {
+            for (Long themeId : requestDTO.getTourThemeIds()) {
+                TourTheme theme = tourThemeRepository.findById(themeId)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour theme not found"));
+                theme.setTour(saved);
+                tourThemeRepository.save(theme);
+            }
+        }
+
+        // Create tour days for multiple destinations if provided
+        if (requestDTO.getDestinationLocationIds() != null) {
+            int dayNumber = 1;
+            for (Long destId : requestDTO.getDestinationLocationIds()) {
+                Location dest = locationRepository.findById(destId)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
+                TourDay day = new TourDay();
+                day.setTour(saved);
+                day.setDayNumber(dayNumber++);
+                day.setLocation(dest);
+                tourDayRepository.save(day);
+            }
+            saved.setDurationDays(dayNumber - 1);
+        }
         TourDetailManagerDTO dto = tourDetailManagerMapper.toDTO(saved);
         return GeneralResponse.of(dto, "Tour created successfully");
     }
@@ -170,10 +196,13 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         if (requestDTO.getThumbnailUrl() != null) {
             tour.setThumbnailUrl(requestDTO.getThumbnailUrl());
         }
-        if (requestDTO.getTourThemeId() != null) {
-            TourTheme theme = tourThemeRepository.findById(requestDTO.getTourThemeId())
-                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour theme not found"));
-            tour.setTourTheme(theme);
+        if (requestDTO.getTourThemeIds() != null) {
+            for (Long themeId : requestDTO.getTourThemeIds()) {
+                TourTheme theme = tourThemeRepository.findById(themeId)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour theme not found"));
+                theme.setTour(tour);
+                tourThemeRepository.save(theme);
+            }
         }
         if (requestDTO.getDepartLocationId() != null) {
             Location depart = locationRepository.findById(requestDTO.getDepartLocationId())
@@ -182,6 +211,24 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         }
         if (requestDTO.getDurationDays() != null) {
             tour.setDurationDays(requestDTO.getDurationDays());
+        }
+        if (requestDTO.getDestinationLocationIds() != null) {
+            List<TourDay> existing = tourDayRepository.findByTourIdOrderByDayNumberAsc(id);
+            for (TourDay day : existing) {
+                day.softDelete();
+                tourDayRepository.save(day);
+            }
+            int dayNumber = 1;
+            for (Long destId : requestDTO.getDestinationLocationIds()) {
+                Location dest = locationRepository.findById(destId)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
+                TourDay day = new TourDay();
+                day.setTour(tour);
+                day.setDayNumber(dayNumber++);
+                day.setLocation(dest);
+                tourDayRepository.save(day);
+            }
+            tour.setDurationDays(dayNumber - 1);
         }
         if (requestDTO.getDescription() != null) {
             tour.setDescription(requestDTO.getDescription());
@@ -464,5 +511,25 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         tourPaxRepository.save(pax);
         return GeneralResponse.of(Constants.Message.PAX_CONFIG_DELETE_SUCCESS);
     }
+    @Override
+    public GeneralResponse<TourOptionsDTO> getTourOptions() {
+        List<TourThemeOptionDTO> themes = tourThemeRepository.findAll().stream()
+                .map(t -> TourThemeOptionDTO.builder()
+                        .id(t.getId())
+                        .name(t.getName())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<LocationDTO> departures = locationService.getAllDepartures();
+        List<LocationDTO> destinations = locationService.getAllDestinations();
+
+        TourOptionsDTO dto = TourOptionsDTO.builder()
+                .themes(themes)
+                .departures(departures)
+                .destinations(destinations)
+                .build();
+        return GeneralResponse.of(dto);
+    }
+
 
 }
