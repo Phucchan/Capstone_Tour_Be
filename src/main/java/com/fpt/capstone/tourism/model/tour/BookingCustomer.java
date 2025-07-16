@@ -52,4 +52,7 @@ public class BookingCustomer extends BaseEntity {
 
     @Column(name = "single_room")
     private boolean singleRoom;
+
+    @Column(name = "booked_person")
+    private boolean bookedPerson;
 }

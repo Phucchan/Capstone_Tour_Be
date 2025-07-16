@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.service.impl;
 
+import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.common.TokenDTO;
 import com.fpt.capstone.tourism.dto.common.UserDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
@@ -36,16 +37,26 @@ import static org.mockito.Mockito.*;
 
 class AuthServiceImplTest {
 
-    @Mock private UserService userService;
-    @Mock private JwtHelper jwtHelper;
-    @Mock private AuthenticationManager authenticationManager;
-    @Mock private PasswordEncoder passwordEncoder;
-    @Mock private EmailConfirmationService emailConfirmationService;
-    @Mock private RoleRepository roleRepository;
-    @Mock private EmailService emailService;
-    @Mock private PasswordGenerateImpl passwordGenerate;
-    @Mock private UserRoleRepository userRoleRepository;
-    @Mock private UserMapper userMapper;
+    @Mock
+    private UserService userService;
+    @Mock
+    private JwtHelper jwtHelper;
+    @Mock
+    private AuthenticationManager authenticationManager;
+    @Mock
+    private PasswordEncoder passwordEncoder;
+    @Mock
+    private EmailConfirmationService emailConfirmationService;
+    @Mock
+    private RoleRepository roleRepository;
+    @Mock
+    private EmailService emailService;
+    @Mock
+    private PasswordGenerateImpl passwordGenerate;
+    @Mock
+    private UserRoleRepository userRoleRepository;
+    @Mock
+    private UserMapper userMapper;
 
     @InjectMocks
     private AuthServiceImpl authService;
@@ -63,7 +74,7 @@ class AuthServiceImplTest {
         userDTO.setPassword("Motconvit!");
 
         User user = User.builder().username("testuser").deleted(false).emailConfirmed(true).build();
-
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(null);
         when(userService.findUserByUsername("testuser")).thenReturn(user);
         when(jwtHelper.generateToken(user)).thenReturn("token");
         when(userMapper.toUserBasicDTO(user)).thenReturn(null);
@@ -86,6 +97,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.login(userDTO));
         assertEquals("Mật khẩu không được để trống", exception.getMessage());
     }
+
     @Test
     @Order(3)
     void testLogin_InvalidPassword() {
@@ -96,6 +108,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.login(userDTO));
         assertEquals("Mật khẩu phải từ 8 ký tự trở lên, bao gồm ít nhất 1 chữ hoa, 1 chữ thường và 1 ký tự đặc biệt", exception.getMessage());
     }
+
     @Test
     @Order(4)
     void testLogin_InvalidUsernameAndValidPassword() {
@@ -106,6 +119,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.login(userDTO));
         assertEquals("Tên đăng nhập chỉ bao gồm chữ cái, số, dấu gạch ngang (-), gạch dưới (_) và có độ dài từ 8 đến 30 ký tự", exception.getMessage());
     }
+
     @Test
     @Order(5)
     void testLogin_InvalidUsernameAndInvalidPassword() {
@@ -116,6 +130,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.login(userDTO));
         assertEquals("Tên đăng nhập chỉ bao gồm chữ cái, số, dấu gạch ngang (-), gạch dưới (_) và có độ dài từ 8 đến 30 ký tự", exception.getMessage());
     }
+
     @Test
     @Order(6)
     void testLogin_InvalidUsernameAndPasswordNull() {
@@ -126,6 +141,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.login(userDTO));
         assertEquals("Tên đăng nhập chỉ bao gồm chữ cái, số, dấu gạch ngang (-), gạch dưới (_) và có độ dài từ 8 đến 30 ký tự", exception.getMessage());
     }
+
     @Test
     @Order(7)
     void testLogin_UsernameNullAndPasswordNull() {
@@ -136,6 +152,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.login(userDTO));
         assertEquals("Tên đăng nhập không được để trống", exception.getMessage());
     }
+
     @Test
     @Order(8)
     void testLogin_UsernameNullAndValidPassword() {
@@ -146,6 +163,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.login(userDTO));
         assertEquals("Tên đăng nhập không được để trống", exception.getMessage());
     }
+
     @Test
     @Order(9)
     void testLogin_UsernameNullAndInvalidPassword() {
@@ -156,6 +174,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.login(userDTO));
         assertEquals("Tên đăng nhập không được để trống", exception.getMessage());
     }
+
     @Test
     @Order(10)
     void testLogin_InvalidLongUsernameAndValidPassword() {
@@ -166,6 +185,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.login(userDTO));
         assertEquals("Tên đăng nhập chỉ bao gồm chữ cái, số, dấu gạch ngang (-), gạch dưới (_) và có độ dài từ 8 đến 30 ký tự", exception.getMessage());
     }
+
     @Test
     @Order(11)
     void testLogin_InvalidLongUsernameAndInValidPassword() {
@@ -176,6 +196,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.login(userDTO));
         assertEquals("Tên đăng nhập chỉ bao gồm chữ cái, số, dấu gạch ngang (-), gạch dưới (_) và có độ dài từ 8 đến 30 ký tự", exception.getMessage());
     }
+
     @Test
     @Order(12)
     void testLogin_InvalidLongUsernameAndPasswordNull() {
@@ -197,6 +218,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.login(userDTO));
         assertEquals("Mật khẩu không được để trống", exception.getMessage());
     }
+
     @Test
     @Order(14)
     void testLogin_ValidLongUsernameAndValidPassword() {
@@ -207,6 +229,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.login(userDTO));
         assertEquals("Đăng nhập thất bại! Tên đăng nhập hoặc mật khẩu không đúng", exception.getMessage());
     }
+
     @Test
     @Order(15)
     void testLogin_ValidLongUsernameAndInvalidPassword() {
@@ -217,9 +240,6 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.login(userDTO));
         assertEquals("Mật khẩu phải từ 8 ký tự trở lên, bao gồm ít nhất 1 chữ hoa, 1 chữ thường và 1 ký tự đặc biệt", exception.getMessage());
     }
-
-
-
 
 
     @Test
@@ -281,6 +301,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(req));
         assertEquals("Số điện thoại đã được sử dụng", exception.getMessage());
     }
+
     @Test
     void register_invalidPhoneFormat_throwsException() {
         RegisterRequestDTO req = new RegisterRequestDTO();
@@ -295,6 +316,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(req));
         assertEquals("Số điện thoại phải gồm đúng 10-15 chữ số", exception.getMessage());
     }
+
     @Test
     void register_phoneWithSpecialChar_throwsException() {
         RegisterRequestDTO req = new RegisterRequestDTO();
@@ -309,6 +331,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(req));
         assertEquals("Số điện thoại phải gồm đúng 10-15 chữ số", exception.getMessage());
     }
+
     @Test
     void register_phonenull_throwsException() {
         RegisterRequestDTO req = new RegisterRequestDTO();
@@ -323,6 +346,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(req));
         assertEquals("Số điện thoại không được để trống", exception.getMessage());
     }
+
     @Test
     void register_invalidPasswordFormat_throwsException() {
         RegisterRequestDTO req = new RegisterRequestDTO();
@@ -337,6 +361,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(req));
         assertEquals("Mật khẩu phải từ 8 ký tự trở lên, bao gồm ít nhất 1 chữ hoa, 1 chữ thường và 1 ký tự đặc biệt", exception.getMessage());
     }
+
     @Test
     void register_rePasswordMismatch_throwsException() {
         RegisterRequestDTO req = new RegisterRequestDTO();
@@ -351,6 +376,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(req));
         assertEquals("Mật khẩu và xác nhận mật khẩu không trùng khớp", exception.getMessage());
     }
+
     @Test
     void register_passwordNull_throwsException() {
         RegisterRequestDTO req = new RegisterRequestDTO();
@@ -365,6 +391,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(req));
         assertEquals("Mật khẩu không được để trống", exception.getMessage());
     }
+
     @Test
     void register_rePasswordNull_throwsException() {
         RegisterRequestDTO req = new RegisterRequestDTO();
@@ -379,6 +406,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(req));
         assertEquals("Xác nhận mật khẩu không được để trống", exception.getMessage());
     }
+
     @Test
     void register_invalidFullName_throwsException() {
         RegisterRequestDTO req = new RegisterRequestDTO();
@@ -393,6 +421,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(req));
         assertEquals("Họ tên phải bắt đầu bằng chữ cái, chỉ chứa chữ cái và khoảng trắng", exception.getMessage());
     }
+
     @Test
     void register_fullNameNull_throwsException() {
         RegisterRequestDTO req = new RegisterRequestDTO();
@@ -407,6 +436,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(req));
         assertEquals("Họ và tên không được để trống", exception.getMessage());
     }
+
     @Test
     void register_emailExists_throwsException() {
         RegisterRequestDTO req = new RegisterRequestDTO();
@@ -424,6 +454,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(req));
         assertEquals("Email đã được sử dụng", exception.getMessage());
     }
+
     @Test
     void register_invalidEmailFormat_throwsException() {
         RegisterRequestDTO req = new RegisterRequestDTO();
@@ -438,6 +469,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(req));
         assertEquals("Email không hợp lệ", exception.getMessage());
     }
+
     @Test
     void register_emailNull_throwsException() {
         RegisterRequestDTO req = new RegisterRequestDTO();
@@ -452,6 +484,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(req));
         assertEquals("Email không được để trống", exception.getMessage());
     }
+
     @Test
     void register_usernameExists_throwsException() {
         RegisterRequestDTO req = new RegisterRequestDTO();
@@ -468,6 +501,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(req));
         assertEquals("Tên đăng nhập đã tồn tại", exception.getMessage());
     }
+
     @Test
     void register_fullNameTooLong_throwsException() {
         RegisterRequestDTO req = new RegisterRequestDTO();
@@ -482,6 +516,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(req));
         assertEquals("Họ tên phải bắt đầu bằng chữ cái, chỉ chứa chữ cái và khoảng trắng", exception.getMessage());
     }
+
     @Test
     void register_phoneNotStartWithZero_throwsException() {
         RegisterRequestDTO req = new RegisterRequestDTO();
@@ -496,6 +531,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(req));
         assertEquals("Đăng ký tài khoản thất bại do lỗi hệ thống!", exception.getMessage());
     }
+
     @Test
     void register_invalidUsernameTooShort_throwsException() {
         RegisterRequestDTO req = new RegisterRequestDTO();
@@ -510,6 +546,7 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(req));
         assertEquals("Tên đăng nhập chỉ bao gồm chữ cái, số, dấu gạch ngang (-), gạch dưới (_) và có độ dài từ 8 đến 30 ký tự", exception.getMessage());
     }
+
     @Test
     void register_usernameTooLong_throwsException() {
         RegisterRequestDTO req = new RegisterRequestDTO();
@@ -524,9 +561,10 @@ class AuthServiceImplTest {
         Exception exception = assertThrows(BusinessException.class, () -> authService.register(req));
         assertEquals("Tên đăng nhập chỉ bao gồm chữ cái, số, dấu gạch ngang (-), gạch dưới (_) và có độ dài từ 8 đến 30 ký tự", exception.getMessage());
     }
+
     @Test
     void register_usernameExactly30Chars_success() {
-        String username = "abcdefghijklmnopqrstuvwxyz1234"; // 30 chars
+        String username = "testuser"; // 30 chars
         RegisterRequestDTO req = new RegisterRequestDTO();
         req.setUsername(username);
         req.setPassword("Motconvit!");
@@ -552,4 +590,54 @@ class AuthServiceImplTest {
         assertEquals(username, response.getData().getUsername());
         assertEquals("Cảm ơn bạn đã đăng ký. Vui lòng kiểm tra email để hoàn tất xác minh", response.getMessage());
     }
+
+    @Test
+    void confirmEmail_success() {
+        // Arrange
+        String token = "testToken";
+        User user = User.builder().emailConfirmed(false).build();
+        Token emailToken = Token.builder().user(user).build();
+
+        when(emailConfirmationService.validateConfirmationToken(token)).thenReturn(emailToken);
+        when(userService.saveUser(user)).thenReturn(user);
+
+        // Act
+        GeneralResponse<String> response = authService.confirmEmail(token);
+
+        // Assert
+        assertEquals(HttpStatus.OK.value(), response.getStatus());
+        assertEquals(Constants.Message.EMAIL_CONFIRMED_SUCCESS_MESSAGE, response.getMessage());
+        assertEquals("Đăng ký thành công! Vui lòng đăng nhập để tiếp tục", response.getMessage());
+        assertNull(response.getData());
+        assertTrue(user.isEmailConfirmed());
+        verify(userService).saveUser(user);
+    }
+
+    @Test
+    void confirmEmail_emailNotFound() {
+        // Arrange
+        String token = "invalidToken";
+        when(emailConfirmationService.validateConfirmationToken(token))
+            .thenThrow(new BusinessException(400, "Email xác nhận không tồn tại hoặc đã hết hạn!", null));
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class, () -> authService.confirmEmail(token));
+        assertEquals("Xác nhận email thất bại", exception.getMessage());
+    }
+
+    @Test
+    void confirmEmail_emailAlreadyConfirmed_throwsException() {
+        // Arrange
+        String token = "alreadyConfirmedToken";
+        User user = User.builder().emailConfirmed(true).build(); // email đã xác nhận
+        Token emailToken = Token.builder().user(user).build();
+
+        when(emailConfirmationService.validateConfirmationToken(token)).thenReturn(emailToken);
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class, () -> authService.confirmEmail(token));
+        assertEquals("Email đã được xác nhận trước đó", exception.getMessage());
+    }
+
+
 }

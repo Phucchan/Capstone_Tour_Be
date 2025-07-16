@@ -43,4 +43,7 @@ public class BookingService extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private BookingServiceStatus status;
 
+    @Column(name = "bill_number")
+    private String billNumber;
+
 }
