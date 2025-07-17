@@ -127,6 +127,42 @@ public class TourController {
         PagingDTO<SaleTourDTO> result = tourService.getDiscountTours(pageable);
         return ResponseEntity.ok(GeneralResponse.of(result, "Discount tours loaded successfully."));
     }
+    @GetMapping("/destinations/{destId}/search")
+    //postman http://localhost:8080/v1/public/tours/destinations/1/search?page=0&size=6&sortField=createdAt&sortDirection=desc
+    public ResponseEntity<GeneralResponse<SearchTourResponseDTO>> searchToursByDestination(
+            @PathVariable Long destId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "6") int size,
+            @RequestParam(defaultValue = "createdAt") String sortField,
+            @RequestParam(defaultValue = "desc") String sortDirection) {
+
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+        PagingDTO<TourSummaryDTO> result = tourService.searchTours(null, null, null, destId, null, pageable);
+        List<LocationShortDTO> departures = locationService.getAllDepartures().stream()
+                .map(d -> LocationShortDTO.builder()
+                        .id(d.getId())
+                        .name(d.getName())
+                        .build())
+                .collect(Collectors.toList());
+        List<LocationShortDTO> destinations = locationService.getAllDestinations().stream()
+                .map(d -> LocationShortDTO.builder()
+                        .id(d.getId())
+                        .name(d.getName())
+                        .build())
+                .collect(Collectors.toList());
+        TourLocationOptionsDTO options = TourLocationOptionsDTO.builder()
+                .departures(departures)
+                .destinations(destinations)
+                .build();
+
+        SearchTourResponseDTO dto = SearchTourResponseDTO.builder()
+                .tours(result)
+                .options(options)
+                .build();
+
+        return ResponseEntity.ok(GeneralResponse.of(dto, "Tours by destination loaded successfully."));
+    }
 }
 
 
