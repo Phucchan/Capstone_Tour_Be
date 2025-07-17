@@ -8,15 +8,13 @@ import com.fpt.capstone.tourism.dto.request.RegisterRequestDTO;
 import com.fpt.capstone.tourism.dto.response.UserInfoResponseDTO;
 import com.fpt.capstone.tourism.helper.PasswordGenerateImpl;
 import com.fpt.capstone.tourism.mapper.UserMapper;
+import com.fpt.capstone.tourism.model.*;
 import com.fpt.capstone.tourism.model.enums.RoleName;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.JwtHelper;
-import com.fpt.capstone.tourism.model.Token;
-import com.fpt.capstone.tourism.model.Role;
 import com.fpt.capstone.tourism.helper.validator.Validator;
-import com.fpt.capstone.tourism.model.User;
-import com.fpt.capstone.tourism.model.UserRole;
 import com.fpt.capstone.tourism.repository.RoleRepository;
+import com.fpt.capstone.tourism.repository.user.UserPointRepository;
 import com.fpt.capstone.tourism.repository.user.UserRoleRepository;
 import com.fpt.capstone.tourism.service.AuthService;
 import com.fpt.capstone.tourism.service.EmailConfirmationService;
@@ -48,6 +46,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordGenerateImpl passwordGenerate;
     private final UserRoleRepository userRoleRepository;
     private final UserMapper userMapper;
+    private final UserPointRepository userPointRepository;
 
     @Override
     public GeneralResponse<TokenDTO> login(UserDTO userDTO) {
@@ -69,6 +68,7 @@ public class AuthServiceImpl implements AuthService {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, LOGIN_FAIL_MESSAGE);
             }
             String token = jwtHelper.generateToken(user);
+
             TokenDTO tokenDTO = TokenDTO.builder()
                     .user(userMapper.toUserBasicDTO(user))
                     .token(token)
@@ -141,6 +141,12 @@ public class AuthServiceImpl implements AuthService {
                     .build();
 
             userRoleRepository.save(newUserRole);
+
+            UserPoint userPoint = UserPoint.builder()
+                    .user(savedUser)
+                    .points(0)
+                    .build();
+            userPointRepository.save(userPoint);
 
             // Send email confirmation
             Token token = emailConfirmationService.createEmailConfirmationToken(savedUser);

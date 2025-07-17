@@ -15,6 +15,7 @@ import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxManagerDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourUpdateManagerRequestDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.helper.IHelper.TourHelper;
 import com.fpt.capstone.tourism.mapper.tourManager.TourDayManagerMapper;
 import com.fpt.capstone.tourism.mapper.tourManager.TourDetailManagerMapper;
 import com.fpt.capstone.tourism.mapper.tourManager.TourManagementMapper;
@@ -81,6 +82,9 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     @Autowired
     private PartnerServiceRepository partnerServiceRepository;
 
+    @Autowired
+    private TourHelper tourHelper;
+
     @Override
     public GeneralResponse<PagingDTO<TourResponseManagerDTO>> getListTours(int page, int size, String keyword,
                                                                            TourType tourType, TourStatus tourStatus) {
@@ -112,7 +116,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     @Override
     public GeneralResponse<TourDetailManagerDTO> createTour(TourCreateManagerRequestDTO requestDTO) {
         Tour tour = new Tour();
-        tour.setCode(requestDTO.getCode());
+        tour.setCode(tourHelper.generateTourCode());
         tour.setName(requestDTO.getName());
         tour.setThumbnailUrl(requestDTO.getThumbnailUrl());
 
@@ -556,6 +560,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         tourPaxRepository.save(pax);
         return GeneralResponse.of(Constants.Message.PAX_CONFIG_DELETE_SUCCESS);
     }
+
     @Override
     public GeneralResponse<TourOptionsDTO> getTourOptions() {
         List<TourThemeOptionDTO> themes = tourThemeRepository.findAll().stream()
