@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.common.location.LocationDTO;
+import com.fpt.capstone.tourism.dto.common.location.LocationShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
@@ -564,8 +565,18 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                         .build())
                 .collect(Collectors.toList());
 
-        List<LocationDTO> departures = locationService.getAllDepartures();
-        List<LocationDTO> destinations = locationService.getAllDestinations();
+        List<LocationShortDTO> departures = locationService.getAllDepartures().stream()
+                .map(d -> LocationShortDTO.builder()
+                        .id(d.getId())
+                        .name(d.getName())
+                        .build())
+                .collect(Collectors.toList());
+        List<LocationShortDTO> destinations = locationService.getAllDestinations().stream()
+                .map(d -> LocationShortDTO.builder()
+                        .id(d.getId())
+                        .name(d.getName())
+                        .build())
+                .collect(Collectors.toList());
 
         TourOptionsDTO dto = TourOptionsDTO.builder()
                 .themes(themes)
