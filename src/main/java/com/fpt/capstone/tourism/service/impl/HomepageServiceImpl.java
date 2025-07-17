@@ -75,7 +75,7 @@ public class HomepageServiceImpl implements HomepageService {
     private List<SaleTourDTO> getSaleTours() {
         List<TourDiscount> discounts = tourDiscountRepository.findTopDiscountedTours(
                 LocalDateTime.now(),
-                PageRequest.of(0, 4)
+                PageRequest.of(0, 5)
         );
         return discounts.stream()
                 .map(this::mapDiscountToSaleDTO)

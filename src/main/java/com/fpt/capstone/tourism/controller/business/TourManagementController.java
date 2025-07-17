@@ -6,7 +6,7 @@ import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 
 import com.fpt.capstone.tourism.dto.request.tourManager.TourCreateManagerRequestDTO;
-import com.fpt.capstone.tourism.dto.response.tour.TourOptionsDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.TourOptionsDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.*;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;

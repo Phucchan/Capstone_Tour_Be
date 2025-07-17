@@ -6,7 +6,7 @@ import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourCreateManagerRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourDayManagerCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxManagerCreateRequestDTO;
-import com.fpt.capstone.tourism.dto.response.tour.TourOptionsDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.TourOptionsDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxManagerDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourUpdateManagerRequestDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.*;
