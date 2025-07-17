@@ -75,7 +75,7 @@ class TourServiceImplTest {
         when(tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(anyLong(), any(LocalDateTime.class)))
                 .thenReturn(Collections.emptyList());
 
-        PagingDTO<TourSummaryDTO> result = tourService.searchTours(null, null, null, null, null, PageRequest.of(0, 10));
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(null, null, null, null, null, PageRequest.of(0, 10));
         assertNotNull(result);
         assertEquals(1, result.getItems().size());
         TourSummaryDTO dto = result.getItems().get(0);
@@ -116,7 +116,7 @@ class TourServiceImplTest {
                 .thenReturn(Collections.emptyList());
 
         // Act: Gọi phương thức cần test với priceMin và priceMax đã thay đổi
-        PagingDTO<TourSummaryDTO> result = tourService.searchTours(priceMin, priceMax, null, null, null, pageable);
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, null, null, null, pageable);
 
         // Assert: Kiểm tra kết quả
         assertNotNull(result, "Kết quả trả về không được null");
@@ -132,75 +132,6 @@ class TourServiceImplTest {
         assertEquals(com.fpt.capstone.tourism.constants.Constants.Message.SEARCH_SUCCESS, "Tìm kiếm thành công", "Search success message should match");
     }
 
-    @Test
-    void searchTours_whenFilteredByDepartLocation_shouldReturnMatchingTours() {
-        // Arrange
-        long departLocationId = 1L;
-        Pageable pageable = PageRequest.of(0, 10);
-
-        Tour tour = new Tour();
-        tour.setId(10L);
-        tour.setName("Tour xuất phát từ Hà Nội");
-        tour.setThumbnailUrl("hanoi_thumb.jpg");
-        tour.setDurationDays(2);
-
-        // Mock repository to return the tour when searching by departLocationId
-        Page<Tour> tourPage = new PageImpl<>(List.of(tour), pageable, 1);
-        when(tourRepository.findByDepartLocationIdAndTourStatus(eq(departLocationId), eq(TourStatus.PUBLISHED), eq(pageable)))
-                .thenReturn(tourPage);
-        when(feedbackRepository.findAverageRatingByTourId(tour.getId())).thenReturn(4.2);
-        when(tourPaxRepository.findStartingPriceByTourId(tour.getId())).thenReturn(2_000_000.0);
-        when(tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(anyLong(), any(LocalDateTime.class)))
-                .thenReturn(Collections.emptyList());
-
-        // Act
-        PagingDTO<TourSummaryDTO> result = tourService.getToursByLocation(departLocationId, pageable);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getItems().size());
-        TourSummaryDTO dto = result.getItems().get(0);
-        assertEquals(tour.getId(), dto.getId());
-        assertEquals("Tour xuất phát từ Hà Nội", dto.getName());
-        assertEquals(4.2, dto.getAverageRating());
-        assertEquals(2_000_000.0, dto.getStartingPrice());
-    }
-
-    @Test
-    @Order(2)
-    void getFixedTours_success() {
-        Tour tour = new Tour();
-        tour.setId(2L);
-        Page<Tour> tourPage = new PageImpl<>(List.of(tour));
-        when(tourRepository.findByTourTypeAndTourStatus(eq(TourType.FIXED), eq(TourStatus.PUBLISHED), any(Pageable.class)))
-                .thenReturn(tourPage);
-        when(feedbackRepository.findAverageRatingByTourId(anyLong())).thenReturn(4.0);
-        when(tourPaxRepository.findStartingPriceByTourId(anyLong())).thenReturn(200.0);
-        when(tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(anyLong(), any(LocalDateTime.class)))
-                .thenReturn(Collections.emptyList());
-
-        PagingDTO<TourSummaryDTO> result = tourService.getFixedTours(PageRequest.of(0, 10));
-        assertNotNull(result);
-        assertEquals(1, result.getItems().size());
-    }
-
-    @Test
-    @Order(3)
-    void getToursByLocation_success() {
-        Tour tour = new Tour();
-        tour.setId(3L);
-        Page<Tour> tourPage = new PageImpl<>(List.of(tour));
-        when(tourRepository.findByDepartLocationIdAndTourStatus(anyLong(), eq(TourStatus.PUBLISHED), any(Pageable.class)))
-                .thenReturn(tourPage);
-        when(feedbackRepository.findAverageRatingByTourId(anyLong())).thenReturn(3.5);
-        when(tourPaxRepository.findStartingPriceByTourId(anyLong())).thenReturn(150.0);
-        when(tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(anyLong(), any(LocalDateTime.class)))
-                .thenReturn(Collections.emptyList());
-
-        PagingDTO<TourSummaryDTO> result = tourService.getToursByLocation(1L, PageRequest.of(0, 10));
-        assertNotNull(result);
-        assertEquals(1, result.getItems().size());
-    }
 
     @Test
     @Order(4)

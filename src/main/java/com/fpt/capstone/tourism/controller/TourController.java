@@ -35,44 +35,15 @@ public class TourController {
     private final TourService tourService;
     private final LocationService locationService;
 
-    @GetMapping("/fixed")
-    public ResponseEntity<GeneralResponse<PagingDTO<TourSummaryDTO>>> getFixedTours(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size,
-            @RequestParam(defaultValue = "createdAt") String sortField,
-            @RequestParam(defaultValue = "desc") String sortDirection) {
-
-        Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
-
-        PagingDTO<TourSummaryDTO> result = tourService.getFixedTours(pageable);
-        return ResponseEntity.ok(GeneralResponse.of(result, "Fixed tours loaded successfully."));
-    }
-
-    @GetMapping("/locations/{locationId}/tours")
-    public ResponseEntity<GeneralResponse<PagingDTO<TourSummaryDTO>>> getToursByLocation(
-            @PathVariable Long locationId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size, // Sửa lại size mặc định là 6
-            @RequestParam(defaultValue = "createdAt") String sortField,
-            @RequestParam(defaultValue = "desc") String sortDirection) {
-
-        Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
-
-        PagingDTO<TourSummaryDTO> result = tourService.getToursByLocation(locationId, pageable);
-        return ResponseEntity.ok(GeneralResponse.of(result, "Tours by location loaded successfully."));
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<GeneralResponse<TourDetailDTO>> getTourDetailById(@PathVariable Long id) {
         TourDetailDTO result = tourService.getTourDetailById(id);
         return ResponseEntity.ok(GeneralResponse.of(result, "Tour detail loaded successfully."));
     }
 
-    @GetMapping("/search")
-    // postman http://localhost:8080/v1/public/tours/search?priceMin=1000000&priceMax=5000000&departId=1&destId=2&date=2023-10-01&page=0&size=12&sortField=createdAt&sortDirection=desc
-    public ResponseEntity<GeneralResponse<SearchTourResponseDTO>> searchTours(
+    @GetMapping("/filter")
+    // postman http://localhost:8080/v1/public/tours/filter?priceMin=1000000&priceMax=5000000&departId=1&destId=2&date=2023-10-01&page=0&size=12&sortField=createdAt&sortDirection=desc
+    public ResponseEntity<GeneralResponse<SearchTourResponseDTO>> filterTours(
             // Các tham số cho việc lọc, không bắt buộc
             @RequestParam(required = false) Double priceMin,
             @RequestParam(required = false) Double priceMax,
@@ -89,7 +60,7 @@ public class TourController {
         Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
-        PagingDTO<TourSummaryDTO> result = tourService.searchTours(priceMin, priceMax, departId, destId, date, pageable);
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, departId, destId, date, pageable);
         List<LocationShortDTO> departures = locationService.getAllDepartures().stream()
                 .map(d -> LocationShortDTO.builder()
                         .id(d.getId())
@@ -128,9 +99,14 @@ public class TourController {
         return ResponseEntity.ok(GeneralResponse.of(result, "Discount tours loaded successfully."));
     }
     @GetMapping("/destinations/{destId}/search")
-    //postman http://localhost:8080/v1/public/tours/destinations/1/search?page=0&size=6&sortField=createdAt&sortDirection=desc
+    //postman http://localhost:8080/v1/public/tours/destinations/1/search?destId=2&page=0&size=6&sortField=createdAt&sortDirection=desc
     public ResponseEntity<GeneralResponse<SearchTourResponseDTO>> searchToursByDestination(
-            @PathVariable Long destId,
+            @PathVariable("destId") Long destIdPath,
+            @RequestParam(required = false) Double priceMin,
+            @RequestParam(required = false) Double priceMax,
+            @RequestParam(required = false) Long departId,
+            @RequestParam(required = false) Long destId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "6") int size,
             @RequestParam(defaultValue = "createdAt") String sortField,
@@ -139,11 +115,15 @@ public class TourController {
         Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
-        PagingDTO<TourSummaryDTO> result = tourService.searchTours(null, null, null, destId, null, pageable);
-        String destinationName = locationService.getLocationById(destId)
-                .getData()
-                .getName();
-        result.getItems().forEach(t -> t.setLocationName(destinationName));
+        Long effectiveDestId = destId != null ? destId : destIdPath;
+
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, departId, effectiveDestId, date, pageable);
+        if (effectiveDestId != null) {
+            String destinationName = locationService.getLocationById(effectiveDestId)
+                    .getData()
+                    .getName();
+            result.getItems().forEach(t -> t.setLocationName(destinationName));
+        }
         List<LocationShortDTO> departures = locationService.getAllDepartures().stream()
                 .map(d -> LocationShortDTO.builder()
                         .id(d.getId())

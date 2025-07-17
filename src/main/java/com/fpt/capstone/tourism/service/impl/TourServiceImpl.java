@@ -45,7 +45,7 @@ public class TourServiceImpl implements TourService {
     private final TourDetailMapper tourDetailMapper;
 
     @Override
-    public PagingDTO<TourSummaryDTO> searchTours(Double priceMin, Double priceMax, Long departId, Long destId, LocalDate date, Pageable pageable) {
+    public PagingDTO<TourSummaryDTO> filterTours(Double priceMin, Double priceMax, Long departId, Long destId, LocalDate date, Pageable pageable) {
 
         // 1. Bắt đầu với một Specification cơ sở (luôn lọc các tour đã publish)
         // KHÔNG DÙNG .where() nữa
@@ -72,25 +72,7 @@ public class TourServiceImpl implements TourService {
         return mapTourPageToPagingDTO(tourPage);
     }
 
-    @Override
-    public PagingDTO<TourSummaryDTO> getFixedTours(Pageable pageable) {
-        Page<Tour> tourPage = tourRepository.findByTourTypeAndTourStatus(
-                TourType.FIXED,
-                TourStatus.PUBLISHED,
-                pageable
-        );
-        return mapTourPageToPagingDTO(tourPage);
-    }
 
-    @Override
-    public PagingDTO<TourSummaryDTO> getToursByLocation(Long locationId, Pageable pageable) {
-        Page<Tour> tourPage = tourRepository.findByDepartLocationIdAndTourStatus(
-                locationId,
-                TourStatus.PUBLISHED,
-                pageable
-        );
-        return mapTourPageToPagingDTO(tourPage);
-    }
     @Override
     public PagingDTO<SaleTourDTO> getDiscountTours(Pageable pageable) {
         Page<TourDiscount> discountPage = tourDiscountRepository.findActiveDiscountedTours(LocalDateTime.now(), pageable);
