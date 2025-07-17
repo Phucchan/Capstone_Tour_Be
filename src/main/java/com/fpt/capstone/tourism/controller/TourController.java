@@ -1,10 +1,14 @@
 package com.fpt.capstone.tourism.controller;
 
+import com.fpt.capstone.tourism.dto.common.location.LocationDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.SaleTourDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
+import com.fpt.capstone.tourism.dto.response.tour.SearchTourResponseDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourDetailDTO;
+import com.fpt.capstone.tourism.dto.response.tour.TourLocationOptionsDTO;
+import com.fpt.capstone.tourism.service.LocationService;
 import com.fpt.capstone.tourism.service.TourService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -20,12 +24,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/public/tours")
 @RequiredArgsConstructor
 public class TourController {
     private final TourService tourService;
+    private final LocationService locationService;
 
     @GetMapping("/fixed")
     public ResponseEntity<GeneralResponse<PagingDTO<TourSummaryDTO>>> getFixedTours(
@@ -63,7 +69,8 @@ public class TourController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<GeneralResponse<PagingDTO<TourSummaryDTO>>> searchTours(
+    // postman http://localhost:8080/v1/public/tours/search?priceMin=1000000&priceMax=5000000&departId=1&destId=2&date=2023-10-01&page=0&size=12&sortField=createdAt&sortDirection=desc
+    public ResponseEntity<GeneralResponse<SearchTourResponseDTO>> searchTours(
             // Các tham số cho việc lọc, không bắt buộc
             @RequestParam(required = false) Double priceMin,
             @RequestParam(required = false) Double priceMax,
@@ -81,8 +88,21 @@ public class TourController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
         PagingDTO<TourSummaryDTO> result = tourService.searchTours(priceMin, priceMax, departId, destId, date, pageable);
-        return ResponseEntity.ok(GeneralResponse.of(result, "Tours filtered successfully."));
+        List<LocationDTO> departures = locationService.getAllDepartures();
+        List<LocationDTO> destinations = locationService.getAllDestinations();
+        TourLocationOptionsDTO options = TourLocationOptionsDTO.builder()
+                .departures(departures)
+                .destinations(destinations)
+                .build();
+
+        SearchTourResponseDTO dto = SearchTourResponseDTO.builder()
+                .tours(result)
+                .options(options)
+                .build();
+
+        return ResponseEntity.ok(GeneralResponse.of(dto, "Tours filtered successfully."));
     }
+
 
     @GetMapping("/discounts")
     //postman http://localhost:8080/v1/public/tours/discounts?page=0&size=6
