@@ -50,6 +50,7 @@ public class TourManagementController {
     public ResponseEntity<GeneralResponse<TourDetailManagerDTO>> createTour(@RequestBody TourCreateManagerRequestDTO requestDTO) {
         return ResponseEntity.ok(tourManagementService.createTour(requestDTO));
     }
+
     @GetMapping("/tours/options")
     // postman http://localhost:8080/v1/business/tours/options
     public ResponseEntity<GeneralResponse<TourOptionsDTO>> getTourOptions() {
