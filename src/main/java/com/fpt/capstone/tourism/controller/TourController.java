@@ -138,7 +138,12 @@ public class TourController {
 
         Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+
         PagingDTO<TourSummaryDTO> result = tourService.searchTours(null, null, null, destId, null, pageable);
+        String destinationName = locationService.getLocationById(destId)
+                .getData()
+                .getName();
+        result.getItems().forEach(t -> t.setLocationName(destinationName));
         List<LocationShortDTO> departures = locationService.getAllDepartures().stream()
                 .map(d -> LocationShortDTO.builder()
                         .id(d.getId())
