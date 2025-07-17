@@ -189,7 +189,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     }
 
     @Override
-    public GeneralResponse<Object> getTourDetail(Long id) {
+    public GeneralResponse<TourDetailOptionsDTO> getTourDetail(Long id) {
         Tour tour = tourRepository.findById(id)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
         TourDetailManagerDTO dto = tourDetailManagerMapper.toDTO(tour);
@@ -205,7 +205,14 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
         dto.setDestinationLocationNames(destNames);
-        return GeneralResponse.of(dto);
+        TourOptionsDTO options = getTourOptions().getData();
+
+        TourDetailOptionsDTO response = TourDetailOptionsDTO.builder()
+                .detail(dto)
+                .options(options)
+                .build();
+
+        return GeneralResponse.of(response);
     }
 
     @Override

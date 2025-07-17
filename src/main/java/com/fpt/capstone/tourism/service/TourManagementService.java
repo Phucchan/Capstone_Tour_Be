@@ -26,7 +26,7 @@ public interface TourManagementService {
 
     public GeneralResponse<Object> changeStatus(Long id, ChangeStatusDTO changeStatusDTO);
 
-    GeneralResponse<Object> getTourDetail(Long id);
+    GeneralResponse<TourDetailOptionsDTO> getTourDetail(Long id);
 
     GeneralResponse<TourDetailManagerDTO> updateTour(Long id, TourUpdateManagerRequestDTO requestDTO);
 
