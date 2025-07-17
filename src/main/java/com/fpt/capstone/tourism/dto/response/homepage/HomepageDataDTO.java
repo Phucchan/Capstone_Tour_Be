@@ -9,7 +9,7 @@ public class HomepageDataDTO {
     /**
      * A list of featured locations.
      */
-    private List<LocationWithoutGeoPositionDTO> locations;
+    private List<PopularLocationDTO> locations;
     /**
      * A list of top-rated or featured tours.
      */

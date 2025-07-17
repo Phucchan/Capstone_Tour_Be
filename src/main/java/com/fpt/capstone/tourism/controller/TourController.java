@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.controller;
 
 import com.fpt.capstone.tourism.dto.common.location.LocationDTO;
+import com.fpt.capstone.tourism.dto.common.location.LocationShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.SaleTourDTO;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/public/tours")
@@ -88,8 +90,18 @@ public class TourController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
         PagingDTO<TourSummaryDTO> result = tourService.searchTours(priceMin, priceMax, departId, destId, date, pageable);
-        List<LocationDTO> departures = locationService.getAllDepartures();
-        List<LocationDTO> destinations = locationService.getAllDestinations();
+        List<LocationShortDTO> departures = locationService.getAllDepartures().stream()
+                .map(d -> LocationShortDTO.builder()
+                        .id(d.getId())
+                        .name(d.getName())
+                        .build())
+                .collect(Collectors.toList());
+        List<LocationShortDTO> destinations = locationService.getAllDestinations().stream()
+                .map(d -> LocationShortDTO.builder()
+                        .id(d.getId())
+                        .name(d.getName())
+                        .build())
+                .collect(Collectors.toList());
         TourLocationOptionsDTO options = TourLocationOptionsDTO.builder()
                 .departures(departures)
                 .destinations(destinations)
