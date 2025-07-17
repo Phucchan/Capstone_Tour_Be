@@ -84,7 +84,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     @Override
     public GeneralResponse<PagingDTO<TourResponseManagerDTO>> getListTours(int page, int size, String keyword,
                                                                            TourType tourType, TourStatus tourStatus) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
         Specification<Tour> spec = Specification.where(null);
         if (keyword != null && !keyword.trim().isEmpty()) {
             spec = spec.and(TourSpecification.hasNameLike(keyword));
