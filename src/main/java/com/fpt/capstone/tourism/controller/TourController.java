@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.controller;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.homepage.SaleTourDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourDetailDTO;
 import com.fpt.capstone.tourism.service.TourService;
@@ -81,6 +82,18 @@ public class TourController {
 
         PagingDTO<TourSummaryDTO> result = tourService.searchTours(priceMin, priceMax, departId, destId, date, pageable);
         return ResponseEntity.ok(GeneralResponse.of(result, "Tours filtered successfully."));
+    }
+
+    @GetMapping("/discounts")
+    //postman http://localhost:8080/v1/public/tours/discounts?page=0&size=6
+    public ResponseEntity<GeneralResponse<PagingDTO<SaleTourDTO>>> getDiscountTours(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "6") int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "discountPercent"));
+
+        PagingDTO<SaleTourDTO> result = tourService.getDiscountTours(pageable);
+        return ResponseEntity.ok(GeneralResponse.of(result, "Discount tours loaded successfully."));
     }
 }
 
