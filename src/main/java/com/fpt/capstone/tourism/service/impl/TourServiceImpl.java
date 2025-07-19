@@ -1,12 +1,13 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.homepage.SaleTourDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourScheduleDTO;
 import com.fpt.capstone.tourism.mapper.TourMapper;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
-import com.fpt.capstone.tourism.model.tour.Tour;
+import com.fpt.capstone.tourism.model.tour.*;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
 import com.fpt.capstone.tourism.repository.tour.*;
 import com.fpt.capstone.tourism.service.TourService;
@@ -21,9 +22,6 @@ import org.springframework.stereotype.Service;
 import com.fpt.capstone.tourism.dto.response.tour.TourDetailDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.TourDetailMapper;
-import com.fpt.capstone.tourism.model.tour.Feedback;
-import com.fpt.capstone.tourism.model.tour.TourDay;
-import com.fpt.capstone.tourism.model.tour.TourSchedule;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDate;
@@ -42,11 +40,12 @@ public class TourServiceImpl implements TourService {
     private final TourScheduleRepository tourScheduleRepository;
     private final TourPaxRepository tourPaxRepository;
     private final BookingRepository bookingRepository;
+    private final TourDiscountRepository tourDiscountRepository;
     private final TourMapper tourMapper;
     private final TourDetailMapper tourDetailMapper;
 
     @Override
-    public PagingDTO<TourSummaryDTO> searchTours(Double priceMin, Double priceMax, Long departId, Long destId, LocalDate date, Pageable pageable) {
+    public PagingDTO<TourSummaryDTO> filterTours(Double priceMin, Double priceMax, Long departId, Long destId, LocalDate date, Pageable pageable) {
 
         // 1. Bắt đầu với một Specification cơ sở (luôn lọc các tour đã publish)
         // KHÔNG DÙNG .where() nữa
@@ -73,24 +72,20 @@ public class TourServiceImpl implements TourService {
         return mapTourPageToPagingDTO(tourPage);
     }
 
-    @Override
-    public PagingDTO<TourSummaryDTO> getFixedTours(Pageable pageable) {
-        Page<Tour> tourPage = tourRepository.findByTourTypeAndTourStatus(
-                TourType.FIXED,
-                TourStatus.PUBLISHED,
-                pageable
-        );
-        return mapTourPageToPagingDTO(tourPage);
-    }
 
     @Override
-    public PagingDTO<TourSummaryDTO> getToursByLocation(Long locationId, Pageable pageable) {
-        Page<Tour> tourPage = tourRepository.findByDepartLocationIdAndTourStatus(
-                locationId,
-                TourStatus.PUBLISHED,
-                pageable
-        );
-        return mapTourPageToPagingDTO(tourPage);
+    public PagingDTO<SaleTourDTO> getDiscountTours(Pageable pageable) {
+        Page<TourDiscount> discountPage = tourDiscountRepository.findActiveDiscountedTours(LocalDateTime.now(), pageable);
+        List<SaleTourDTO> saleTours = discountPage.getContent().stream()
+                .map(this::mapDiscountToSaleDTO)
+                .collect(Collectors.toList());
+
+        return PagingDTO.<SaleTourDTO>builder()
+                .page(discountPage.getNumber())
+                .size(discountPage.getSize())
+                .total(discountPage.getTotalElements())
+                .items(saleTours)
+                .build();
     }
 
     @Transactional
@@ -200,6 +195,36 @@ public class TourServiceImpl implements TourService {
                 .size(tourPage.getSize())
                 .total(tourPage.getTotalElements())
                 .items(tourSummaries)
+                .build();
+    }
+    private SaleTourDTO mapDiscountToSaleDTO(TourDiscount discount) {
+        Tour tour = discount.getTour();
+
+        Double averageRating = feedbackRepository.findAverageRatingByTourId(tour.getId());
+        Double startingPrice = tourPaxRepository.findStartingPriceByTourId(tour.getId());
+
+        List<TourSchedule> futureSchedules = tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(
+                tour.getId(),
+                LocalDateTime.now()
+        );
+
+        List<LocalDateTime> departureDates = futureSchedules.stream()
+                .map(TourSchedule::getDepartureDate)
+                .collect(Collectors.toList());
+
+        return SaleTourDTO.builder()
+                .id(tour.getId())
+                .name(tour.getName())
+                .thumbnailUrl(tour.getThumbnailUrl())
+                .durationDays(tour.getDurationDays())
+                .region(tour.getRegion() != null ? tour.getRegion().name() : null)
+                .locationName(tour.getDepartLocation() != null ? tour.getDepartLocation().getName() : null)
+                .averageRating(averageRating)
+                .startingPrice(startingPrice)
+                .code(tour.getCode())
+                .tourTransport(tour.getTourTransport() != null ? tour.getTourTransport().name() : null)
+                .departureDates(departureDates)
+                .discountPercent(discount.getDiscountPercent())
                 .build();
     }
 }

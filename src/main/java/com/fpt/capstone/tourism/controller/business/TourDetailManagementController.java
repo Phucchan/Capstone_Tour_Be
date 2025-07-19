@@ -28,7 +28,7 @@ public class TourDetailManagementController {
     // xem chi tiết tour
     // postman http://localhost:8080/v1/business/tours/1
     @GetMapping("/tours/{id}")
-    public ResponseEntity<GeneralResponse<Object>> getTourDetail(@PathVariable Long id) {
+    public ResponseEntity<GeneralResponse<TourDetailOptionsDTO>> getTourDetail(@PathVariable Long id) {
         return ResponseEntity.ok(tourManagementService.getTourDetail(id));
     }
 

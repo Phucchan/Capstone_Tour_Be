@@ -6,6 +6,7 @@ import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 
 import com.fpt.capstone.tourism.dto.request.tourManager.TourCreateManagerRequestDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.TourOptionsDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.*;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
@@ -48,6 +49,12 @@ public class TourManagementController {
     // postman http://localhost:8080/v1/business/tours
     public ResponseEntity<GeneralResponse<TourDetailManagerDTO>> createTour(@RequestBody TourCreateManagerRequestDTO requestDTO) {
         return ResponseEntity.ok(tourManagementService.createTour(requestDTO));
+    }
+
+    @GetMapping("/tours/options")
+    // postman http://localhost:8080/v1/business/tours/options
+    public ResponseEntity<GeneralResponse<TourOptionsDTO>> getTourOptions() {
+        return ResponseEntity.ok(tourManagementService.getTourOptions());
     }
 
 }

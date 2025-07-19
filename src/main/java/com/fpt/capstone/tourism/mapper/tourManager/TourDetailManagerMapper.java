@@ -5,14 +5,22 @@ import com.fpt.capstone.tourism.model.tour.Tour;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.Named;
 import org.springframework.stereotype.Component;
+
+import java.util.Collections;
+import java.util.List;
 
 
 @Component("TourDetailManagerMapper")
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface TourDetailManagerMapper {
-    @Mapping(source = "tourTheme.name", target = "tourThemeName")
+    @Mapping(source = "tourTheme.name", target = "tourThemeNames", qualifiedByName = "nameToList")
     @Mapping(source = "departLocation.name", target = "departLocationName")
     @Mapping(source = "code", target = "code")
     TourDetailManagerDTO toDTO(Tour tour);
+    @Named("nameToList")
+    default List<String> nameToList(String name) {
+        return name == null ? null : Collections.singletonList(name);
+    }
 }

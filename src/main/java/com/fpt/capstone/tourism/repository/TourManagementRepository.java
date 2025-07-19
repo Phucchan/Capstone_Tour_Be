@@ -12,8 +12,9 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-    public interface TourManagementRepository extends JpaRepository<Tour, Long>, JpaSpecificationExecutor<Tour> {
+public interface TourManagementRepository extends JpaRepository<Tour, Long>, JpaSpecificationExecutor<Tour> {
 
-        Page<Tour> findByNameContainingIgnoreCase(String name, Pageable pageable);
+    Page<Tour> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
+    boolean existsByCode(String code);
     }
