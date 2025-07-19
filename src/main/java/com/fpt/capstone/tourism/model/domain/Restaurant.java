@@ -13,4 +13,5 @@ public class Restaurant {
     private String imageUrl;
     private List<String> menuItems;
     private LocalDateTime useDate;
+    private double estimatedCost;
 }

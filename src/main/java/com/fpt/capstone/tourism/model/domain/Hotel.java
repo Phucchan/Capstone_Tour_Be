@@ -15,4 +15,5 @@ public class Hotel {
     private LocalDateTime checkOutDate;
     private String roomDetails;
     private double total;
+    private double estimatedCost;
 }

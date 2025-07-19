@@ -524,7 +524,7 @@ public class Constants {
 
     public static final class Regex {
         //public static final String REGEX_PASSWORD = "$d{8}^";
-        public static final String REGEX_USERNAME= "^[a-zA-Z0-9-_]{8,30}$";
+        public static final String REGEX_USERNAME = "^[a-zA-Z0-9-_]{8,30}$";
         public static final String REGEX_PASSWORD = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
         public static final String REGEX_FULLNAME = "^[a-zA-Z][a-zA-Z\s]*$";
         public static final String REGEX_EMAIL = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
@@ -533,148 +533,242 @@ public class Constants {
     }
 
     public static final class FilePath {
-        public static final String PRICE_EMAIL_PATH= "templates/pricing.html";
+        public static final String PRICE_EMAIL_PATH = "templates/pricing.html";
         public static final String TOUR_IMAGE_FALL_BACK_URL = "https://media.travel.com.vn/TourFiles/4967/Hoi%20An%20Ve%20Dem%20(4).jpg";
     }
 
 
     public static final class AI {
-        public static final String PLAN_RESPONSE_JSON = """
-                                                            "plan": {
-                                                                numberDays: 3,
-                                                                title: "Những viên ngọc văn hóa và kho báu nghệ thuật của Paris",
-                                                                plan_category: Du lịch Cá Nhân,
-                                                                thumbnail_image_url: "",
-                                                                location: Hà Nội,
-                                                                locationId: 1,
-                                                                preferences: "Đồ ăn ngon, Nghệ thuật, Văn  Hóa",
-                                                                description: "Đắm mình trong bức tranh nghệ thuật và văn hóa phong phú tại một số bảo tàng hấp dẫn nhất của Paris. Khám phá những viên ngọc ẩn như Petit Palais, với những bộ sưu tập tuyệt đẹp trải dài từ nghệ thuật cổ đại đến nghệ thuật hiện đại, và Musée Marmottan Monet ấm cúng, trưng bày những kiệt tác của trường phái Ấn tượng. Đừng bỏ lỡ những màn trình diễn lộng lẫy tại Musée d'Art Moderne de Paris, những sáng tạo kỳ quặc tại Bảo tàng Dalí và các tác phẩm mang tính biểu tượng của Picasso được lưu giữ tại Hôtel Salé thanh lịch, bên cạnh Trung tâm Pompidou tiên tiến định nghĩa lại nghệ thuật hiện đại. Mỗi địa điểm đều mang đến một trải nghiệm độc đáo, mời gọi những người yêu nghệ thuật và du khách bình thường khám phá, tìm hiểu và đánh giá cao di sản nghệ thuật của thành phố xinh đẹp này.",
-                                                                days: [
-                                                                    {
-                                                                        date: "dd-MM-yyy",
-                                                                        long_description: "Trải nghiệm đến khu du lịch Fansipan Legend bằng Tàu hỏa leo núi Mường Hoa hiện đại nhất Việt Nam với tổng chiều dài gần 2000m, thưởng ngoạn bức tranh phong cảnh đầy màu sắc của cánh rừng nguyên sinh, thung lũng Mường Hoa.
-                                                                                           Chinh phục đỉnh núi Fansipan với độ cao 3.143m hùng vĩ bằng cáp treo (chi phí tự túc).
-                                                                                           Lễ Phật tại chùa Trình hay cầu phúc lộc, bình an cho gia đình tại Bích Vân Thiền Tự trong hệ thống cảnh quan tâm linh trên đỉnh Fansipan.
-                                                                                           Tiếp tục hành trình, bạn sẽ dùng cơm trưa và tham quan:
-                                                                                           Chinh phục đèo Ô Quy Hồ - con đèo đẹp, hùng vĩ và dài nhất trong Tứ Đại Đỉnh Đèo miền Bắc.
-                                                                                           Khu du lịch Cổng Trời Ô Quy Hồ - một trong những điểm săn mây, ngắm hoàng hôn cực đẹp tại Sapa.
-                                                                                           Cuối cùng dùng cơm tối tại Sapa và tự do nghỉ ngơi.",
-                                                                      "activities": [
-                                                                        {
-                                                                          "id": 1,
-                                                                          "title": "Activity 1 Title",
-                                                                          "content": "Description of activity 1.",
-                                                                          "category": "Category of activity",
-                                                                          duration: "2-3 giờ",
-                                                                          imageUrl: "Activities Image URL"
-                                                                        }
-                                                                      ],
-                                                                      "hotels": [
+
+        public static final String PLAN_DAY_RESPONSE_JSON = """
+                                                                {
+                                                                        "dayNumber": 1,
+                                                                        "date": "2025-07-20",
+                                                                        "totalSpend": 2400000,
+                                                                        "locationId": 101,
+                                                                        "locationName": "Sa Pa",
+                                                                        "longDescription": "Khởi hành từ Hà Nội, bạn sẽ đến Sa Pa vào buổi sáng. Buổi sáng bắt đầu bằng việc chinh phục đỉnh Fansipan bằng cáp treo – nóc nhà Đông Dương. Sau đó, bạn sẽ tham quan khu du lịch Sun World Fansipan Legend và chiêm bái tại Bích Vân Thiền Tự. Chiều đến là thời gian khám phá bản Cát Cát – ngôi làng truyền thống của người H'Mông với nghề dệt vải, nhuộm chàm. Tối thưởng thức các món nướng đặc sản Sa Pa tại chợ đêm.",
+                                                                        "activities": [
                                                                           {
                                                                             "id": 1,
-                                                                            "name": "Hotel Name",
-                                                                            "address": "Hotel Address",
-                                                                            "imageUrl": "Hotel Image URL"
+                                                                            "title": "Chinh phục Fansipan",
+                                                                            "content": "Trải nghiệm cáp treo Fansipan ngắm nhìn dãy Hoàng Liên Sơn hùng vĩ. Tham quan quần thể tâm linh trên đỉnh núi.",
+                                                                            "category": "Tham quan",
+                                                                            "duration": "3 giờ",
+                                                                            "imageUrl": "https://example.com/fansipan.jpg",
+                                                                            "startTime": "2025-07-20T08:30:00",
+                                                                            "endTime": "2025-07-20T11:30:00",
+                                                                            "estimatedCost": 750000
                                                                           }
-                                                                      ],
-                                                                      "restaurants": [
-                                                                        {
-                                                                          "id": 1,
-                                                                          "name": "Restaurant Name",
-                                                                          "address": "Restaurant Address",
-                                                                          "imageUrl": "Restaurant Image URL"
-                                                                        }
-                                                                      ]
-                                                                    },
-                                                                    {
-                                                                    date: "dd-MM-yyy",
-                                                                    long_description: "",
-                                                                      "activities": [
-                                                                        {
-                                                                          "id": 2,
-                                                                          "title": "Activity 2 Title",
-                                                                          "content": "Description of activity 2.",
-                                                                          "category": "Category of activity",
-                                                                          duration: "2-3 giờ",
-                                                                          imageUrl: "Activities Image URL"
-                                                                        }
-                                                                      ],
-                                                                      "hotels": [
+                                                                        ],
+                                                                        "hotels": [
                                                                           {
-                                                                            "id": 2,
-                                                                            "name": "Hotel Name",
-                                                                            "address": "Hotel Address",
-                                                                            "imageUrl": "Hotel Image URL"
+                                                                            "id": 1,
+                                                                            "name": "Sapa Charm Hotel",
+                                                                            "address": "32 Mường Hoa, thị xã Sa Pa",
+                                                                            "imageUrl": "https://example.com/sapa-hotel.jpg",
+                                                                            "checkInDate": "2025-07-20T14:00:00",
+                                                                            "checkOutDate": "2025-07-21T08:00:00",
+                                                                            "roomDetails": "Phòng view núi, 2 người",
+                                                                            "total": 900000,
+                                                                            "estimatedCost": 900000
                                                                           }
-                                                                      ]
-                                                                    }
-                                                            ]
-                                                        """;
+                                                                        ],
+                                                                        "restaurants": [
+                                                                          {
+                                                                            "id": 1,
+                                                                            "name": "Quán nướng A Quỳnh",
+                                                                            "address": "15 Thạch Sơn, Sa Pa",
+                                                                            "imageUrl": "https://example.com/anuong.jpg",
+                                                                            "menuItems": ["Thịt xiên nướng", "Cá hồi gỏi", "Cơm lam"],
+                                                                            "useDate": "2025-07-20T19:00:00",
+                                                                            "estimatedCost": 300000
+                                                                          }
+                                                                        ]
+                                                                      }
+                                                            """;
 
-        public static final String ACTIVITIES_RESPONSE_JSON = """
-                                                            "activities": [
-                                                                {
-                                                                  "id": 1,
-                                                                  "title": "Activity 1 Title",
-                                                                  "content": "Description of activity 1.",
-                                                                  "category": "Category of activity",
-                                                                  duration: "2-3 giờ",
-                                                                  imageUrl: "Activities Image URL"
-                                                                }
-                                                            ]
-                                                        """;
+        public static final String PLAN_RESPONSE_JSON = """
+                    {
+                      "plan": {
+                        "numberDays": 3,
+                        "title": "Khám phá miền Bắc Việt Nam: Sa Pa - Ninh Bình - Hà Nội",
+                        "planCategory": "Du lịch Cá Nhân",
+                        "thumbnailImageUrl": "",
+                        "preferences": ["Danh lam thắng cảnh", "Ẩm thực", "Văn hóa"],
+                        "description": "Hành trình 3 ngày khám phá miền Bắc Việt Nam, trải nghiệm cảnh sắc thiên nhiên hùng vĩ tại Sa Pa, vẻ đẹp thanh bình của Ninh Bình và nét văn hóa đặc sắc của thủ đô Hà Nội. Mỗi ngày mang đến một trải nghiệm độc đáo từ núi rừng, đồng bằng cho tới phố cổ, kết hợp hoàn hảo giữa hoạt động tham quan, ẩm thực địa phương và nghỉ ngơi thư giãn.",
+                        "days": [
+                          {
+                            "dayNumber": 1,
+                            "date": "2025-07-20",
+                            "totalSpend": 2400000,
+                            "locationId": 101,
+                            "locationName": "Sa Pa",
+                            "longDescription": "Khởi hành từ Hà Nội, bạn sẽ đến Sa Pa vào buổi sáng. Buổi sáng bắt đầu bằng việc chinh phục đỉnh Fansipan bằng cáp treo – nóc nhà Đông Dương. Sau đó, bạn sẽ tham quan khu du lịch Sun World Fansipan Legend và chiêm bái tại Bích Vân Thiền Tự. Chiều đến là thời gian khám phá bản Cát Cát – ngôi làng truyền thống của người H'Mông với nghề dệt vải, nhuộm chàm. Tối thưởng thức các món nướng đặc sản Sa Pa tại chợ đêm.",
+                            "activities": [
+                              {
+                                "id": 1,
+                                "title": "Chinh phục Fansipan",
+                                "content": "Trải nghiệm cáp treo Fansipan ngắm nhìn dãy Hoàng Liên Sơn hùng vĩ. Tham quan quần thể tâm linh trên đỉnh núi.",
+                                "category": "Tham quan",
+                                "duration": "3 giờ",
+                                "imageUrl": "https://example.com/fansipan.jpg",
+                                "startTime": "2025-07-20T08:30:00",
+                                "endTime": "2025-07-20T11:30:00",
+                                "estimatedCost": 750000
+                              }
+                            ],
+                            "hotels": [
+                              {
+                                "id": 1,
+                                "name": "Sapa Charm Hotel",
+                                "address": "32 Mường Hoa, thị xã Sa Pa",
+                                "imageUrl": "https://example.com/sapa-hotel.jpg",
+                                "checkInDate": "2025-07-20T14:00:00",
+                                "checkOutDate": "2025-07-21T08:00:00",
+                                "roomDetails": "Phòng view núi, 2 người",
+                                "total": 900000,
+                                "estimatedCost": 900000
+                              }
+                            ],
+                            "restaurants": [
+                              {
+                                "id": 1,
+                                "name": "Quán nướng A Quỳnh",
+                                "address": "15 Thạch Sơn, Sa Pa",
+                                "imageUrl": "https://example.com/anuong.jpg",
+                                "menuItems": ["Thịt xiên nướng", "Cá hồi gỏi", "Cơm lam"],
+                                "useDate": "2025-07-20T19:00:00",
+                                "estimatedCost": 300000
+                              }
+                            ]
+                          },
+                          {
+                            "dayNumber": 2,
+                            "date": "2025-07-21",
+                            "totalSpend": 2100000,
+                            "locationId": 102,
+                            "locationName": "Ninh Bình",
+                            "longDescription": "Sau khi rời Sa Pa vào sáng sớm, bạn đến Ninh Bình vào buổi trưa. Chiều ghé thăm Tràng An – di sản văn hóa và thiên nhiên thế giới, nơi bạn sẽ ngồi thuyền khám phá hang động và cảnh sắc non nước hữu tình. Tối thưởng thức dê núi Ninh Bình tại nhà hàng địa phương.",
+                            "activities": [
+                              {
+                                "id": 2,
+                                "title": "Thăm quần thể Tràng An",
+                                "content": "Đi thuyền qua các hang động tự nhiên, chiêm ngưỡng vẻ đẹp hùng vĩ của núi đá vôi và di tích cổ kính.",
+                                "category": "Tham quan",
+                                "duration": "2 giờ",
+                                "imageUrl": "https://example.com/trangan.jpg",
+                                "startTime": "2025-07-21T14:00:00",
+                                "endTime": "2025-07-21T16:00:00",
+                                "estimatedCost": 250000
+                              }
+                            ],
+                            "hotels": [
+                              {
+                                "id": 2,
+                                "name": "Tam Coc Rice Fields Resort",
+                                "address": "Tam Cốc - Bích Động, Hoa Lư",
+                                "imageUrl": "https://example.com/ninhbinh-hotel.jpg",
+                                "checkInDate": "2025-07-21T13:00:00",
+                                "checkOutDate": "2025-07-22T08:00:00",
+                                "roomDetails": "Bungalow giữa đồng lúa",
+                                "total": 1000000,
+                                "estimatedCost": 1000000
+                              }
+                            ],
+                            "restaurants": [
+                              {
+                                "id": 2,
+                                "name": "Nhà hàng Dê 35",
+                                "address": "Đường 27, TP. Ninh Bình",
+                                "imageUrl": "https://example.com/de35.jpg",
+                                "menuItems": ["Dê tái chanh", "Lẩu dê", "Rượu Kim Sơn"],
+                                "useDate": "2025-07-21T18:30:00",
+                                "estimatedCost": 300000
+                              }
+                            ]
+                          },
+                          {
+                            "dayNumber": 3,
+                            "date": "2025-07-22",
+                            "totalSpend": 1900000,
+                            "locationId": 103,
+                            "locationName": "Hà Nội",
+                            "longDescription": "Ngày cuối cùng bạn trở về Hà Nội. Buổi sáng đi dạo hồ Hoàn Kiếm, ghé thăm đền Ngọc Sơn và cầu Thê Húc. Trưa ăn bún chả truyền thống tại phố cổ. Chiều tham quan Văn Miếu – Quốc Tử Giám và đi bộ khám phá phố sách Đinh Lễ. Kết thúc hành trình tại chợ đêm phố cổ.",
+                            "activities": [
+                              {
+                                "id": 3,
+                                "title": "Tham quan Hồ Gươm & Văn Miếu",
+                                "content": "Khám phá những biểu tượng văn hóa thủ đô, từ hồ Gươm đến Văn Miếu – trường đại học đầu tiên của Việt Nam.",
+                                "category": "Văn hóa",
+                                "duration": "3 giờ",
+                                "imageUrl": "https://example.com/hoguom.jpg",
+                                "startTime": "2025-07-22T08:00:00",
+                                "endTime": "2025-07-22T11:00:00",
+                                "estimatedCost": 100000
+                              }
+                            ],
+                            "hotels": [
+                              {
+                                "id": 3,
+                                "name": "La Siesta Hotel & Spa",
+                                "address": "94 Mã Mây, Hoàn Kiếm",
+                                "imageUrl": "https://example.com/hanoi-hotel.jpg",
+                                "checkInDate": "2025-07-22T13:00:00",
+                                "checkOutDate": "2025-07-23T11:00:00",
+                                "roomDetails": "Phòng classic 2 người",
+                                "total": 1200000,
+                                "estimatedCost": 1200000
+                              }
+                            ],
+                            "restaurants": [
+                              {
+                                "id": 3,
+                                "name": "Bún chả Hương Liên",
+                                "address": "24 Lê Văn Hưu, Hà Nội",
+                                "imageUrl": "https://example.com/buncha.jpg",
+                                "menuItems": ["Bún chả truyền thống", "Nem cua bể", "Trà đá"],
+                                "useDate": "2025-07-22T12:30:00",
+                                "estimatedCost": 250000
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                """;
 
 
-        public static final String PROMPT_START =  """ 
-                    Bạn là một chuyên gia trong lĩnh vực du lịch và đang hoạt động trong việc giúp khách hàng lên kế hoạch du lịch theo yêu cầu.
-                    
-                    """;
+        public static final String PROMPT_START = """ 
+                Bạn là một chuyên gia trong lĩnh vực du lịch Việt Nam và đang hoạt động trong việc giúp khách hàng thiết kế chương trình du lịch cá nhân hoá.
+                """;
 
-        public static final String PROMPT_END = """ 
-                    
-                    Các lưu ý quan trọng:
-                    - CHỈ sử dụng các dữ liệu về nhà hàng, khách sạn đã cung cấp từ cơ sở dữ liệu để xây dựng kế hoạch.
-                    - Không thêm kiến thức bên ngoài, giả định hoặc đề xuất bổ sung nào khác.
-                    - Nếu có thông tin bị thiếu hoặc không rõ ràng, hãy nêu rõ rằng không thể xác định được.
-                    - Cung cấp một hành trình cân đối bao gồm nhiều hoạt động, địa điểm lưu trú và lựa chọn ăn uống khác nhau.
-                    - Kế hoạch của mỗi ngày cần phản ánh một trình tự hợp lý, có xét đến thời gian di chuyển và khả năng hoạt động.
-                    - Các phần description (ít nhất 250 từ) và content (ít nhất 50 từ) trong phản hồi cần có độ dài tương đối , giải thích cụ thể, dễ hiểu chuyến di cho người dùng
-                    - Phải có ít nhất một khách sạn trong 1 ngày (Nhiều ngày có thể cùng 1 khách sạn)
-                    - Một ngày phải có ít nhất 5 mục (số mục = số lượng khách sạn + số lượng nhà hàng + số hoạt động)
-                    - Không bao gồm thêm thông tin gì thêm ngoài định dạng phản hồi để tránh lỗi
-                    - Với mỗi sở thích, hãy chọn các hoạt động phù hợp nhất, ví dụ:
-                        *) Nếu là "làm nông dân/ngư dân" → gợi ý các hoạt động như: gặt lúa, bắt cá, chèo thuyền, đi chợ quê...
-                        *) Nếu là "ẩm thực" → gợi ý lớp học nấu ăn, tour ẩm thực đường phố, chợ đêm địa phương...
-                        *) Nếu là "mạo hiểm" → gợi ý leo núi, trekking, zipline...
-                    - Không đưa ra các địa điểm/hoạt động không liên quan đến sở thích.
+        public static final String PROMPT_DAY_START = """ 
+                    Bạn là một chuyên gia trong lĩnh vực du lịch Việt Nam và đang hoạt động trong việc giúp khách hàng thiết kế chương trình du lịch cá nhân hoá.
+                    Hãy xây dựng chương trình trong 1 ngày cho chuyến du lịch cá nhân hoá cho khách hàng dựa trên các thông tin sau:
+                """;
 
-                    Hãy trình bày rõ ràng từng ngày với các hoạt động, nơi lưu trú và lựa chọn ăn uống tương ứng.
-                    Định dạng phản hồi của bạn BẮT BUỘC tuân theo cấu trúc JSON sau:
-
-                    
-                    ### ĐỊNH_DẠNG_PHẢN_HỒI_JSON:
-                    
-                    """ + PLAN_RESPONSE_JSON;
-
-
-
-        public static final String ACTIVITIES_PROMPT_END = """ 
-                    
-                    Các lưu ý quan trọng:
-                    - Hoạt động cần phải phù hợp với sở thích mà khách hàng đã cung cấp
-                    - Không bao gồm thêm thông tin gì thêm ngoài định dạng phản hồi để tránh lỗi
-                    - Với mỗi sở thích, hãy chọn các hoạt động phù hợp nhất, ví dụ:
-                        *) Nếu là "làm nông dân/ngư dân" → gợi ý các hoạt động như: gặt lúa, bắt cá, chèo thuyền, đi chợ quê...
-                        *) Nếu là "ẩm thực" → gợi ý lớp học nấu ăn, tour ẩm thực đường phố, chợ đêm địa phương...
-                        *) Nếu là "mạo hiểm" → gợi ý leo núi, trekking, zipline...
-                    - Không đưa ra các địa điểm/hoạt động không liên quan đến sở thích.
-.
-                    Định dạng phản hồi của bạn BẮT BUỘC tuân theo cấu trúc JSON sau:
-
-                    
-                    ### ĐỊNH_DẠNG_PHẢN_HỒI_JSON:
-                    
-                    """ + ACTIVITIES_RESPONSE_JSON;
-
+        public static final String PROMPT_DAY_END = """ 
+                
+                Các lưu ý quan trọng:
+                - KHÔNG được tự nghĩ ra nhà hàng, khách sạn mới mà không có trong danh sách đã cho trước.
+                - Cung cấp một hành trình cân đối bao gồm nhiều hoạt động, địa điểm lưu trú và lựa chọn ăn uống khác nhau.
+                - Kế hoạch của ngày cần phản ánh một trình tự hợp lý, có xét đến thời gian di chuyển và khả năng hoạt động.
+                - Phần longDescription trong ngày (PlanDay) phải >= 250 từ, giải thích cụ thể, dễ hiểu chuyến di cho người dùng và content trong mỗi Activity phải >= 50 từ → Không viết gộp, không quá ngắn hoặc sơ sài
+                - Không bao gồm thêm thông tin gì thêm ngoài định dạng phản hồi để tránh lỗi
+                - Với mỗi sở thích, hãy chọn các hoạt động phù hợp nhất, ví dụ:
+                    *) Nếu là "làm nông dân/ngư dân" → gợi ý các hoạt động như: gặt lúa, bắt cá, chèo thuyền, đi chợ quê...
+                    *) Nếu là "ẩm thực" → gợi ý lớp học nấu ăn, tour ẩm thực đường phố, chợ đêm địa phương...
+                    *) Nếu là "mạo hiểm" → gợi ý leo núi, trekking, zipline...
+                - Không đưa ra các địa điểm/hoạt động không liên quan đến sở thích.
+                - Thời gian định dạng theo ISO 8601 (VD: 2025-07-20T08:00:00)
+                
+                Hãy trình bày rõ ràng từng ngày với các hoạt động, nơi lưu trú và lựa chọn ăn uống tương ứng.
+                Định dạng phản hồi của bạn BẮT BUỘC tuân theo cấu trúc JSON sau:
+                
+                ### ĐỊNH_DẠNG_PHẢN_HỒI_JSON:
+                
+                """ + PLAN_DAY_RESPONSE_JSON;
     }
 }
+
