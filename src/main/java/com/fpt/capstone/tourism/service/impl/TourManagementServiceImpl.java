@@ -290,8 +290,8 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
             day.setLocation(location);
         }
 
-        if (requestDTO.getServiceIds() != null && !requestDTO.getServiceIds().isEmpty()) {
-            day.setServices(partnerServiceRepository.findAllById(requestDTO.getServiceIds()));
+        if (requestDTO.getServiceTypeIds() != null && !requestDTO.getServiceTypeIds().isEmpty()) {
+            day.setServiceTypes(serviceTypeRepository.findAllById(requestDTO.getServiceTypeIds()));
         }
 
         TourDay saved = tourDayRepository.save(day);
@@ -319,8 +319,8 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
             day.setLocation(location);
         }
 
-        if (requestDTO.getServiceIds() != null) {
-            day.setServices(partnerServiceRepository.findAllById(requestDTO.getServiceIds()));
+        if (requestDTO.getServiceTypeIds() != null) {
+            day.setServiceTypes(serviceTypeRepository.findAllById(requestDTO.getServiceTypeIds()));
         }
 
         TourDay saved = tourDayRepository.save(day);
@@ -557,7 +557,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     public GeneralResponse<List<ServiceTypeShortDTO>> getServiceTypes() {
         try {
             List<ServiceTypeShortDTO> dtos = serviceTypeRepository.findAll().stream()
-                    .map(st -> new ServiceTypeShortDTO(st.getId(), st.getName()))
+                    .map(st -> new ServiceTypeShortDTO(st.getId(),st.getCode(), st.getName()))
                     .collect(Collectors.toList());
             return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.GET_SERVICE_LIST_SUCCESS, dtos);
         } catch (BusinessException be) {

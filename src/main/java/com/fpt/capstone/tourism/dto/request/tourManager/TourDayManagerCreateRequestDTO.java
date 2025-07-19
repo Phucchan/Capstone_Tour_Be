@@ -12,6 +12,6 @@ import java.util.List;
 public class TourDayManagerCreateRequestDTO {
     private String title;
     private Long locationId;
-    private List<Long> serviceIds;
+    private List<Long> serviceTypeIds;
     private String description;
 }

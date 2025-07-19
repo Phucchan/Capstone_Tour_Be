@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.dto.response.tourManager;
 
+import com.fpt.capstone.tourism.dto.common.ServiceTypeShortDTO;
 import com.fpt.capstone.tourism.dto.response.ServiceInfoDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,5 +16,6 @@ import java.util.List;
 public class TourDayManagerDTO {
     private int dayNumber;
     private String title;
+    private List<ServiceTypeShortDTO> serviceTypes;
     private List<ServiceInfoDTO> services;
 }
