@@ -61,9 +61,5 @@ public class TourManagementController {
         return ResponseEntity.ok(tourManagementService.getTourOptions());
     }
 
-    @GetMapping("/service-types")
-    // postman http://localhost:8080/v1/business/service-types
-    public ResponseEntity<GeneralResponse<List<ServiceTypeShortDTO>>> getServiceTypes() {
-        return ResponseEntity.ok(tourManagementService.getServiceTypes());
-    }
+
 }
