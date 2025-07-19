@@ -49,7 +49,7 @@ public class TourDetailManagementController {
     }
 
     // Tạo một ngày trong tour
-    //postman http://localhost:8080/business/tours/1/days
+    //postman http://localhost:8080/v1/business/tours/1/days
     @PostMapping("/tours/{id}/days")
     public ResponseEntity<GeneralResponse<TourDayManagerDTO>> createTourDay(@PathVariable Long id,
                                                                             @RequestBody TourDayManagerCreateRequestDTO requestDTO) {

@@ -11,5 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ServiceTypeShortDTO {
     private Long id;
+    private String code;
     private String name;
 }
