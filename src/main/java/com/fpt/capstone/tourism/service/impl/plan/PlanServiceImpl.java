@@ -22,7 +22,7 @@ public class PlanServiceImpl implements PlanService {
     @Override
     public List<PublicLocationDTO> getLocations() {
         try {
-            List<Location> locations = locationRepository.findRandomLocation(6);
+            List<Location> locations = locationRepository.findAllLocations();
             return locations.stream().map(locationMapper::toPublicLocationDTO).toList();
         } catch (Exception ex) {
             throw BusinessException.of("Không thể lấy địa điểm cho kế hoạch", ex);

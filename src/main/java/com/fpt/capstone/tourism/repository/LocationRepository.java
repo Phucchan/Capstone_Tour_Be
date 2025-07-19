@@ -36,4 +36,7 @@ public interface LocationRepository extends JpaRepository<Location, Long>, JpaSp
     List<Location> findTopVisitedLocations(@Param("limit") int limit);
     List<Location> findByNameContainingIgnoreCase(String name);
     Page<Location> findByNameContainingIgnoreCase(String name, Pageable pageable);
+
+    @Query(value = "SELECT * FROM location WHERE is_deleted = FALSE", nativeQuery = true)
+    List<Location> findAllLocations();
 }
