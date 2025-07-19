@@ -1,11 +1,13 @@
 package com.fpt.capstone.tourism.service;
 
+import com.fpt.capstone.tourism.dto.common.ServiceTypeShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourCreateManagerRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourDayManagerCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxManagerCreateRequestDTO;
+import com.fpt.capstone.tourism.dto.response.ServiceInfoDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourOptionsDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxManagerDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourUpdateManagerRequestDTO;
@@ -55,4 +57,6 @@ public interface TourManagementService {
     GeneralResponse<String> deleteTourPax(Long tourId, Long paxId);
 
     GeneralResponse<TourOptionsDTO> getTourOptions();
+
+    GeneralResponse<List<ServiceTypeShortDTO>> getServiceTypes();
 }

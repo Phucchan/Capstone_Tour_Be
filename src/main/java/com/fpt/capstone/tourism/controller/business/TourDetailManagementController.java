@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.controller.business;
 
+import com.fpt.capstone.tourism.dto.common.ServiceTypeShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
@@ -57,7 +58,6 @@ public class TourDetailManagementController {
 
     // Cập nhật một ngày trong tour
     // postman http://localhost:8080/v1/business/tours/1/days/1
-    //body { "title": "Ngày 1", "locationId": 1, "serviceIds": [1, 2], "description": "Mô tả ngày 1" }
     @PutMapping("/tours/{tourId}/days/{dayId}")
     public ResponseEntity<GeneralResponse<TourDayManagerDTO>> updateTourDay(@PathVariable Long tourId,
                                                                             @PathVariable Long dayId,
@@ -71,6 +71,11 @@ public class TourDetailManagementController {
     public ResponseEntity<GeneralResponse<String>> deleteTourDay(@PathVariable Long tourId,
                                                                  @PathVariable Long dayId) {
         return ResponseEntity.ok(tourManagementService.deleteTourDay(tourId, dayId));
+    }
+    @GetMapping("/service-types")
+    // postman http://localhost:8080/v1/business/service-types
+    public ResponseEntity<GeneralResponse<List<ServiceTypeShortDTO>>> getServiceTypes() {
+        return ResponseEntity.ok(tourManagementService.getServiceTypes());
     }
 
 }
