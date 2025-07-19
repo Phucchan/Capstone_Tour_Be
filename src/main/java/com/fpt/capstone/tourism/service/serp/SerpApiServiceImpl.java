@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SerpApiServiceImpl implements SerpApiService {
 
     @Value("${serpapi.api.key}")
-    private static String API_KEY;
+    private String API_KEY;
     private static final String API_URL = "https://serpapi.com/search.json";
     private final OkHttpClient client = new OkHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();

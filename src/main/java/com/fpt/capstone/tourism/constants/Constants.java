@@ -565,8 +565,8 @@ public class Constants {
                                                                           {
                                                                             "id": 1,
                                                                             "name": "Sapa Charm Hotel",
-                                                                            "address": "32 Mường Hoa, thị xã Sa Pa",
-                                                                            "imageUrl": "https://example.com/sapa-hotel.jpg",
+                                                                            "websiteUrl": "https://sapacharmhotel.com",
+                                                                            "logoUrl": "https://example.com/sapa-hotel.jpg",
                                                                             "checkInDate": "2025-07-20T14:00:00",
                                                                             "checkOutDate": "2025-07-21T08:00:00",
                                                                             "roomDetails": "Phòng view núi, 2 người",
@@ -578,8 +578,8 @@ public class Constants {
                                                                           {
                                                                             "id": 1,
                                                                             "name": "Quán nướng A Quỳnh",
-                                                                            "address": "15 Thạch Sơn, Sa Pa",
-                                                                            "imageUrl": "https://example.com/anuong.jpg",
+                                                                            "websiteUrl": "https://sapacharmhotel.com",
+                                                                            "logoUrl": "https://example.com/anuong.jpg",
                                                                             "menuItems": ["Thịt xiên nướng", "Cá hồi gỏi", "Cơm lam"],
                                                                             "useDate": "2025-07-20T19:00:00",
                                                                             "estimatedCost": 300000

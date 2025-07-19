@@ -10,4 +10,6 @@ public interface PlanService {
     List<PublicLocationDTO> getLocations();
 
     Plan generatePlan(PlanGenerationRequestDTO dto);
+
+    Plan getPlanById(String planId);
 }

@@ -38,5 +38,10 @@ public class PlanController {
         return ResponseEntity.ok(GeneralResponse.of(planDTO));
     }
 
+    @GetMapping("/details/{planId}")
+    public ResponseEntity<GeneralResponse<Plan>> getPlanDetails(@PathVariable String planId) {
+        return ResponseEntity.ok(GeneralResponse.of(planService.getPlanById(planId)));
+    }
+
 
 }
