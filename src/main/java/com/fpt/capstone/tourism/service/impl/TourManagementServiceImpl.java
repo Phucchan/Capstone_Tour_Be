@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.constants.Constants;
+import com.fpt.capstone.tourism.dto.common.ServiceTypeShortDTO;
 import com.fpt.capstone.tourism.dto.common.location.LocationShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
@@ -8,6 +9,7 @@ import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourCreateManagerRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourDayManagerCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxManagerCreateRequestDTO;
+import com.fpt.capstone.tourism.dto.response.ServiceInfoDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourOptionsDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourThemeOptionDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxManagerDTO;
@@ -28,6 +30,7 @@ import com.fpt.capstone.tourism.model.tour.TourTheme;
 import com.fpt.capstone.tourism.repository.LocationRepository;
 import com.fpt.capstone.tourism.repository.TourManagementRepository;
 import com.fpt.capstone.tourism.repository.partner.PartnerServiceRepository;
+import com.fpt.capstone.tourism.repository.partner.ServiceTypeRepository;
 import com.fpt.capstone.tourism.repository.tour.TourDayRepository;
 import com.fpt.capstone.tourism.repository.tour.TourPaxRepository;
 import com.fpt.capstone.tourism.repository.tour.TourThemeRepository;
@@ -67,6 +70,8 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     private TourPaxRepository tourPaxRepository;
     @Autowired
     private PartnerServiceRepository partnerServiceRepository;
+    @Autowired
+    private ServiceTypeRepository serviceTypeRepository;
     @Autowired
     private TourHelper tourHelper;
 
@@ -548,4 +553,17 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     }
 
 
+    @Override
+    public GeneralResponse<List<ServiceTypeShortDTO>> getServiceTypes() {
+        try {
+            List<ServiceTypeShortDTO> dtos = serviceTypeRepository.findAll().stream()
+                    .map(st -> new ServiceTypeShortDTO(st.getId(), st.getName()))
+                    .collect(Collectors.toList());
+            return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.GET_SERVICE_LIST_SUCCESS, dtos);
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception ex) {
+            throw BusinessException.of(Constants.Message.GET_SERVICE_LIST_FAIL, ex);
+        }
+    }
 }
