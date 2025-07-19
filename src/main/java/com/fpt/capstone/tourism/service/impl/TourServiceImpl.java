@@ -5,8 +5,6 @@ import com.fpt.capstone.tourism.dto.response.homepage.SaleTourDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourScheduleDTO;
 import com.fpt.capstone.tourism.mapper.TourMapper;
-import com.fpt.capstone.tourism.model.enums.TourStatus;
-import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.model.tour.*;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
 import com.fpt.capstone.tourism.repository.tour.*;
@@ -199,7 +197,6 @@ public class TourServiceImpl implements TourService {
     }
     private SaleTourDTO mapDiscountToSaleDTO(TourDiscount discount) {
         Tour tour = discount.getTour();
-
         Double averageRating = feedbackRepository.findAverageRatingByTourId(tour.getId());
         Double startingPrice = tourPaxRepository.findStartingPriceByTourId(tour.getId());
 
