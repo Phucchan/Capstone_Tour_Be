@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.model.tour;
 import com.fpt.capstone.tourism.model.BaseEntity;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.enums.BookingStatus;
+import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -44,14 +45,48 @@ public class Booking extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private BookingStatus bookingStatus;
 
+    @Column(name = "payment_method")
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
+
+    @Column(name = "payment_url", columnDefinition = "text")
+    private String paymentUrl;
+
+    @Column(name = "expired_at")
+    private LocalDateTime expiredAt;
+
+    @Column(name = "adults")
     private int adults;
 
+    @Column(name = "children")
     private int children;
+
+    @Column(name = "infants")
+    private int infants;
+
+    @Column(name = "toddlers")
+    private int toddlers;
+
+    @Column(name = "singleRooms")
+    private int singleRooms;
+
+    @Column(name = "needHelp")
+    private boolean needHelp;
 
     @Column(name = "total_amount")
     private double totalAmount;
 
     @Column(name = "deposit_amount")
     private double depositAmount;
+
+    @Column(name = "extra_hotel_cost")
+    private Double extraHotelCost;
+
+    @Column(name = "selling_price")
+    private Double sellingPrice;
+
+    private String reason;
+
+    private String note;
 
 }

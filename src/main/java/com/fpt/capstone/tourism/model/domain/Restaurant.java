@@ -9,8 +9,9 @@ import java.util.List;
 public class Restaurant {
     private int id;
     private String name;
-    private String address;
-    private String imageUrl;
+    private String websiteUrl;
+    private String logoUrl;
     private List<String> menuItems;
     private LocalDateTime useDate;
+    private double estimatedCost;
 }

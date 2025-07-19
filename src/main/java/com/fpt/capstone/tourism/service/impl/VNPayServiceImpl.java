@@ -16,7 +16,7 @@ import java.util.*;
 public class VNPayServiceImpl implements VNPayService {
 
     @Override
-    public String generatePaymentUrl(double total, String orderInformation, String urlReturn) {
+    public String generatePaymentUrl(double total, String orderInformation, String urlReturn, int minuteExpire) {
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
         String vnp_TxnRef = VNPayConfig.getRandomNumber(8);
@@ -52,7 +52,7 @@ public class VNPayServiceImpl implements VNPayService {
         vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
 
         Calendar expireCal = Calendar.getInstance(timeZone);
-        expireCal.add(Calendar.MINUTE, 120);
+        expireCal.add(Calendar.MINUTE, minuteExpire);
         String vnp_ExpireDate = formatter.format(expireCal.getTime());
         vnp_Params.put("vnp_ExpireDate", vnp_ExpireDate);
 

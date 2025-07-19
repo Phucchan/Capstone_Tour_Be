@@ -17,4 +17,6 @@ public class UserBasicDTO {
     private String email;
     private String avatarImage;
     private UserStatus userStatus;
+    private String phone;
+    private String address;
 }

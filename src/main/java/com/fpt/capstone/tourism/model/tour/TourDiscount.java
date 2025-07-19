@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true, exclude = "tour")
-@ToString(callSuper = true, exclude = "tour")
+@EqualsAndHashCode(callSuper = true, exclude = {"tour", "tourSchedule"})
+@ToString(callSuper = true, exclude = {"tour", "tourSchedule"})
 public class TourDiscount extends BaseEntity {
 
     @Id
@@ -24,6 +24,10 @@ public class TourDiscount extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tour_id", nullable = false)
     private Tour tour;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "schedule_id")
+    private TourSchedule tourSchedule;
 
     @Column(name = "discount_percent", nullable = false)
     private double discountPercent;

@@ -6,6 +6,7 @@ import com.fpt.capstone.tourism.dto.common.location.LocationWithoutGeoPositionDT
 import com.fpt.capstone.tourism.dto.common.location.PublicLocationSimpleDTO;
 import com.fpt.capstone.tourism.dto.request.LocationRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PublicLocationDTO;
+import com.fpt.capstone.tourism.dto.response.homepage.PopularLocationDTO;
 import com.fpt.capstone.tourism.model.Location;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -15,6 +16,7 @@ import org.mapstruct.MappingConstants;
 public interface LocationMapper extends EntityMapper<LocationDTO, Location>{
     Location toEntity(LocationRequestDTO requestDTO);
     PublicLocationDTO toPublicLocationDTO(Location location);
+    PopularLocationDTO toPopularLocationDTO(Location location);
     PublicLocationSimpleDTO toPublicLocationSimpleDTO(Location location);
     Location toEntity(PublicLocationDTO publicLocationDTO);
     Location toEntity(LocationDTO locationDTO);

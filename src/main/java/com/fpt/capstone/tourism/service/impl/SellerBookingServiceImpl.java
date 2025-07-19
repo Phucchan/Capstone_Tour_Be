@@ -10,7 +10,7 @@ import com.fpt.capstone.tourism.model.tour.Booking;
 import com.fpt.capstone.tourism.model.tour.BookingCustomer;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.repository.BookingCustomerRepository;
-import com.fpt.capstone.tourism.repository.tour.BookingRepository;
+import com.fpt.capstone.tourism.repository.booking.BookingRepository;
 import com.fpt.capstone.tourism.service.SellerBookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

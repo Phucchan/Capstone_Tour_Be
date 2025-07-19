@@ -1,5 +1,7 @@
 package com.fpt.capstone.tourism.mapper;
 
+import com.fpt.capstone.tourism.dto.common.tour.TourScheduleShortInfoDTO;
+import com.fpt.capstone.tourism.dto.common.tour.TourShortInfoDTO;
 import com.fpt.capstone.tourism.dto.response.tour.FeedbackDTO;
 import com.fpt.capstone.tourism.dto.response.tour.ServiceSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourDayDetailDTO;
@@ -19,7 +21,7 @@ import org.springframework.stereotype.Component;
 
 @Component("TourDetailMapper")
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface    TourDetailMapper {
+public interface TourDetailMapper {
 
     @Mapping(source = "tourTheme.name", target = "tourThemeName")
 
@@ -29,6 +31,12 @@ public interface    TourDetailMapper {
 
     @Mapping(source = "departLocation.name", target = "departLocationName")
     TourDetailDTO tourToTourDetailDTO(Tour tour);
+
+    @Mapping(source = "tourTheme.name", target = "tourThemeName")
+    @Mapping(source = "code", target = "code")
+    @Mapping(source = "departLocation.name", target = "departLocationName")
+    @Mapping(source = "tourTransport", target = "tourTransport", qualifiedByName = "transportToString")
+    TourShortInfoDTO toTourShortInfoDTO(Tour tour);
 
 
     @Mapping(source = "location.name", target = "locationName")
@@ -43,6 +51,8 @@ public interface    TourDetailMapper {
         // Giả sử cần tính số ghế còn lại, nếu không có thì có thể bỏ qua
         // @Mapping(target = "availableSeats", expression = "java(...)")
     TourScheduleDTO tourScheduleToTourScheduleDTO(TourSchedule tourSchedule);
+
+    TourScheduleShortInfoDTO toTourScheduleShortInfoDTO(TourSchedule tourSchedule);
 
     @Mapping(source = "partner.name", target = "name")
     @Mapping(source = "serviceType.name", target = "type")

@@ -1,4 +1,4 @@
-package com.fpt.capstone.tourism.repository.tour;
+package com.fpt.capstone.tourism.repository.booking;
 
 import com.fpt.capstone.tourism.model.tour.Booking;
 import org.springframework.data.domain.Page;
@@ -58,4 +58,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Page<Booking> findBySeller_UsernameOrderByUpdatedAtDesc(String username, Pageable pageable);
 
     long countByUser_Id(Long userId);
+
+    Booking findByBookingCode(String bookingCode);
 }

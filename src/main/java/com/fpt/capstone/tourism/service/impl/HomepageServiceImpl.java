@@ -1,8 +1,5 @@
 package com.fpt.capstone.tourism.service.impl;
-import com.fpt.capstone.tourism.dto.response.homepage.BlogSummaryDTO;
-import com.fpt.capstone.tourism.dto.response.homepage.HomepageDataDTO;
-import com.fpt.capstone.tourism.dto.response.homepage.SaleTourDTO;
-import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
+import com.fpt.capstone.tourism.dto.response.homepage.*;
 import com.fpt.capstone.tourism.mapper.BlogMapper;
 import com.fpt.capstone.tourism.model.blog.Blog;
 import com.fpt.capstone.tourism.model.blog.Tag;
@@ -15,12 +12,14 @@ import com.fpt.capstone.tourism.service.HomepageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+
 import com.fpt.capstone.tourism.dto.common.location.LocationWithoutGeoPositionDTO;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import com.fpt.capstone.tourism.mapper.LocationMapper;
 import com.fpt.capstone.tourism.model.Location;
@@ -46,7 +45,7 @@ public class HomepageServiceImpl implements HomepageService {
 
     @Override
     public HomepageDataDTO getHomepageData() {
-        List<LocationWithoutGeoPositionDTO> locations = getHomepageLocations();
+        List<PopularLocationDTO> locations = getHomepageLocations();
         List<TourSummaryDTO> highlyRatedTours = getHighlyRatedTours();
         List<BlogSummaryDTO> recentBlogs = getRecentBlogs();
         List<SaleTourDTO> saleTours = getSaleTours();
@@ -59,10 +58,22 @@ public class HomepageServiceImpl implements HomepageService {
                 .build();
     }
 
-    private List<LocationWithoutGeoPositionDTO> getHomepageLocations() {
-        List<Location> locations = locationRepository.findRandomLocation(8);
+    private List<PopularLocationDTO> getHomepageLocations() {
+        List<Location> locations = locationRepository.findTopVisitedLocations(8);
+        if (locations.size() < 8) {
+            int remain = 8 - locations.size();
+            Set<Long> existingIds = locations.stream()
+                    .map(Location::getId)
+                    .collect(Collectors.toSet());
+
+            List<Location> extras = locationRepository.findRandomLocation(remain);
+            extras.stream()
+                    .filter(loc -> !existingIds.contains(loc.getId()))
+                    .limit(remain)
+                    .forEach(locations::add);
+        }
         return locations.stream()
-                .map(locationMapper::toLocationWithoutGeoPositionDTO)
+                .map(locationMapper::toPopularLocationDTO)
                 .collect(Collectors.toList());
     }
 
@@ -75,7 +86,7 @@ public class HomepageServiceImpl implements HomepageService {
     private List<SaleTourDTO> getSaleTours() {
         List<TourDiscount> discounts = tourDiscountRepository.findTopDiscountedTours(
                 LocalDateTime.now(),
-                PageRequest.of(0, 4)
+                PageRequest.of(0, 5)
         );
         return discounts.stream()
                 .map(this::mapDiscountToSaleDTO)
@@ -112,7 +123,8 @@ public class HomepageServiceImpl implements HomepageService {
     }
 
     private SaleTourDTO mapDiscountToSaleDTO(TourDiscount discount) {
-        Tour tour = discount.getTour();
+        TourSchedule schedule = discount.getTourSchedule();
+        Tour tour = schedule.getTour();
 
         Double averageRating = feedbackRepository.findAverageRatingByTourId(tour.getId());
         Double startingPrice = tourPaxRepository.findStartingPriceByTourId(tour.getId());

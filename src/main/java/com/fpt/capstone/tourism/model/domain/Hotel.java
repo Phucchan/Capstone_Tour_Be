@@ -9,10 +9,11 @@ import java.time.LocalDateTime;
 public class Hotel {
     private int id;
     private String name;
-    private String address;
-    private String imageUrl;
+    private String websiteUrl;
+    private String logoUrl;
     private LocalDateTime checkInDate;
     private LocalDateTime checkOutDate;
     private String roomDetails;
     private double total;
+    private double estimatedCost;
 }
