@@ -13,6 +13,6 @@ public interface TourDayRepository extends JpaRepository<TourDay, Long> {
     @EntityGraph(attributePaths = {"services"})
     @Query("SELECT td FROM TourDay td WHERE td.tour.id = ?1 ORDER BY td.dayNumber ASC")
     List<TourDay> findByTourIdOrderByDayNumberAsc(Long tourId);
-
+    List<TourDay> findByTourIdAndDeletedIsFalseOrderByDayNumberAsc(Long tourId);
 
 }

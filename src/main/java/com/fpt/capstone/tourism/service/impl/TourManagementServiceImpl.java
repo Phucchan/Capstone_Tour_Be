@@ -9,7 +9,6 @@ import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourCreateManagerRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourDayManagerCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxManagerCreateRequestDTO;
-import com.fpt.capstone.tourism.dto.response.ServiceInfoDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourOptionsDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourThemeOptionDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxManagerDTO;
@@ -45,6 +44,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -134,6 +134,8 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 day.setTour(savedTour);
                 day.setDayNumber(dayNumber++);
                 day.setLocation(dest);
+                // Gán tiêu đề mặc định khi tạo tour
+                day.setTitle("Ngày " + (dayNumber - 1) + ": Tham quan " + dest.getName());
                 tourDayRepository.save(day);
             }
             savedTour.setDurationDays(dayNumber - 1);
@@ -215,8 +217,29 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     public GeneralResponse<List<TourDayManagerDTO>> getTourDays(Long tourId) {
         tourRepository.findById(tourId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
-        List<TourDay> days = tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId);
-        List<TourDayManagerDTO> dtos = days.stream().map(tourDayManagerMapper::toDTO).collect(Collectors.toList());
+        // SỬA LẠI: Gọi phương thức repository mới để tự động lọc ra các ngày đã bị xóa
+        List<TourDay> days = tourDayRepository.findByTourIdAndDeletedIsFalseOrderByDayNumberAsc(tourId);
+
+        // Thay vì dùng mapper, chúng ta sẽ tự xây dựng DTO để đảm bảo đủ trường
+        List<TourDayManagerDTO> dtos = days.stream().map(day -> {
+            Location loc = day.getLocation();
+            LocationShortDTO locationDTO = (loc != null) ? new LocationShortDTO(loc.getId(), loc.getName()) : null;
+
+            List<ServiceTypeShortDTO> serviceTypeDTOs = day.getServiceTypes() != null ?
+                    day.getServiceTypes().stream()
+                            .map(st -> new ServiceTypeShortDTO(st.getId(), st.getCode(), st.getName()))
+                            .collect(Collectors.toList()) : Collections.emptyList();
+
+            return TourDayManagerDTO.builder()
+                    .id(day.getId()) // <-- Quan trọng nhất
+                    .dayNumber(day.getDayNumber())
+                    .title(day.getTitle())
+                    .description(day.getDescription())
+                    .location(locationDTO) // <-- Thêm location
+                    .serviceTypes(serviceTypeDTOs)
+                    .build();
+        }).collect(Collectors.toList());
+
         return GeneralResponse.of(dtos);
     }
 
