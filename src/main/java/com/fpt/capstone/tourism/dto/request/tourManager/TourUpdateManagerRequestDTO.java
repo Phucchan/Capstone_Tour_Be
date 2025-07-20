@@ -12,9 +12,10 @@ import java.util.List;
 public class TourUpdateManagerRequestDTO {
     private String name;
     private String thumbnailUrl;
-    private List<Long> tourThemeIds;
-    private Long departLocationId;
-    private List<Long> destinationLocationIds;
-    private Integer durationDays;
     private String description;
+    private String tourStatus; // <-- THÊM TRƯỜNG NÀY VÀO
+    private Long departLocationId;
+    private List<Long> tourThemeIds;
+    private List<Long> destinationLocationIds;
+    // Không cần durationDays vì nó sẽ được tính toán lại tự động
 }
