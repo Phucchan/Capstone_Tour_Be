@@ -9,7 +9,6 @@ import java.util.List;
 
 @Repository
 public interface TourThemeRepository extends JpaRepository<TourTheme, Long> {
-    @Query("SELECT tt FROM TourTheme tt WHERE tt.tour.id = ?1 AND (tt.deleted = false OR tt.deleted IS NULL)")
-    List<TourTheme> findByTourId(Long tourId);
+    List<TourTheme> findByTours_Id(Long tourId);
 
 }

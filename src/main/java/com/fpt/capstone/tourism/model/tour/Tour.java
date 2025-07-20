@@ -20,8 +20,8 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true, exclude = {"departLocation", "createdBy", "tourTheme"})
-@ToString(exclude = {"departLocation", "createdBy", "tourTheme"})
+@EqualsAndHashCode(callSuper = true, exclude = {"departLocation", "createdBy", "themes"})
+@ToString(exclude = {"departLocation", "createdBy", "themes"})
 public class Tour extends BaseEntity {
 
     @Id
@@ -47,9 +47,13 @@ public class Tour extends BaseEntity {
     @Column(name = "tour_type", length = 50)
     private TourType tourType; // e.g., FIXED, CUSTOM
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tour_theme_id")
-    private TourTheme tourTheme; // Consider using Enum if validation needed
+    @ManyToMany
+    @JoinTable(
+            name = "tour_theme_mapping",
+            joinColumns = @JoinColumn(name = "tour_id"),
+            inverseJoinColumns = @JoinColumn(name = "tour_theme_id")
+    )
+    private List<TourTheme> themes;
 
     @Column(name = "description", columnDefinition = "text")
     private String description;

@@ -10,7 +10,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TourUpdateManagerRequestDTO {
-    private String code;
     private String name;
     private String thumbnailUrl;
     private List<Long> tourThemeIds;

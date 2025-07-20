@@ -117,16 +117,13 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Depart location not found"));
         tour.setDepartLocation(depart);
 
-        Tour savedTour = tourRepository.save(tour);
 
         if (requestDTO.getTourThemeIds() != null) {
-            for (Long themeId : requestDTO.getTourThemeIds()) {
-                TourTheme theme = tourThemeRepository.findById(themeId)
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour theme not found"));
-                theme.setTour(savedTour);
-                tourThemeRepository.save(theme);
-            }
+
+            List<TourTheme> themes = tourThemeRepository.findAllById(requestDTO.getTourThemeIds());
+            tour.setThemes(themes);
         }
+        Tour savedTour = tourRepository.save(tour);
 
         if (requestDTO.getDestinationLocationIds() != null) {
             int dayNumber = 1;
@@ -192,13 +189,8 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
             tour.setDepartLocation(depart);
         }
         if (requestDTO.getTourThemeIds() != null) {
-            tourThemeRepository.deleteAll(tourThemeRepository.findByTourId(id));
-            for (Long themeId : requestDTO.getTourThemeIds()) {
-                TourTheme theme = tourThemeRepository.findById(themeId)
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour theme not found"));
-                theme.setTour(tour);
-                tourThemeRepository.save(theme);
-            }
+            List<TourTheme> themes = tourThemeRepository.findAllById(requestDTO.getTourThemeIds());
+            tour.setThemes(themes);
         }
         if (requestDTO.getDestinationLocationIds() != null) {
             tourDayRepository.deleteAll(tourDayRepository.findByTourIdOrderByDayNumberAsc(id));
@@ -236,9 +228,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found with id: " + tourId));
 
-        // SỬA LẠI: Dùng repository để lấy themes, thay vì tour.getThemes()
-        List<TourThemeOptionDTO> themes = tourThemeRepository.findByTourId(tour.getId())
-                .stream()
+        List<TourThemeOptionDTO> themes = tour.getThemes().stream()
                 .map(theme -> new TourThemeOptionDTO(theme.getId(), theme.getName()))
                 .collect(Collectors.toList());
 
@@ -557,7 +547,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     public GeneralResponse<List<ServiceTypeShortDTO>> getServiceTypes() {
         try {
             List<ServiceTypeShortDTO> dtos = serviceTypeRepository.findAll().stream()
-                    .map(st -> new ServiceTypeShortDTO(st.getId(),st.getCode(), st.getName()))
+                    .map(st -> new ServiceTypeShortDTO(st.getId(), st.getCode(), st.getName()))
                     .collect(Collectors.toList());
             return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.GET_SERVICE_LIST_SUCCESS, dtos);
         } catch (BusinessException be) {

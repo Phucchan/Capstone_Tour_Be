@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface TourDetailMapper {
 
-    @Mapping(source = "tourTheme.name", target = "tourThemeName")
+    @Mapping(source = "themes", target = "tourThemeName", qualifiedByName = "themesToString")
 
     @Mapping(source = "code", target = "code")
 
@@ -32,7 +32,7 @@ public interface TourDetailMapper {
     @Mapping(source = "departLocation.name", target = "departLocationName")
     TourDetailDTO tourToTourDetailDTO(Tour tour);
 
-    @Mapping(source = "tourTheme.name", target = "tourThemeName")
+    @Mapping(source = "themes", target = "tourThemeName", qualifiedByName = "themesToString")
     @Mapping(source = "code", target = "code")
     @Mapping(source = "departLocation.name", target = "departLocationName")
     @Mapping(source = "tourTransport", target = "tourTransport", qualifiedByName = "transportToString")
@@ -64,5 +64,14 @@ public interface TourDetailMapper {
             return null;
         }
         return transport.name();
+    }
+
+    @Named("themesToString")
+    default String themesToString(java.util.List<com.fpt.capstone.tourism.model.tour.TourTheme> themes) {
+        if (themes == null || themes.isEmpty()) {
+            return null;
+        }
+        return themes.stream().map(com.fpt.capstone.tourism.model.tour.TourTheme::getName)
+                .collect(java.util.stream.Collectors.joining(", "));
     }
 }

@@ -22,8 +22,6 @@ public class TourDetailManagerDTO {
     private String tourType;
     private String tourStatus;
     private Integer durationDays;
-
-    // CÁC TRƯỜNG ĐÃ ĐƯỢC SỬA LẠI ĐỂ CHỨA OBJECT {ID, NAME}
     private LocationShortDTO departLocation;
     private List<LocationShortDTO> destinations;
     private List<TourThemeOptionDTO> themes;
