@@ -43,6 +43,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -172,30 +173,38 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     }
 
     @Override
+    @Transactional // Đảm bảo tất cả các thao tác đều thành công hoặc thất bại cùng nhau
     public GeneralResponse<TourDetailManagerDTO> updateTour(Long id, TourUpdateManagerRequestDTO requestDTO) {
+        // 1. Tìm tour cần cập nhật
         Tour tour = tourRepository.findById(id)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
 
-        if (requestDTO.getName() != null) {
-            tour.setName(requestDTO.getName());
-        }
-        if (requestDTO.getThumbnailUrl() != null) {
-            tour.setThumbnailUrl(requestDTO.getThumbnailUrl());
-        }
-        if (requestDTO.getDescription() != null) {
-            tour.setDescription(requestDTO.getDescription());
-        }
+        // 2. Cập nhật các trường thông tin cơ bản
+        tour.setName(requestDTO.getName());
+        tour.setThumbnailUrl(requestDTO.getThumbnailUrl());
+        tour.setDescription(requestDTO.getDescription());
+        tour.setTourStatus(TourStatus.valueOf(requestDTO.getTourStatus()));
+
+        // 3. Cập nhật điểm khởi hành
         if (requestDTO.getDepartLocationId() != null) {
             Location depart = locationRepository.findById(requestDTO.getDepartLocationId())
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
             tour.setDepartLocation(depart);
         }
+
+        // 4. Cập nhật danh sách chủ đề (themes) - CÁCH LÀM ĐÚNG CHO ManyToMany
         if (requestDTO.getTourThemeIds() != null) {
-            List<TourTheme> themes = tourThemeRepository.findAllById(requestDTO.getTourThemeIds());
-            tour.setThemes(themes);
+            List<TourTheme> newThemes = tourThemeRepository.findAllById(requestDTO.getTourThemeIds());
+            tour.getThemes().clear();
+            tour.getThemes().addAll(newThemes);
         }
+
+        // 5. Cập nhật danh sách điểm đến (destinations) - CÁCH LÀM ĐÚNG CHO OneToMany với orphanRemoval=true
         if (requestDTO.getDestinationLocationIds() != null) {
-            tourDayRepository.deleteAll(tourDayRepository.findByTourIdOrderByDayNumberAsc(id));
+            // Xóa các ngày cũ khỏi tour
+            tour.getTourDays().clear();
+
+            // Thêm lại các ngày mới
             int dayNumber = 1;
             for (Long destId : requestDTO.getDestinationLocationIds()) {
                 Location dest = locationRepository.findById(destId)
@@ -204,11 +213,13 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 day.setTour(tour);
                 day.setDayNumber(dayNumber++);
                 day.setLocation(dest);
-                tourDayRepository.save(day);
+                day.setTitle("Ngày " + (dayNumber - 1) + ": Tham quan " + dest.getName());
+                tour.getTourDays().add(day);
             }
             tour.setDurationDays(dayNumber - 1);
         }
 
+        // 6. Lưu lại tour, JPA sẽ tự động xử lý các thay đổi trong collection
         Tour savedTour = tourRepository.save(tour);
         return GeneralResponse.of(buildDetailDTO(savedTour.getId()), "Tour updated successfully");
     }
@@ -341,19 +352,33 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     }
 
     @Override
+    @Transactional // Đảm bảo tất cả các thao tác trong hàm này đều thành công
     public GeneralResponse<String> deleteTourDay(Long tourId, Long dayId) {
-        tourRepository.findById(tourId)
+        // 1. Tìm tour cha
+        Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
 
+        // 2. Tìm ngày cần xóa
         TourDay day = tourDayRepository.findById(dayId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.TOUR_DAY_NOT_FOUND));
 
+        // 3. Kiểm tra xem ngày có thuộc đúng tour không
         if (!day.getTour().getId().equals(tourId)) {
             throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.TOUR_DAY_NOT_BELONG);
         }
 
+        // 4. Thực hiện xóa mềm
         day.softDelete();
         tourDayRepository.save(day);
+
+        // 5. BƯỚC QUAN TRỌNG: Cập nhật lại thông tin của tour cha
+        // Đếm lại số ngày còn lại (chưa bị xóa mềm)
+        long remainingDays = tourDayRepository.findByTourIdAndDeletedIsFalseOrderByDayNumberAsc(tourId).size();
+
+        // Cập nhật lại trường durationDays
+        tour.setDurationDays((int) remainingDays);
+        tourRepository.save(tour); // Lưu lại tour cha với thông tin mới
+
         return GeneralResponse.of(Constants.Message.TOUR_DAY_DELETED_SUCCESS);
     }
 
