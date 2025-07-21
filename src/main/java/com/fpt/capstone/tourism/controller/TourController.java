@@ -141,8 +141,8 @@ public class TourController {
                         .build())
                 .collect(Collectors.toList());
         TourLocationOptionsDTO options = TourLocationOptionsDTO.builder()
-                .departures(destinations)
-                .destinations(departures)
+                .departures(departures)
+                .destinations(destinations)
                 .build();
 
         SearchTourResponseDTO dto = SearchTourResponseDTO.builder()

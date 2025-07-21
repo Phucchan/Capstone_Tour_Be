@@ -94,6 +94,7 @@ public class HomepageServiceImpl implements HomepageService {
         return discounts.stream()
                 .map(this::mapDiscountToSaleDTO)
                 .collect(Collectors.toList());
+
     }
 
 
@@ -124,14 +125,8 @@ public class HomepageServiceImpl implements HomepageService {
     }
 
     private SaleTourDTO mapDiscountToSaleDTO(TourDiscount discount) {
-        Tour tour;
         TourSchedule schedule = discount.getTourSchedule();
-        if (schedule != null) {
-            tour = schedule.getTour();
-        } else {
-            tour = discount.getTour();
-        }
-
+        Tour tour = schedule.getTour();
         Double averageRating = feedbackRepository.findAverageRatingByTourId(tour.getId());
         Double startingPrice = tourPaxRepository.findStartingPriceByTourId(tour.getId());
 

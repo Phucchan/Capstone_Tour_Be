@@ -12,18 +12,14 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true, exclude = {"tour", "tourSchedule"})
-@ToString(callSuper = true, exclude = {"tour", "tourSchedule"})
+@EqualsAndHashCode(callSuper = true, exclude = {"tourSchedule"})
+@ToString(callSuper = true, exclude = {"tourSchedule"})
 public class TourDiscount extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "tour_discount_id")
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tour_id", nullable = false)
-    private Tour tour;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "schedule_id", nullable = false)

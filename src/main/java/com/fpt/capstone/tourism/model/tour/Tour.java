@@ -86,7 +86,6 @@ public class Tour extends BaseEntity {
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TourPax> tourPaxes;
 
-    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TourDiscount> tourDiscounts;
+    
 }
 
