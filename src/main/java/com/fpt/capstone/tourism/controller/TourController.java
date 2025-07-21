@@ -65,12 +65,14 @@ public class TourController {
                 .map(d -> LocationShortDTO.builder()
                         .id(d.getId())
                         .name(d.getName())
+                        .description(d.getDescription())
                         .build())
                 .collect(Collectors.toList());
         List<LocationShortDTO> destinations = locationService.getAllDestinations().stream()
                 .map(d -> LocationShortDTO.builder()
                         .id(d.getId())
                         .name(d.getName())
+                        .description(d.getDescription())
                         .build())
                 .collect(Collectors.toList());
         TourLocationOptionsDTO options = TourLocationOptionsDTO.builder()
@@ -128,17 +130,19 @@ public class TourController {
                 .map(d -> LocationShortDTO.builder()
                         .id(d.getId())
                         .name(d.getName())
+                        .description(d.getDescription())
                         .build())
                 .collect(Collectors.toList());
         List<LocationShortDTO> destinations = locationService.getAllDestinations().stream()
                 .map(d -> LocationShortDTO.builder()
                         .id(d.getId())
                         .name(d.getName())
+                        .description(d.getDescription())
                         .build())
                 .collect(Collectors.toList());
         TourLocationOptionsDTO options = TourLocationOptionsDTO.builder()
-                .departures(departures)
-                .destinations(destinations)
+                .departures(destinations)
+                .destinations(departures)
                 .build();
 
         SearchTourResponseDTO dto = SearchTourResponseDTO.builder()
