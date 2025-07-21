@@ -27,6 +27,7 @@ public interface TourDiscountRepository extends JpaRepository<TourDiscount, Long
             "ORDER BY td.discountPercent DESC")
     List<TourDiscount> findTopDiscountedTours(@Param("now") LocalDateTime now, Pageable pageable);
 
+
     @Query("SELECT td FROM TourDiscount td " +
             "JOIN td.tourSchedule ts " +
             "WHERE td.startDate <= :now AND td.endDate >= :now " +

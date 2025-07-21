@@ -26,7 +26,7 @@ public class TourDiscount extends BaseEntity {
     private Tour tour;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "schedule_id")
+    @JoinColumn(name = "schedule_id", nullable = false)
     private TourSchedule tourSchedule;
 
     @Column(name = "discount_percent", nullable = false)

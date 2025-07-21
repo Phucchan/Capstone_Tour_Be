@@ -196,8 +196,13 @@ public class TourServiceImpl implements TourService {
                 .build();
     }
     private SaleTourDTO mapDiscountToSaleDTO(TourDiscount discount) {
+        Tour tour;
         TourSchedule schedule = discount.getTourSchedule();
-        Tour tour = schedule.getTour();
+        if (schedule != null) {
+            tour = schedule.getTour();
+        } else {
+            tour = discount.getTour();
+        }
         Double averageRating = feedbackRepository.findAverageRatingByTourId(tour.getId());
         Double startingPrice = tourPaxRepository.findStartingPriceByTourId(tour.getId());
 
