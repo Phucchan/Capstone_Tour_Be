@@ -8,6 +8,7 @@ import com.fpt.capstone.tourism.model.tour.TourDay;
 import com.fpt.capstone.tourism.model.tour.TourPax;
 import com.fpt.capstone.tourism.model.tour.TourSchedule;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
@@ -54,7 +55,7 @@ public class TourSpecification {
             if (departId == null) {
                 return null;
             }
-            Join<Tour, Location> departJoin = root.join("departLocation");
+            Join<Tour, Location> departJoin = root.join("departLocation", JoinType.LEFT);
             query.distinct(true);
             return criteriaBuilder.equal(departJoin.get("id"), departId);
         };
@@ -69,7 +70,7 @@ public class TourSpecification {
                 return null;
             }
             // Join với bảng TourDay để lấy điểm đến của từng ngày
-            Join<Tour, TourDay> tourDayJoin = root.join("tourDays");
+            Join<Tour, TourDay> tourDayJoin = root.join("tourDays", JoinType.LEFT);
             query.distinct(true); // Đảm bảo không trả về tour trùng lặp
             return criteriaBuilder.and(
                     criteriaBuilder.equal(tourDayJoin.get("location").get("id"), destId),
