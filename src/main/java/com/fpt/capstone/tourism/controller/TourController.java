@@ -118,6 +118,10 @@ public class TourController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
         Long effectiveDestId = destId != null ? destId : destIdPath;
+        if (destId == null && departId != null
+                && priceMin == null && priceMax == null && date == null) {
+            effectiveDestId = null;
+        }
 
         PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, departId, effectiveDestId, date, pageable);
         if (effectiveDestId != null) {
