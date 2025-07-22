@@ -128,19 +128,13 @@ public class HomepageServiceImpl implements HomepageService {
         TourSchedule schedule = discount.getTourSchedule();
         Tour tour = schedule.getTour();
         Double averageRating = feedbackRepository.findAverageRatingByTourId(tour.getId());
-        Double startingPrice = tourPaxRepository.findStartingPriceByTourId(tour.getId());
+        Double startingPrice = schedule.getTourPax() != null ? schedule.getTourPax().getSellingPrice() : null;
 
-        List<TourSchedule> futureSchedules = tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(
-                tour.getId(),
-                LocalDateTime.now()
-        );
-
-        List<LocalDateTime> departureDates = futureSchedules.stream()
-                .map(TourSchedule::getDepartureDate)
-                .collect(Collectors.toList());
+        List<LocalDateTime> departureDates = List.of(schedule.getDepartureDate());
 
         return SaleTourDTO.builder()
-                .id(tour.getId())
+                .id(schedule.getId())
+                .tourId(tour.getId())
                 .name(tour.getName())
                 .thumbnailUrl(tour.getThumbnailUrl())
                 .durationDays(tour.getDurationDays())

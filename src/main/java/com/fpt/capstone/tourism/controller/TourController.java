@@ -124,12 +124,7 @@ public class TourController {
         }
 
         PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, departId, effectiveDestId, date, pageable);
-        if (effectiveDestId != null) {
-            String destinationName = locationService.getLocationById(effectiveDestId)
-                    .getData()
-                    .getName();
-            result.getItems().forEach(t -> t.setLocationName(destinationName));
-        }
+
         List<LocationShortDTO> departures = locationService.getAllDepartures().stream()
                 .map(d -> LocationShortDTO.builder()
                         .id(d.getId())
