@@ -82,6 +82,9 @@ public class PlanServiceImpl implements PlanService {
 
             double totalSpending = 0;
 
+            double budgetMin = dto.getBudget().getMin();
+            double budgetMax = dto.getBudget().getMax();
+
             List<PlanDay> planDays = new ArrayList<>();
 
             for(PlanDayDTO planDayDTO : dto.getDays()) {
@@ -92,7 +95,9 @@ public class PlanServiceImpl implements PlanService {
                 List<PartnerShortDTO> relatedPartners = partnersByLocation.get(locationId);
 
 
-                String prompt = generatePrompt(totalDays, preferences, totalSpending, locationName, dayNumber, relatedPartners);
+
+
+                String prompt = generatePrompt(totalDays, preferences, budgetMin, budgetMax, totalSpending, locationName, dayNumber, relatedPartners);
 
                 String response = geminiApiService.getGeminiResponse(prompt);
 
@@ -168,7 +173,7 @@ public class PlanServiceImpl implements PlanService {
             
                             Hãy tạo nội dung du lịch chi tiết cho cả kế hoach, bao gồm:
                             1. **title**: tiêu đề dễ hiểu, ngắn gọn, thể hiện nội dung chính chuyến đi.
-                            2. **description**: mô tả toàn cảnh hoạt động của chuyến đi, ít nhất 250 từ, đầy đủ cảm xúc, mô tả chung một nội dung của kế hoạch.
+                            2. **description**: mô tả toàn cảnh hoạt động của chuyến đi, ít nhất 100 từ, đầy đủ cảm xúc, mô tả chung một nội dung của kế hoạch.
 
                             **Kết quả trả về là một JSON object theo định dạng sau**:
                         
@@ -179,7 +184,7 @@ public class PlanServiceImpl implements PlanService {
                         """, totalDays, String.join(", ", locationNames), preferences);
     }
 
-    private String generatePrompt(int totalDays, String preferences, double totalSpending, String locationName, int dayNumber, List<PartnerShortDTO> relatedPartners) {
+    private String generatePrompt(int totalDays, String preferences, double budgetMin, double budgetMax, double totalSpending, String locationName, int dayNumber, List<PartnerShortDTO> relatedPartners) {
         String partnerContext = buildPartnerContext(locationName, relatedPartners);
         return String.format("""
                                 Bạn là một trợ lý AI chuyên xây dựng chương trình du lịch cá nhân hóa.
@@ -187,14 +192,28 @@ public class PlanServiceImpl implements PlanService {
                                 Người dùng đang trong hành trình kéo dài tổng cộng %d ngày.
                                 Hôm nay là **ngày thứ %d**, họ sẽ ở tại **%s**.
                                 Sở thích chính của người dùng bao gồm: %s.
-                                Ngân sách cho ngày hôm nay là khoảng %.0f VNĐ.
+                                Tổng chi phí mong muốn cho chuyến đi đến nay là khoảng %.0f - %.0f VNĐ.
+                                Tổng tiền đã chi tiêu đến nay là %.0f VNĐ.
+                            
+                            
+                                Hãy cố gắng thiết kế lịch trình có chi phí hợp lý và xứng đáng với mức ngân sách đã đề ra.
+                                Đồng thời, hãy phân bổ chi tiêu hợp lý cho từng ngày.
+                                
+                                Cụ thể:
+                                - Trong mỗi ngày, hãy ưu tiên xây dựng các hoạt động có chất lượng tốt tương xứng với ngân sách tổng.
+                                - Tổng ngân sách sẽ được chia đều tương đối theo số ngày trong hành trình, nhưng có thể linh hoạt điều chỉnh theo từng ngày.
+                                - Tổng chi phí của tất cả chuyến đi nên đạt **tối thiểu khoảng 80-90%% ngân sách**, để đảm bảo người dùng tận hưởng trọn vẹn trải nghiệm, đồng thời vẫn giữ lại một phần dự phòng nhỏ cho các trường hợp phát sinh.
+                                - Tránh việc chi tiêu quá tiết kiệm hoặc chọn phương án miễn phí nếu không thật sự cần thiết.
+                                - Tránh tạo ra lịch trình ngày có chi phí quá thấp hoặc quá cao so với phần còn lại của chuyến đi.
                         
                                 %s
                             
                                 Hãy tạo nội dung du lịch chi tiết cho ngày hôm nay, bao gồm:
                         
-                                1. **longDescription**: mô tả toàn cảnh hoạt động của ngày, ít nhất 250 từ, đầy đủ cảm xúc, mô tả cụ thể các hoạt động sẽ diễn ra từ sáng đến tối theo trình tự thời gian hợp lý.
-                                2. **activities**: từ 1–3 hoạt động phù hợp với sở thích (mỗi hoạt động gồm: title, content ≥ 50 từ, category, estimatedCost, duration, startTime, endTime)
+                                1. **longDescription**: mô tả toàn cảnh hoạt động của ngày, ít nhất 50 từ, đầy đủ cảm xúc, mô tả cụ thể các hoạt động sẽ diễn ra từ sáng đến tối theo trình tự thời gian hợp lý.
+                                2. **activities**: từ 3-4 hoạt động phù hợp với sở thích (mỗi hoạt động gồm: title, content <=30 từ ngắn gọn và dễ hiểu, category, estimatedCost, duration, startTime, endTime)
+                                    - Ưu tiên các hoạt động có trả phí, có giá trị trải nghiệm tương xứng và góp phần nâng tổng chi phí ngày lên mức hợp lý (gần mức ngân sách đã đề ra).
+                                    - Chỉ chọn hoạt động miễn phí nếu thật sự nổi bật và phù hợp sở thích. Tránh đưa ra nhiều hoạt động miễn phí khiến tổng chi tiêu bị thấp.
                                 3. **restaurants**: 1 nhà hàng địa phương phù hợp với khẩu vị, mỗi nơi có tên, địa chỉ, menu gợi ý, estimatedCost và useDate
                                 4. **hotels**: chọn 1 khách sạn phù hợp ngân sách, cung cấp tên, địa chỉ, roomDetails, checkInDate, checkOutDate, estimatedCost, total
                                 5. **totalSpend**: tổng chi phí dự kiến cho cả ngày, không vượt quá ngân sách %.0f VNĐ.
@@ -208,7 +227,7 @@ public class PlanServiceImpl implements PlanService {
                         
                                 **Kết quả trả về là một JSON object theo định dạng sau**:
                                 %s
-                            """, totalDays, dayNumber, locationName, preferences, totalSpending, partnerContext, totalSpending, Constants.AI.PROMPT_DAY_END);
+                            """, totalDays, dayNumber, locationName, preferences, budgetMin, budgetMax, totalSpending, partnerContext, totalSpending, Constants.AI.PROMPT_DAY_END);
     }
 
     private String buildPartnerContext(String locationName, List<PartnerShortDTO> partners) {
