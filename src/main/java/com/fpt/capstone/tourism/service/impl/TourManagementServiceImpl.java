@@ -234,7 +234,8 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         // Thay vì dùng mapper, chúng ta sẽ tự xây dựng DTO để đảm bảo đủ trường
         List<TourDayManagerDTO> dtos = days.stream().map(day -> {
             Location loc = day.getLocation();
-            LocationShortDTO locationDTO = (loc != null) ? new LocationShortDTO(loc.getId(), loc.getName()) : null;
+            LocationShortDTO locationDTO = (loc != null) ?
+                    new LocationShortDTO(loc.getId(), loc.getName(), loc.getDescription()) : null;
 
             List<ServiceTypeShortDTO> serviceTypeDTOs = day.getServiceTypes() != null ?
                     day.getServiceTypes().stream()
@@ -271,7 +272,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .stream()
                 .map(day -> {
                     Location loc = day.getLocation();
-                    return (loc != null) ? new LocationShortDTO(loc.getId(), loc.getName()) : null;
+                    return (loc != null) ? new LocationShortDTO(loc.getId(), loc.getName(), loc.getDescription()) : null;
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
@@ -285,7 +286,9 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .tourType(tour.getTourType() != null ? tour.getTourType().name() : null)
                 .tourStatus(tour.getTourStatus() != null ? tour.getTourStatus().name() : null)
                 .durationDays(tour.getDurationDays())
-                .departLocation(new LocationShortDTO(tour.getDepartLocation().getId(), tour.getDepartLocation().getName()))
+                .departLocation(new LocationShortDTO(tour.getDepartLocation().getId(),
+                        tour.getDepartLocation().getName(),
+                        tour.getDepartLocation().getDescription()))
                 .destinations(destinations)
                 .themes(themes)
                 .build();
@@ -576,10 +579,10 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .collect(Collectors.toList());
 
         List<LocationShortDTO> departures = locationService.getAllDepartures().stream()
-                .map(d -> new LocationShortDTO(d.getId(), d.getName()))
+                .map(d -> new LocationShortDTO(d.getId(), d.getName(), d.getDescription()))
                 .collect(Collectors.toList());
         List<LocationShortDTO> destinations = locationService.getAllDestinations().stream()
-                .map(d -> new LocationShortDTO(d.getId(), d.getName()))
+                .map(d -> new LocationShortDTO(d.getId(), d.getName(), d.getDescription()))
                 .collect(Collectors.toList());
 
         TourOptionsDTO dto = TourOptionsDTO.builder()

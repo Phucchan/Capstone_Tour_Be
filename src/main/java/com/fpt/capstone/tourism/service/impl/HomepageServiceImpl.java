@@ -1,4 +1,5 @@
 package com.fpt.capstone.tourism.service.impl;
+
 import com.fpt.capstone.tourism.dto.response.homepage.*;
 import com.fpt.capstone.tourism.mapper.BlogMapper;
 import com.fpt.capstone.tourism.model.blog.Blog;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import com.fpt.capstone.tourism.mapper.LocationMapper;
 import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.repository.LocationRepository;
@@ -83,6 +85,7 @@ public class HomepageServiceImpl implements HomepageService {
                 .map(this::mapTourToSummaryDTO)
                 .collect(Collectors.toList());
     }
+
     private List<SaleTourDTO> getSaleTours() {
         List<TourDiscount> discounts = tourDiscountRepository.findTopDiscountedTours(
                 LocalDateTime.now(),
@@ -91,9 +94,8 @@ public class HomepageServiceImpl implements HomepageService {
         return discounts.stream()
                 .map(this::mapDiscountToSaleDTO)
                 .collect(Collectors.toList());
+
     }
-
-
 
 
     private List<BlogSummaryDTO> getRecentBlogs() {
@@ -125,21 +127,14 @@ public class HomepageServiceImpl implements HomepageService {
     private SaleTourDTO mapDiscountToSaleDTO(TourDiscount discount) {
         TourSchedule schedule = discount.getTourSchedule();
         Tour tour = schedule.getTour();
-
         Double averageRating = feedbackRepository.findAverageRatingByTourId(tour.getId());
-        Double startingPrice = tourPaxRepository.findStartingPriceByTourId(tour.getId());
+        Double startingPrice = schedule.getTourPax() != null ? schedule.getTourPax().getSellingPrice() : null;
 
-        List<TourSchedule> futureSchedules = tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(
-                tour.getId(),
-                LocalDateTime.now()
-        );
-
-        List<LocalDateTime> departureDates = futureSchedules.stream()
-                .map(TourSchedule::getDepartureDate)
-                .collect(Collectors.toList());
+        List<LocalDateTime> departureDates = List.of(schedule.getDepartureDate());
 
         return SaleTourDTO.builder()
-                .id(tour.getId())
+                .id(schedule.getId())
+                .tourId(tour.getId())
                 .name(tour.getName())
                 .thumbnailUrl(tour.getThumbnailUrl())
                 .durationDays(tour.getDurationDays())
@@ -153,9 +148,11 @@ public class HomepageServiceImpl implements HomepageService {
                 .discountPercent(discount.getDiscountPercent())
                 .build();
     }
+
     /**
      * PHƯƠNG THỨC HELPER MỚI
      * Tách logic chuyển đổi từ Tour -> TourSummaryDTO ra một nơi chung để tái sử dụng.
+     *
      * @param tour Entity Tour cần chuyển đổi.
      * @return DTO TourSummaryDTO đã có đủ thông tin.
      */
@@ -165,7 +162,7 @@ public class HomepageServiceImpl implements HomepageService {
         Double startingPrice = tourPaxRepository.findStartingPriceByTourId(tour.getId());
 
         // Lấy lịch trình gần nhất
-        List<TourSchedule> futureSchedules  = tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(
+        List<TourSchedule> futureSchedules = tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(
                 tour.getId(),
                 LocalDateTime.now()
         );

@@ -65,12 +65,14 @@ public class TourController {
                 .map(d -> LocationShortDTO.builder()
                         .id(d.getId())
                         .name(d.getName())
+                        .description(d.getDescription())
                         .build())
                 .collect(Collectors.toList());
         List<LocationShortDTO> destinations = locationService.getAllDestinations().stream()
                 .map(d -> LocationShortDTO.builder()
                         .id(d.getId())
                         .name(d.getName())
+                        .description(d.getDescription())
                         .build())
                 .collect(Collectors.toList());
         TourLocationOptionsDTO options = TourLocationOptionsDTO.builder()
@@ -116,24 +118,25 @@ public class TourController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
         Long effectiveDestId = destId != null ? destId : destIdPath;
+        if (destId == null && departId != null
+                && priceMin == null && priceMax == null && date == null) {
+            effectiveDestId = null;
+        }
 
         PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, departId, effectiveDestId, date, pageable);
-        if (effectiveDestId != null) {
-            String destinationName = locationService.getLocationById(effectiveDestId)
-                    .getData()
-                    .getName();
-            result.getItems().forEach(t -> t.setLocationName(destinationName));
-        }
+
         List<LocationShortDTO> departures = locationService.getAllDepartures().stream()
                 .map(d -> LocationShortDTO.builder()
                         .id(d.getId())
                         .name(d.getName())
+                        .description(d.getDescription())
                         .build())
                 .collect(Collectors.toList());
         List<LocationShortDTO> destinations = locationService.getAllDestinations().stream()
                 .map(d -> LocationShortDTO.builder()
                         .id(d.getId())
                         .name(d.getName())
+                        .description(d.getDescription())
                         .build())
                 .collect(Collectors.toList());
         TourLocationOptionsDTO options = TourLocationOptionsDTO.builder()
