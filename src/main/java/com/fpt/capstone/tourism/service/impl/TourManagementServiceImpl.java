@@ -362,25 +362,34 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
 
         // 2. Tìm ngày cần xóa
-        TourDay day = tourDayRepository.findById(dayId)
+        TourDay dayToDelete = tourDayRepository.findById(dayId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.TOUR_DAY_NOT_FOUND));
 
         // 3. Kiểm tra xem ngày có thuộc đúng tour không
-        if (!day.getTour().getId().equals(tourId)) {
+        if (!dayToDelete.getTour().getId().equals(tourId)) {
             throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.TOUR_DAY_NOT_BELONG);
         }
 
-        // 4. Thực hiện xóa mềm
-        day.softDelete();
-        tourDayRepository.save(day);
+        // 4. Thực hiện xóa MỀM (soft delete)
+        dayToDelete.softDelete();
+        tourDayRepository.save(dayToDelete);
 
-        // 5. BƯỚC QUAN TRỌNG: Cập nhật lại thông tin của tour cha
-        // Đếm lại số ngày còn lại (chưa bị xóa mềm)
-        long remainingDays = tourDayRepository.findByTourIdAndDeletedIsFalseOrderByDayNumberAsc(tourId).size();
+        // 5. Tải lại danh sách các ngày trong tour, đã được sắp xếp theo dayNumber
+        // Lấy lại danh sách TẤT CẢ các ngày còn lại (chưa bị xóa mềm), đã được sắp xếp
+        List<TourDay> remainingDays = tourDayRepository.findByTourIdAndDeletedIsFalseOrderByDayNumberAsc(tourId);
 
-        // Cập nhật lại trường durationDays
-        tour.setDurationDays((int) remainingDays);
-        tourRepository.save(tour); // Lưu lại tour cha với thông tin mới
+        // Đánh số lại (re-number) các ngày còn lại
+        int currentDayNumber = 1;
+        for (TourDay day : remainingDays) {
+            day.setDayNumber(currentDayNumber++);
+        }
+
+        // Lưu lại danh sách đã được đánh số lại
+        tourDayRepository.saveAll(remainingDays);
+
+        // 6. Cập nhật lại thông tin của tour cha
+        tour.setDurationDays(remainingDays.size());
+        tourRepository.save(tour);
 
         return GeneralResponse.of(Constants.Message.TOUR_DAY_DELETED_SUCCESS);
     }
