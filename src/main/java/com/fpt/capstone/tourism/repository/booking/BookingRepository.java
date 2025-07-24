@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -26,10 +27,14 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "JOIN tour_schedules ts ON b.tour_schedule_id = ts.schedule_id " +
             "JOIN tours t ON ts.tour_id = t.tour_id " +
             "WHERE b.booking_status <> 'CANCELLED' " +
+            "AND (:startDate IS NULL OR b.created_at >= :startDate) " +
+            "AND (:endDate IS NULL OR b.created_at <= :endDate) " +
             "GROUP BY t.tour_id, t.name, t.tour_type " +
             "ORDER BY revenue DESC",
             nativeQuery = true)
-    List<Object[]> findTopToursByRevenue(Pageable pageable);
+    List<Object[]> findTopToursByRevenue(@Param("startDate") LocalDateTime startDate,
+                                         @Param("endDate") LocalDateTime endDate,
+                                         Pageable pageable);
 
     @Query(value = "SELECT EXTRACT(YEAR FROM b.created_at) AS yr, " +
             "EXTRACT(MONTH FROM b.created_at) AS mon, " +
@@ -38,11 +43,14 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "JOIN tour_schedules ts ON b.tour_schedule_id = ts.schedule_id " +
             "WHERE ts.tour_id = :tourId " +
             "AND b.booking_status <> 'CANCELLED' " +
-            "AND EXTRACT(YEAR FROM b.created_at) = :year " +
+            "AND (:startDate IS NULL OR b.created_at >= :startDate) " +
+            "AND (:endDate IS NULL OR b.created_at <= :endDate) " +
             "GROUP BY yr, mon " +
             "ORDER BY mon",
             nativeQuery = true)
-    List<Object[]> findMonthlyRevenueByTour(@Param("tourId") Long tourId, @Param("year") int year);
+    List<Object[]> findMonthlyRevenueByTour(@Param("tourId") Long tourId,
+                                            @Param("startDate") LocalDateTime startDate,
+                                            @Param("endDate") LocalDateTime endDate);
 
 
     List<Booking> findByUser_UsernameOrderByCreatedAtDesc(String username);
@@ -60,4 +68,18 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     long countByUser_Id(Long userId);
 
     Booking findByBookingCode(String bookingCode);
+    @Query(value = "SELECT COALESCE(SUM(b.total_amount), 0) FROM bookings b " +
+            "WHERE b.booking_status <> 'CANCELLED' " +
+            "AND (:startDate IS NULL OR b.created_at >= :startDate) " +
+            "AND (:endDate IS NULL OR b.created_at <= :endDate)",
+            nativeQuery = true)
+    Double calculateTotalRevenue(@Param("startDate") LocalDateTime startDate,
+                                 @Param("endDate") LocalDateTime endDate);
+    @Query(value = "SELECT COUNT(*) FROM bookings b " +
+            "WHERE b.booking_status <> 'CANCELLED' " +
+            "AND (:startDate IS NULL OR b.created_at >= :startDate) " +
+            "AND (:endDate IS NULL OR b.created_at <= :endDate)",
+            nativeQuery = true)
+    Long countBookings(@Param("startDate") LocalDateTime startDate,
+                       @Param("endDate") LocalDateTime endDate);
 }

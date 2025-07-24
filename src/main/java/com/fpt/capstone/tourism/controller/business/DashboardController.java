@@ -7,9 +7,11 @@ import com.fpt.capstone.tourism.dto.response.analytic.MonthlyRevenueDTO;
 import com.fpt.capstone.tourism.dto.response.analytic.TourRevenueDTO;
 import com.fpt.capstone.tourism.service.AnalyticsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -20,18 +22,47 @@ public class DashboardController {
     private final AnalyticsService analyticsService;
 
     @GetMapping("/top-tours")
-    public ResponseEntity<GeneralResponse<List<TourRevenueDTO>>> getTopTours(@RequestParam(defaultValue = "5") int limit) {
-        return ResponseEntity.ok(analyticsService.getTopToursByRevenue(limit));
+    public ResponseEntity<GeneralResponse<List<TourRevenueDTO>>> getTopTours(
+            @RequestParam(defaultValue = "5") int limit,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return ResponseEntity.ok(analyticsService.getTopToursByRevenue(limit, startDate, endDate));
     }
 
     @GetMapping("/tours/{tourId}/monthly")
     public ResponseEntity<GeneralResponse<List<MonthlyRevenueDTO>>> getMonthlyRevenue(@PathVariable Long tourId,
-                                                                                      @RequestParam int year) {
-        return ResponseEntity.ok(analyticsService.getMonthlyRevenue(tourId, year));
+                                                                                      @RequestParam int year,
+                                                                                      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                                                                                      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return ResponseEntity.ok(analyticsService.getMonthlyRevenue(tourId, year, startDate, endDate));
     }
+
     // postman http://localhost:8080/admin/revenue/tours/1/monthly?year=2023
     @GetMapping("/users/monthly")
-    public ResponseEntity<GeneralResponse<List<MonthlyNewUserDTO>>> getMonthlyNewUsers(@RequestParam int year) {
-        return ResponseEntity.ok(analyticsService.getMonthlyNewUsers(year));
+    public ResponseEntity<GeneralResponse<List<MonthlyNewUserDTO>>> getMonthlyNewUsers(
+            @RequestParam int year,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+         return ResponseEntity.ok(analyticsService.getMonthlyNewUsers(year, startDate, endDate));
+    }
+
+    @GetMapping("/total-revenue")
+    public ResponseEntity<GeneralResponse<Double>> getTotalRevenue(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return ResponseEntity.ok(analyticsService.getTotalRevenue(startDate, endDate));
+    }
+
+    @GetMapping("/total-bookings")
+    public ResponseEntity<GeneralResponse<Long>> getTotalBookings(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return ResponseEntity.ok(analyticsService.getTotalBookings(startDate, endDate));
+    }
+    @GetMapping("/total-new-users")
+    public ResponseEntity<GeneralResponse<Long>> getTotalNewUsers(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return ResponseEntity.ok(analyticsService.getTotalNewUsers(startDate, endDate));
     }
 }
