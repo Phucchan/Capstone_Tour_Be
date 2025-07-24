@@ -15,7 +15,7 @@ public class Enricher {
 
     public void enrichActivityWithImage(Activity activity) {
         // Tạo từ khoá tìm kiếm từ tiêu đề hoạt động + "du lịch Việt Nam"
-        String keyword = activity.getTitle() + " du lịch Việt Nam";
+        String keyword = activity.getTitle();
 
         // Gọi SerpAPI để tìm ảnh
         String imageUrl = serpApiService.searchFirstImage(keyword);
@@ -26,7 +26,7 @@ public class Enricher {
 
     public void enrichPlanWithImage(Plan plan, String locationNames) {
         // Tạo từ khoá tìm kiếm từ tiêu đề hoạt động + "du lịch Việt Nam"
-        String keyword = locationNames + " ảnh banner";
+        String keyword = " Ảnh phong cảnh ở" + locationNames;
 
         // Gọi SerpAPI để tìm ảnh
         String imageUrl = serpApiService.searchFirstImage(keyword);
