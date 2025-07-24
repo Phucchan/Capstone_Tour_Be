@@ -10,6 +10,7 @@ import java.util.List;
 public interface LocationService {
     GeneralResponse<LocationDTO> saveLocation(LocationRequestDTO locationRequestDTO);
     GeneralResponse<LocationDTO> getLocationById(Long id);
+    GeneralResponse<LocationDTO> updateLocation(Long id, LocationRequestDTO locationRequestDTO);
     GeneralResponse<LocationDTO> deleteLocation(Long id, boolean isDeleted);
     GeneralResponse<PagingDTO<LocationDTO>> getListLocation(int page, int size, String keyword);
 

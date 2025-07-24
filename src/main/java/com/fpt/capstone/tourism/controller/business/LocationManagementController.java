@@ -33,4 +33,16 @@ public class LocationManagementController {
     public ResponseEntity<GeneralResponse<LocationDTO>> createLocation(@RequestBody LocationRequestDTO requestDTO) {
         return ResponseEntity.ok(locationService.saveLocation(requestDTO));
     }
+    @GetMapping("/locations/{id}")
+    //postman http://localhost:8080/v1/business/locations/1
+    public ResponseEntity<GeneralResponse<LocationDTO>>locationDetail(@PathVariable Long id) {
+        return ResponseEntity.ok(locationService.getLocationById(id));
+    }
+
+    @PutMapping("/locations/{id}")
+    //postman http://localhost:8080/v1/business/locations/1
+    public ResponseEntity<GeneralResponse<LocationDTO>> updateLocation(@PathVariable Long id,
+                                                                       @RequestBody LocationRequestDTO requestDTO) {
+        return ResponseEntity.ok(locationService.updateLocation(id, requestDTO));
+    }
 }

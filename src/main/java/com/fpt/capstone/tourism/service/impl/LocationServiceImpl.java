@@ -114,12 +114,8 @@ public class LocationServiceImpl implements LocationService {
     public GeneralResponse<PagingDTO<LocationDTO>> getListLocation(int page, int size, String keyword) {
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
-            Page<Location> locationPage;
-            if (keyword != null && !keyword.trim().isEmpty()) {
-                locationPage = locationRepository.findByNameContainingIgnoreCase(keyword.trim(), pageable);
-            } else {
-                locationPage = locationRepository.findAll(pageable);
-            }
+            Specification<Location> spec = buildSearchSpecification(keyword, false);
+            Page<Location> locationPage = locationRepository.findAll(spec, pageable);
             return buildPagedResponse(locationPage);
         } catch (BusinessException be) {
             throw be;
@@ -143,6 +139,25 @@ public class LocationServiceImpl implements LocationService {
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    @Override
+    public GeneralResponse<LocationDTO> updateLocation(Long id, LocationRequestDTO locationRequestDTO) {
+        try {
+            Validator.validateLocation(locationRequestDTO);
+            Location location = locationRepository.findById(id).orElseThrow();
+            location.setName(locationRequestDTO.getName());
+            location.setDescription(locationRequestDTO.getDescription());
+            location.setImage(locationRequestDTO.getImage());
+            location.setUpdatedAt(LocalDateTime.now());
+            locationRepository.save(location);
+            LocationDTO locationDTO = locationMapper.toDTO(location);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GENERAL_SUCCESS_MESSAGE, locationDTO);
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception ex) {
+            throw BusinessException.of(GENERAL_FAIL_MESSAGE, ex);
+        }
     }
 
 
