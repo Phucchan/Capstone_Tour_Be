@@ -16,16 +16,14 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/business")
+@RequestMapping("/business/tour/{tourId}/tour-pax")
 public class TourPaxController {
     private final TourPaxService tourPaxService;
     private final TourService tourService;
 
     @GetMapping
-    //postman http://localhost:8080/head-of-business/tour/1/tour-pax
     public ResponseEntity<GeneralResponse<List<TourPaxFullDTO>>> getTourPaxConfigurations(
             @PathVariable Long tourId) {
-
         return ResponseEntity.ok(tourPaxService.getTourPaxConfigurations(tourId));
     }
 
@@ -58,16 +56,16 @@ public class TourPaxController {
         return ResponseEntity.ok(tourPaxService.deleteTourPaxConfiguration(tourId, paxId));
     }
 
-    @GetMapping("/markup")
-    public ResponseEntity<GeneralResponse<TourMarkupResponseDTO>> getTourMarkupPercentage(
-            @PathVariable Long tourId) {
-        return ResponseEntity.ok(tourService.getTourMarkupPercentage(tourId));
-    }
-
-    @PutMapping("/update-markup")
-    public ResponseEntity<GeneralResponse<TourResponseDTO>> updateTourMarkupPercentage(
-            @PathVariable Long tourId,
-            @RequestBody TourMarkupUpdateRequestDTO request) {
-        return ResponseEntity.ok(tourService.updateTourMarkupPercentage(tourId, request.getMarkUpPercent()));
-    }
+//    @GetMapping("/markup")
+//    public ResponseEntity<GeneralResponse<TourMarkupResponseDTO>> getTourMarkupPercentage(
+//            @PathVariable Long tourId) {
+//        return ResponseEntity.ok(tourService.getTourMarkupPercentage(tourId));
+//    }
+//
+//    @PutMapping("/update-markup")
+//    public ResponseEntity<GeneralResponse<TourResponseDTO>> updateTourMarkupPercentage(
+//            @PathVariable Long tourId,
+//            @RequestBody TourMarkupUpdateRequestDTO request) {
+//        return ResponseEntity.ok(tourService.updateTourMarkupPercentage(tourId, request.getMarkUpPercent()));
+//    }
 }

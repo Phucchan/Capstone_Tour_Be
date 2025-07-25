@@ -1,7 +1,5 @@
 package com.fpt.capstone.tourism.dto.response.tourManager;
 
-import com.fpt.capstone.tourism.dto.common.TagDTO;
-import com.fpt.capstone.tourism.dto.request.TourDayAllRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PublicLocationDTO;
 import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
 import com.fpt.capstone.tourism.model.tour.TourTheme;

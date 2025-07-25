@@ -1,10 +1,9 @@
 package com.fpt.capstone.tourism.service;
 
-import com.fpt.capstone.tourism.dto.common.GeneralResponse;
-import com.fpt.capstone.tourism.dto.common.TourPaxDTO;
-import com.fpt.capstone.tourism.dto.common.TourPaxFullDTO;
-import com.fpt.capstone.tourism.dto.request.TourPaxCreateRequestDTO;
-import com.fpt.capstone.tourism.dto.request.TourPaxUpdateRequestDTO;
+import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxFullDTO;
+import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxCreateRequestDTO;
+import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxUpdateRequestDTO;
 
 import java.util.List;
 
