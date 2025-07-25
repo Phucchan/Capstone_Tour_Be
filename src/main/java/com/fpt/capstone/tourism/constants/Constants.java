@@ -63,7 +63,7 @@ public class Constants {
         public static final String EMPTY_LOCATION_IMAGE = "Hình ảnh địa điểm không được để trống";
         public static final String EMPTY_LOCATION_GEO_POSITION = "Vị trí địa lý của địa điểm không được để trống";
         public static final String EMPTY_LOCATION = "Địa điểm không được để trống";
-
+        public static final String TOUR_NOT_PUBLISHED = "Tour chưa được mở bán";
         // Location management
         public static final String EXISTED_LOCATION = "Địa điểm đã tồn tại";
         public static final String CREATE_LOCATION_SUCCESS = "Tạo địa điểm thành công";

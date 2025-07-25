@@ -6,33 +6,30 @@ import com.fpt.capstone.tourism.dto.common.location.LocationShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
-import com.fpt.capstone.tourism.dto.request.tourManager.TourCreateManagerRequestDTO;
-import com.fpt.capstone.tourism.dto.request.tourManager.TourDayManagerCreateRequestDTO;
-import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxManagerCreateRequestDTO;
+import com.fpt.capstone.tourism.dto.request.tourManager.*;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourOptionsDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourThemeOptionDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxManagerDTO;
-import com.fpt.capstone.tourism.dto.request.tourManager.TourUpdateManagerRequestDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.TourHelper;
 import com.fpt.capstone.tourism.mapper.tourManager.TourDayManagerMapper;
 import com.fpt.capstone.tourism.mapper.tourManager.TourManagementMapper;
 import com.fpt.capstone.tourism.model.Location;
+import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.model.partner.PartnerService;
-import com.fpt.capstone.tourism.model.tour.Tour;
-import com.fpt.capstone.tourism.model.tour.TourDay;
-import com.fpt.capstone.tourism.model.tour.TourPax;
-import com.fpt.capstone.tourism.model.tour.TourTheme;
+import com.fpt.capstone.tourism.model.tour.*;
 import com.fpt.capstone.tourism.repository.LocationRepository;
 import com.fpt.capstone.tourism.repository.TourManagementRepository;
 import com.fpt.capstone.tourism.repository.partner.PartnerServiceRepository;
 import com.fpt.capstone.tourism.repository.partner.ServiceTypeRepository;
 import com.fpt.capstone.tourism.repository.tour.TourDayRepository;
 import com.fpt.capstone.tourism.repository.tour.TourPaxRepository;
+import com.fpt.capstone.tourism.repository.tour.TourScheduleRepository;
 import com.fpt.capstone.tourism.repository.tour.TourThemeRepository;
+import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.service.LocationService;
 import com.fpt.capstone.tourism.specifications.TourSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,6 +70,10 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     private PartnerServiceRepository partnerServiceRepository;
     @Autowired
     private ServiceTypeRepository serviceTypeRepository;
+    @Autowired
+    private TourScheduleRepository tourScheduleRepository;
+    @Autowired
+    private UserRepository userRepository;
     @Autowired
     private TourHelper tourHelper;
 
@@ -615,5 +616,42 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         } catch (Exception ex) {
             throw BusinessException.of(Constants.Message.GET_SERVICE_LIST_FAIL, ex);
         }
+    }
+    @Override
+    public GeneralResponse<TourScheduleManagerDTO> createTourSchedule(Long tourId, TourScheduleCreateRequestDTO requestDTO) {
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
+        if (tour.getTourStatus() != TourStatus.PUBLISHED) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.TOUR_NOT_PUBLISHED);
+        }
+
+        TourPax tourPax = tourPaxRepository.findById(requestDTO.getTourPaxId())
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.TOUR_PAX_NOT_FOUND));
+        if (!tourPax.getTour().getId().equals(tourId)) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.TOUR_PAX_MISMATCH);
+        }
+
+        User coordinator = userRepository.findById(requestDTO.getCoordinatorId())
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.UserExceptionInformation.USER_NOT_FOUND_MESSAGE));
+
+        TourSchedule schedule = new TourSchedule();
+        schedule.setTour(tour);
+        schedule.setCoordinator(coordinator);
+        schedule.setTourPax(tourPax);
+        schedule.setDepartureDate(requestDTO.getDepartureDate());
+        schedule.setEndDate(requestDTO.getEndDate());
+        schedule.setPublished(false);
+
+        TourSchedule saved = tourScheduleRepository.save(schedule);
+
+        TourScheduleManagerDTO dto = TourScheduleManagerDTO.builder()
+                .id(saved.getId())
+                .coordinatorId(saved.getCoordinator().getId())
+                .tourPaxId(saved.getTourPax().getId())
+                .departureDate(saved.getDepartureDate())
+                .endDate(saved.getEndDate())
+                .build();
+
+        return GeneralResponse.of(dto, Constants.Message.SCHEDULE_CREATED_SUCCESS);
     }
 }
