@@ -22,12 +22,14 @@ public class TourPaxController {
     private final TourService tourService;
 
     @GetMapping
+    // Example: http://localhost:8080/v1/business/tour/1/tour-pax
     public ResponseEntity<GeneralResponse<List<TourPaxFullDTO>>> getTourPaxConfigurations(
             @PathVariable Long tourId) {
         return ResponseEntity.ok(tourPaxService.getTourPaxConfigurations(tourId));
     }
 
     @GetMapping("/detail/{paxId}")
+    // Example: http://localhost:8080/v1/business/tour/1/tour-pax/detail/1
     public ResponseEntity<GeneralResponse<TourPaxFullDTO>> getTourPaxConfiguration(
             @PathVariable Long tourId,
             @PathVariable Long paxId) {
