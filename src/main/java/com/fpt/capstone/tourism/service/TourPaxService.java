@@ -1,9 +1,11 @@
 package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.request.tourManager.TourPriceCalculateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxFullDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxUpdateRequestDTO;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,4 +19,9 @@ public interface TourPaxService {
     GeneralResponse<TourPaxFullDTO> updateTourPaxConfiguration(Long tourId, Long paxId, TourPaxUpdateRequestDTO request);
 
     GeneralResponse<String> deleteTourPaxConfiguration(Long tourId, Long paxId);
+
+    GeneralResponse<List<TourPaxFullDTO>> calculatePrices(Long tourId, TourPriceCalculateRequestDTO request);
+
+    @Transactional
+    GeneralResponse<List<TourPaxFullDTO>> calculatePrices(Long tourId, TourPriceCalculateRequestDTO request);
 }

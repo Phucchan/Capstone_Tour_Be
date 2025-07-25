@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourMarkupUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxUpdateRequestDTO;
+import com.fpt.capstone.tourism.dto.request.tourManager.TourPriceCalculateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourMarkupResponseDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxFullDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourResponseDTO;
@@ -56,6 +57,12 @@ public class TourPaxController {
             @PathVariable Long tourId,
             @PathVariable Long paxId) {
         return ResponseEntity.ok(tourPaxService.deleteTourPaxConfiguration(tourId, paxId));
+    }
+    @PostMapping("/calculate-prices")
+    public ResponseEntity<GeneralResponse<List<TourPaxFullDTO>>> calculatePrices(
+            @PathVariable Long tourId,
+            @RequestBody TourPriceCalculateRequestDTO request) {
+        return ResponseEntity.ok(tourPaxService.calculatePrices(tourId, request));
     }
 
 //    @GetMapping("/markup")

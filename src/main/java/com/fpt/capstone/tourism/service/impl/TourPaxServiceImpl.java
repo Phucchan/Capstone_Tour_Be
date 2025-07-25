@@ -5,8 +5,12 @@ import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxFullDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.model.enums.CostType;
+import com.fpt.capstone.tourism.model.partner.PartnerService;
 import com.fpt.capstone.tourism.model.tour.Tour;
+import com.fpt.capstone.tourism.model.tour.TourDay;
 import com.fpt.capstone.tourism.model.tour.TourPax;
+import com.fpt.capstone.tourism.repository.tour.TourDayRepository;
 import com.fpt.capstone.tourism.repository.tour.TourPaxRepository;
 import com.fpt.capstone.tourism.repository.tour.TourRepository;
 import com.fpt.capstone.tourism.service.TourPaxService;
@@ -14,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.fpt.capstone.tourism.dto.request.tourManager.TourPriceCalculateRequestDTO;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,6 +31,7 @@ public class TourPaxServiceImpl implements TourPaxService {
 
     private final TourRepository tourRepository;
     private final TourPaxRepository tourPaxRepository;
+    private final TourDayRepository tourDayRepository;
 
     private Tour getTourOrThrow(Long tourId) {
         return tourRepository.findById(tourId)
@@ -149,6 +155,49 @@ public class TourPaxServiceImpl implements TourPaxService {
             throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, FAILED_TO_DELETE_PAX_CONFIGURATION, ex);
         }
     }
+
+    @Override
+    @Transactional
+    public GeneralResponse<List<TourPaxFullDTO>> calculatePrices(Long tourId, TourPriceCalculateRequestDTO request) {
+        try {
+            getTourOrThrow(tourId);
+            List<TourDay> days = tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId);
+
+            double fixedCost = 0d;
+            double perPersonCost = 0d;
+            for (TourDay day : days) {
+                for (PartnerService service : day.getServices()) {
+                    if (Boolean.TRUE.equals(service.getDeleted())) continue;
+                    if (service.getCostType() == CostType.FIXED) {
+                        fixedCost += service.getNettPrice();
+                    } else if (service.getCostType() == CostType.PER_PERSON) {
+                        perPersonCost += service.getNettPrice();
+                    }
+                }
+            }
+
+            double profitRate = request.getProfitRate() != null ? request.getProfitRate() / 100d : 0d;
+            double extraCost = request.getExtraCost() != null ? request.getExtraCost() : 0d;
+
+            List<TourPax> paxList = tourPaxRepository.findByTourId(tourId);
+            for (TourPax pax : paxList) {
+                int paxCount = pax.getMaxQuantity();
+                double totalCostPerPax = (fixedCost + perPersonCost * paxCount) / paxCount;
+                pax.setFixedPrice(totalCostPerPax);
+                double sellingPrice = totalCostPerPax * (1 + profitRate) + extraCost;
+                pax.setSellingPrice(sellingPrice);
+            }
+
+            tourPaxRepository.saveAll(paxList);
+            List<TourPaxFullDTO> dtos = paxList.stream().map(this::toDTO).collect(Collectors.toList());
+            return new GeneralResponse<>(HttpStatus.OK.value(), CONFIG_UPDATED, dtos);
+        } catch (BusinessException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, FAILED_TO_UPDATE_PAX_CONFIGURATION, ex);
+        }
+    }
+
 
     private TourPaxFullDTO toDTO(TourPax pax) {
         return TourPaxFullDTO.builder()
