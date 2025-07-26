@@ -21,14 +21,15 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Integer sumGuestsByTourScheduleId(@Param("scheduleId") Long scheduleId);
 
 
+    // SỬA LỖI: Thêm CAST(... AS timestamp)
     @Query(value = "SELECT t.tour_id AS tourId, t.name AS name, t.tour_type AS type, " +
             "SUM(b.total_amount) AS revenue " +
             "FROM bookings b " +
             "JOIN tour_schedules ts ON b.tour_schedule_id = ts.schedule_id " +
             "JOIN tours t ON ts.tour_id = t.tour_id " +
             "WHERE b.booking_status <> 'CANCELLED' " +
-            "AND (:startDate IS NULL OR b.created_at >= :startDate) " +
-            "AND (:endDate IS NULL OR b.created_at <= :endDate) " +
+            "AND (CAST(:startDate AS timestamp) IS NULL OR b.created_at >= :startDate) " +
+            "AND (CAST(:endDate AS timestamp) IS NULL OR b.created_at <= :endDate) " +
             "GROUP BY t.tour_id, t.name, t.tour_type " +
             "ORDER BY revenue DESC",
             nativeQuery = true)
@@ -36,6 +37,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                          @Param("endDate") LocalDateTime endDate,
                                          Pageable pageable);
 
+    // SỬA LỖI: Thêm CAST(... AS timestamp)
     @Query(value = "SELECT EXTRACT(YEAR FROM b.created_at) AS yr, " +
             "EXTRACT(MONTH FROM b.created_at) AS mon, " +
             "SUM(b.total_amount) AS revenue " +
@@ -43,14 +45,15 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "JOIN tour_schedules ts ON b.tour_schedule_id = ts.schedule_id " +
             "WHERE ts.tour_id = :tourId " +
             "AND b.booking_status <> 'CANCELLED' " +
-            "AND (:startDate IS NULL OR b.created_at >= :startDate) " +
-            "AND (:endDate IS NULL OR b.created_at <= :endDate) " +
+            "AND (CAST(:startDate AS timestamp) IS NULL OR b.created_at >= :startDate) " +
+            "AND (CAST(:endDate AS timestamp) IS NULL OR b.created_at <= :endDate) " +
             "GROUP BY yr, mon " +
             "ORDER BY mon",
             nativeQuery = true)
     List<Object[]> findMonthlyRevenueByTour(@Param("tourId") Long tourId,
                                             @Param("startDate") LocalDateTime startDate,
                                             @Param("endDate") LocalDateTime endDate);
+
 
 
     List<Booking> findByUser_UsernameOrderByCreatedAtDesc(String username);
@@ -68,17 +71,20 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     long countByUser_Id(Long userId);
 
     Booking findByBookingCode(String bookingCode);
+    // SỬA LỖI: Thêm CAST(... AS timestamp)
     @Query(value = "SELECT COALESCE(SUM(b.total_amount), 0) FROM bookings b " +
             "WHERE b.booking_status <> 'CANCELLED' " +
-            "AND (:startDate IS NULL OR b.created_at >= :startDate) " +
-            "AND (:endDate IS NULL OR b.created_at <= :endDate)",
+            "AND (CAST(:startDate AS timestamp) IS NULL OR b.created_at >= :startDate) " +
+            "AND (CAST(:endDate AS timestamp) IS NULL OR b.created_at <= :endDate)",
             nativeQuery = true)
     Double calculateTotalRevenue(@Param("startDate") LocalDateTime startDate,
                                  @Param("endDate") LocalDateTime endDate);
+
+    // SỬA LỖI: Thêm CAST(... AS timestamp)
     @Query(value = "SELECT COUNT(*) FROM bookings b " +
             "WHERE b.booking_status <> 'CANCELLED' " +
-            "AND (:startDate IS NULL OR b.created_at >= :startDate) " +
-            "AND (:endDate IS NULL OR b.created_at <= :endDate)",
+            "AND (CAST(:startDate AS timestamp) IS NULL OR b.created_at >= :startDate) " +
+            "AND (CAST(:endDate AS timestamp) IS NULL OR b.created_at <= :endDate)",
             nativeQuery = true)
     Long countBookings(@Param("startDate") LocalDateTime startDate,
                        @Param("endDate") LocalDateTime endDate);

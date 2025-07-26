@@ -37,23 +37,25 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     List<User> findFriendsAsReceiver(@Param("userId") Long userId);
 
 
+    // SỬA LỖI: Thêm CAST(... AS timestamp)
     @Query(value = "SELECT EXTRACT(YEAR FROM u.created_at) AS yr, " +
             "EXTRACT(MONTH FROM u.created_at) AS mon, " +
             "COUNT(*) AS user_count " +
             "FROM users u " +
             "WHERE u.is_deleted = FALSE " +
-            "AND (:startDate IS NULL OR u.created_at >= :startDate) " +
-            "AND (:endDate IS NULL OR u.created_at <= :endDate) " +
+            "AND (CAST(:startDate AS timestamp) IS NULL OR u.created_at >= :startDate) " +
+            "AND (CAST(:endDate AS timestamp) IS NULL OR u.created_at <= :endDate) " +
             "GROUP BY yr, mon " +
             "ORDER BY mon",
             nativeQuery = true)
     List<Object[]> countNewUsersByMonth(@Param("startDate") LocalDateTime startDate,
                                         @Param("endDate") LocalDateTime endDate);
 
+    // SỬA LỖI: Thêm CAST(... AS timestamp)
     @Query(value = "SELECT COUNT(*) FROM users u " +
             "WHERE u.is_deleted = FALSE " +
-            "AND (:startDate IS NULL OR u.created_at >= :startDate) " +
-            "AND (:endDate IS NULL OR u.created_at <= :endDate)",
+            "AND (CAST(:startDate AS timestamp) IS NULL OR u.created_at >= :startDate) " +
+            "AND (CAST(:endDate AS timestamp) IS NULL OR u.created_at <= :endDate)",
             nativeQuery = true)
     Long countNewUsers(@Param("startDate") LocalDateTime startDate,
                        @Param("endDate") LocalDateTime endDate);
