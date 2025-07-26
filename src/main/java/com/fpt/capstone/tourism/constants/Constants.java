@@ -123,6 +123,16 @@ public class Constants {
         public static final String CREATE_SERVICE_FAIL = "Tạo chi tiết dịch vụ thất bại";
         public static final String UPDATE_SERVICE_FAIL = "Cập nhật chi tiết dịch vụ thất bại";
 
+        // Service Type management
+        public static final String SERVICE_TYPE_NOT_FOUND = "Không tìm thấy loại dịch vụ";
+        public static final String SERVICE_TYPE_CREATE_SUCCESS = "Tạo loại dịch vụ thành công";
+        public static final String SERVICE_TYPE_CREATE_FAIL = "Tạo loại dịch vụ thất bại";
+        public static final String SERVICE_TYPE_UPDATE_SUCCESS = "Cập nhật loại dịch vụ thành công";
+        public static final String SERVICE_TYPE_UPDATE_FAIL = "Cập nhật loại dịch vụ thất bại";
+        public static final String SERVICE_TYPE_DELETE_SUCCESS = "Xóa loại dịch vụ thành công";
+        public static final String SERVICE_TYPE_DELETE_FAIL = "Xóa loại dịch vụ thất bại";
+        public static final String SERVICE_TYPE_STATUS_UPDATED = "Thay đổi trạng thái loại dịch vụ thành công";
+
         // PartnerService categories
         public static final String SERVICE_CATEGORY_NOT_FOUND = "Không tìm thấy danh mục dịch vụ";
         public static final String INVALID_SERVICE_CATEGORY = "Loại dịch vụ không hợp lệ. Phải là: Khách sạn, Nhà hàng, Vận chuyển";
