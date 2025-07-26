@@ -1,4 +1,4 @@
-package com.fpt.capstone.tourism.dto.common.location;
+package com.fpt.capstone.tourism.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LocationShortDTO {
+public class PartnerSummaryDTO {
     private Long id;
     private String name;
+    private String contactPhone;
+    private String contactEmail;
+    private Boolean deleted;
 }

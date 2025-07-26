@@ -240,7 +240,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         List<TourDayManagerDTO> dtos = days.stream().map(day -> {
             Location loc = day.getLocation();
             LocationShortDTO locationDTO = (loc != null) ?
-                    new LocationShortDTO(loc.getId(), loc.getName(), loc.getDescription()) : null;
+                    new LocationShortDTO(loc.getId(), loc.getName()) : null;
 
             List<ServiceTypeShortDTO> serviceTypeDTOs = day.getServiceTypes() != null ?
                     day.getServiceTypes().stream()
@@ -277,7 +277,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .stream()
                 .map(day -> {
                     Location loc = day.getLocation();
-                    return (loc != null) ? new LocationShortDTO(loc.getId(), loc.getName(), loc.getDescription()) : null;
+                    return (loc != null) ? new LocationShortDTO(loc.getId(), loc.getName()) : null;
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
@@ -292,8 +292,8 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .tourStatus(tour.getTourStatus() != null ? tour.getTourStatus().name() : null)
                 .durationDays(tour.getDurationDays())
                 .departLocation(new LocationShortDTO(tour.getDepartLocation().getId(),
-                        tour.getDepartLocation().getName(),
-                        tour.getDepartLocation().getDescription()))
+                        tour.getDepartLocation().getName()
+                        ))
                 .destinations(destinations)
                 .themes(themes)
                 .build();
@@ -595,10 +595,10 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .collect(Collectors.toList());
 
         List<LocationShortDTO> departures = locationService.getAllDepartures().stream()
-                .map(d -> new LocationShortDTO(d.getId(), d.getName(), d.getDescription()))
+                .map(d -> new LocationShortDTO(d.getId(), d.getName()))
                 .collect(Collectors.toList());
         List<LocationShortDTO> destinations = locationService.getAllDestinations().stream()
-                .map(d -> new LocationShortDTO(d.getId(), d.getName(), d.getDescription()))
+                .map(d -> new LocationShortDTO(d.getId(), d.getName()))
                 .collect(Collectors.toList());
 
         TourOptionsDTO dto = TourOptionsDTO.builder()

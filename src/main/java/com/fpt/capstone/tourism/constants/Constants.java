@@ -122,7 +122,10 @@ public class Constants {
         public static final String UPDATE_SERVICES_FAIL = "Không thể cập nhật dịch vụ";
         public static final String CREATE_SERVICE_FAIL = "Tạo chi tiết dịch vụ thất bại";
         public static final String UPDATE_SERVICE_FAIL = "Cập nhật chi tiết dịch vụ thất bại";
-
+        public static final String PARTNER_LIST_SUCCESS = "Lấy danh sách nhà cung cấp thành công";
+        public static final String PARTNER_LIST_FAIL = "Lấy danh sách nhà cung cấp thất bại";
+        public static final String PARTNER_DETAIL_SUCCESS = "Lấy chi tiết nhà cung cấp thành công";
+        public static final String PARTNER_DETAIL_FAIL = "Lấy chi tiết nhà cung cấp thất bại";
         // Service Type management
         public static final String SERVICE_TYPE_NOT_FOUND = "Không tìm thấy loại dịch vụ";
         public static final String SERVICE_TYPE_CREATE_SUCCESS = "Tạo loại dịch vụ thành công";
