@@ -24,6 +24,7 @@ public interface PartnerServiceRepository extends JpaRepository<PartnerService, 
     """, nativeQuery = true)
     List<PartnerServiceWithDayDTO> findServicesWithDayNumberByScheduleId(@Param("scheduleId") Long scheduleId);
 
-
+    @Query("SELECT ps FROM PartnerService ps WHERE ps.deleted = FALSE")
+    List<PartnerService> findByDeletedFalse();
 
 }

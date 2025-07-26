@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ServiceBreakdownDTO {
+    private Long dayId;
+    private Long serviceId;
     private int dayNumber;
     private String serviceTypeName;
     private String partnerName;

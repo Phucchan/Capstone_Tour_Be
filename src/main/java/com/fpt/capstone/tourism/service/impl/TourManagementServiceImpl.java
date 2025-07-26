@@ -407,6 +407,8 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         List<TourDay> days = tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId);
         List<ServiceBreakdownDTO> results = days.stream()
                 .flatMap(day -> day.getServices().stream().map(service -> ServiceBreakdownDTO.builder()
+                        .dayId(day.getId())
+                        .serviceId(service.getId())
                         .dayNumber(day.getDayNumber())
                         .serviceTypeName(service.getServiceType().getName())
                         .partnerName(service.getPartner().getName())
