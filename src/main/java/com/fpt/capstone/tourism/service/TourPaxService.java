@@ -20,8 +20,6 @@ public interface TourPaxService {
 
     GeneralResponse<String> deleteTourPaxConfiguration(Long tourId, Long paxId);
 
-    GeneralResponse<List<TourPaxFullDTO>> calculatePrices(Long tourId, TourPriceCalculateRequestDTO request);
-
     @Transactional
     GeneralResponse<List<TourPaxFullDTO>> calculatePrices(Long tourId, TourPriceCalculateRequestDTO request);
 }
