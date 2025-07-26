@@ -7,12 +7,14 @@ import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.*;
+import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourOptionsDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourThemeOptionDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxManagerDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.TourHelper;
+import com.fpt.capstone.tourism.mapper.UserMapper;
 import com.fpt.capstone.tourism.mapper.tourManager.TourDayManagerMapper;
 import com.fpt.capstone.tourism.mapper.tourManager.TourManagementMapper;
 import com.fpt.capstone.tourism.model.Location;
@@ -72,6 +74,8 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     private ServiceTypeRepository serviceTypeRepository;
     @Autowired
     private TourScheduleRepository tourScheduleRepository;
+    @Autowired
+    private UserMapper userMapper;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -639,7 +643,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         schedule.setCoordinator(coordinator);
         schedule.setTourPax(tourPax);
         schedule.setDepartureDate(requestDTO.getDepartureDate());
-        schedule.setEndDate(requestDTO.getEndDate());
+        schedule.setEndDate(requestDTO.getDepartureDate().plusDays(tour.getDurationDays() - 1L));
         schedule.setPublished(false);
 
         TourSchedule saved = tourScheduleRepository.save(schedule);
@@ -653,5 +657,42 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .build();
 
         return GeneralResponse.of(dto, Constants.Message.SCHEDULE_CREATED_SUCCESS);
+    }
+    @Override
+    public GeneralResponse<TourScheduleOptionsDTO> getScheduleOptions(Long tourId) {
+        Tour tour = tourRepository.findById(tourId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
+
+        List<UserBasicDTO> coordinatorDtos = userRepository.findByRoleName("SERVICE_COORDINATOR").stream()
+                .map(userMapper::toUserBasicDTO)
+                .collect(Collectors.toList());
+
+        List<TourPaxManagerDTO> paxDtos = tourPaxRepository.findByTourId(tourId).stream()
+                .map(p -> TourPaxManagerDTO.builder()
+                        .id(p.getId())
+                        .minQuantity(p.getMinQuantity())
+                        .maxQuantity(p.getMaxQuantity())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<TourThemeOptionDTO> themeDtos = tour.getThemes().stream()
+                .map(t -> new TourThemeOptionDTO(t.getId(), t.getName()))
+                .collect(Collectors.toList());
+
+        UserBasicDTO creator = tour.getCreatedBy() != null ? userMapper.toUserBasicDTO(tour.getCreatedBy()) : null;
+
+        TourScheduleOptionsDTO dto = TourScheduleOptionsDTO.builder()
+                .tourId(tour.getId())
+                .tourName(tour.getName())
+                .tourType(tour.getTourType() != null ? tour.getTourType().name() : null)
+                .themes(themeDtos)
+                .durationDays(tour.getDurationDays())
+                .createdDate(tour.getCreatedAt())
+                .createdBy(creator)
+                .coordinators(coordinatorDtos)
+                .tourPaxes(paxDtos)
+                .build();
+
+        return GeneralResponse.of(dto, Constants.Message.GET_SCHEDULE_OPTIONS_SUCCESS);
     }
 }

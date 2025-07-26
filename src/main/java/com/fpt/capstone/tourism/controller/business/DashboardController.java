@@ -60,6 +60,7 @@ public class DashboardController {
         return ResponseEntity.ok(analyticsService.getTotalBookings(startDate, endDate));
     }
     @GetMapping("/total-new-users")
+    //postman http://localhost:8080/business/revenue/total-new-users?startDate=2023-01-01&endDate=2023-12-31
     public ResponseEntity<GeneralResponse<Long>> getTotalNewUsers(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {

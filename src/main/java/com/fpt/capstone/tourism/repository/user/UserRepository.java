@@ -59,4 +59,8 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
             nativeQuery = true)
     Long countNewUsers(@Param("startDate") LocalDateTime startDate,
                        @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT u FROM User u JOIN u.userRoles ur JOIN ur.role r " +
+            "WHERE r.roleName = :roleName AND u.deleted = FALSE")
+    List<User> findByRoleName(@Param("roleName") String roleName);
 }

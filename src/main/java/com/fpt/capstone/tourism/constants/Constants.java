@@ -308,6 +308,7 @@ public class Constants {
         // Tour Schedule & Operator Messages
         //===================================================
         // Schedule management
+        public static final String GET_SCHEDULE_OPTIONS_SUCCESS = "Lấy danh sách tùy chọn lịch trình thành công";
         public static final String SCHEDULE_CREATED_SUCCESS = "Tạo lịch trình tour thành công";
         public static final String SCHEDULE_ID_REQUIRED = "Mã lịch trình là bắt buộc đối với các cập nhật";
         public static final String TOUR_SCHEDULE_NOT_FOUND = "Không tìm thấy lịch trình tour";
