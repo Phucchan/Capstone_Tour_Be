@@ -77,5 +77,24 @@ public class TourDetailManagementController {
     public ResponseEntity<GeneralResponse<List<ServiceTypeShortDTO>>> getServiceTypes() {
         return ResponseEntity.ok(tourManagementService.getServiceTypes());
     }
+    // Thêm dịch vụ vào một ngày của tour
+    // postman http://localhost:8080/v1/business/tours/1/days/1/services/1
+    @PostMapping("/tours/{tourId}/days/{dayId}/services/{serviceId}")
+    public ResponseEntity<GeneralResponse<TourDayManagerDTO>> addServiceToTourDay(
+            @PathVariable Long tourId,
+            @PathVariable Long dayId,
+            @PathVariable Long serviceId) {
+        return ResponseEntity.ok(tourManagementService.addServiceToTourDay(tourId, dayId, serviceId));
+    }
+
+    // Xóa dịch vụ khỏi một ngày của tour
+    // postman http://localhost:8080/v1/business/tours/1/days/1/services/1
+    @DeleteMapping("/tours/{tourId}/days/{dayId}/services/{serviceId}")
+    public ResponseEntity<GeneralResponse<TourDayManagerDTO>> removeServiceFromTourDay(
+            @PathVariable Long tourId,
+            @PathVariable Long dayId,
+            @PathVariable Long serviceId) {
+        return ResponseEntity.ok(tourManagementService.removeServiceFromTourDay(tourId, dayId, serviceId));
+    }
 
 }
