@@ -562,6 +562,9 @@ public class Constants {
         public static final String PLAN_DAY_RESPONSE_JSON = """
                                                                 {
                                                                         "dayNumber": 1,
+                                                                        "title": "Khám phá Sa Pa",
+                                                                        "locationImageUrl": "https://example.com/sapa-thumbnail.jpg",
+                                                                        "shortDescription": "Ngày đầu tiên tại Sa Pa với những hoạt động thú vị.",
                                                                         "date": "2025-07-20",
                                                                         "totalSpend": 2400000,
                                                                         "locationId": 101,
@@ -772,17 +775,14 @@ public class Constants {
                 Các lưu ý quan trọng:
                 - KHÔNG được tự nghĩ ra nhà hàng, khách sạn mới mà không có trong danh sách đã cho trước.
                 - Cung cấp một hành trình cân đối bao gồm nhiều hoạt động, địa điểm lưu trú và lựa chọn ăn uống khác nhau.
-                - Kế hoạch của ngày cần phản ánh một trình tự hợp lý, có xét đến thời gian di chuyển và khả năng hoạt động.
-                - Phần longDescription trong ngày (PlanDay) phải >= 250 từ, giải thích cụ thể, dễ hiểu chuyến di cho người dùng và content trong mỗi Activity phải >= 50 từ → Không viết gộp, không quá ngắn hoặc sơ sài
-                - Không bao gồm thêm thông tin gì thêm ngoài định dạng phản hồi để tránh lỗi
+                - **Không thêm bất kỳ thông tin nào ngoài định dạng JSON kết quả.**
                 - Với mỗi sở thích, hãy chọn các hoạt động phù hợp nhất, ví dụ:
                     *) Nếu là "làm nông dân/ngư dân" → gợi ý các hoạt động như: gặt lúa, bắt cá, chèo thuyền, đi chợ quê...
                     *) Nếu là "ẩm thực" → gợi ý lớp học nấu ăn, tour ẩm thực đường phố, chợ đêm địa phương...
                     *) Nếu là "mạo hiểm" → gợi ý leo núi, trekking, zipline...
-                - Không đưa ra các địa điểm/hoạt động không liên quan đến sở thích.
+                - Chỉ được chọn nội dung sát với các sở thích đã cung cấp. Tuyệt đối không đưa ra hoạt động không liên quan, dù có vẻ thú vị..
                 - Thời gian định dạng theo ISO 8601 (VD: 2025-07-20T08:00:00)
                 
-                Hãy trình bày rõ ràng từng ngày với các hoạt động, nơi lưu trú và lựa chọn ăn uống tương ứng.
                 Định dạng phản hồi của bạn BẮT BUỘC tuân theo cấu trúc JSON sau:
                 
                 ### ĐỊNH_DẠNG_PHẢN_HỒI_JSON:

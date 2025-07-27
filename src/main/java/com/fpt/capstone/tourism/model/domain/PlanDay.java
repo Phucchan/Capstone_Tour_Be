@@ -7,6 +7,7 @@ import java.util.List;
 
 @Data
 public class PlanDay {
+    private String title;
     private int dayNumber;
     private String date;
     private int totalSpend;
