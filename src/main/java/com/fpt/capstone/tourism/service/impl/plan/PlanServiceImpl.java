@@ -221,11 +221,8 @@ public class PlanServiceImpl implements PlanService {
                                     - Nếu một hoạt động là **miễn phí hoàn toàn** (ví dụ: đi bộ quanh hồ, tham quan đền chùa), hãy đặt `estimatedCost: 0`.
                                     - Với các nhà hàng và khách sản hoặc hoạt động có trả phí (cáp treo, vé vào cổng, lớp học, tour, bữa ăn, lưu trú...), **không được để estimatedCost = 0**.
                                     - Ước tính theo mặt bằng giá thực tế – ví dụ: bữa ăn phổ thông 50.000–100.000 VNĐ, khách sạn bình dân 300.000–600.000 VNĐ/đêm...
-                            
-                                **Không thêm bất kỳ thông tin nào ngoài định dạng JSON kết quả.**
-                                Chỉ được chọn nội dung sát với các sở thích đã cung cấp. Tuyệt đối không đưa ra hoạt động không liên quan, dù có vẻ thú vị.
-                        
-                                **Kết quả trả về là một JSON object theo định dạng sau**:
+                                7. **title**: tiêu đề dễ hiểu, ngắn gọn, thể hiện nội dung chính của ngày hôm nay.
+                                
                                 %s
                             """, totalDays, dayNumber, locationName, preferences, budgetMin, budgetMax, totalSpending, partnerContext, totalSpending, Constants.AI.PROMPT_DAY_END);
     }
