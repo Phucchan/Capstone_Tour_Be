@@ -126,6 +126,10 @@ public class Constants {
         public static final String PARTNER_LIST_FAIL = "Lấy danh sách nhà cung cấp thất bại";
         public static final String PARTNER_DETAIL_SUCCESS = "Lấy chi tiết nhà cung cấp thành công";
         public static final String PARTNER_DETAIL_FAIL = "Lấy chi tiết nhà cung cấp thất bại";
+        public static final String PARTNER_UPDATE_SUCCESS = "Cập nhật nhà cung cấp thành công";
+        public static final String PARTNER_UPDATE_FAIL = "Cập nhật nhà cung cấp thất bại";
+        public static final String PARTNER_ADD_SUCCESS = "Tạo nhà cung cấp thành công";
+        public static final String PARTNER_ADD_FAIL = "Tạo nhà cung cấp thất bại";
         // Service Type management
         public static final String SERVICE_TYPE_NOT_FOUND = "Không tìm thấy loại dịch vụ";
         public static final String SERVICE_TYPE_CREATE_SUCCESS = "Tạo loại dịch vụ thành công";

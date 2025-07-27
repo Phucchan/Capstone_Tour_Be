@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.controller.coordinator;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.request.PartnerUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PartnerDetailDTO;
 import com.fpt.capstone.tourism.dto.response.PartnerSummaryDTO;
 import com.fpt.capstone.tourism.service.PartnerManagementService;
@@ -31,5 +32,15 @@ public class PartnerController {
     // postman http://localhost:8080/cordinator/partners/1
     public ResponseEntity<GeneralResponse<PartnerDetailDTO>> getPartnerDetail(@PathVariable Long id) {
         return ResponseEntity.ok(partnerManagementService.getPartnerDetail(id));
+    }
+    @PutMapping("/partners/{id}")
+    public ResponseEntity<GeneralResponse<PartnerDetailDTO>> updatePartner(
+            @PathVariable Long id,
+            @RequestBody PartnerUpdateRequestDTO requestDTO) {
+        return ResponseEntity.ok(partnerManagementService.updatePartner(id, requestDTO));
+    }
+    @PostMapping("/partners")
+    public ResponseEntity<GeneralResponse<PartnerDetailDTO>> addPartner(@RequestBody PartnerUpdateRequestDTO requestDTO) {
+        return ResponseEntity.ok(partnerManagementService.addPartner(requestDTO));
     }
 }
