@@ -43,9 +43,9 @@ public class ProfileController {
             @RequestBody ChangePasswordRequestDTO requestDTO) {
         return ResponseEntity.ok(userService.changePassword(userId, requestDTO));
     }
-    //postman http://localhost:8080/v1/users/bookings?page=0&size=10&sortField=bookingStatus&sortDirection=asc
     @GetMapping("/bookings")
-    public ResponseEntity<GeneralResponse<PagingDTO<BookingSummaryDTO>>> getBookings(
+    // postman http://localhost:8080/v1/users/bookings?userId=1&page=0&size=10&sortField=bookingStatus&sortDirection=asc
+    public ResponseEntity<GeneralResponse<PagingDTO<BookingSummaryDTO>>> getBookingHistory(
             @RequestParam Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -53,6 +53,6 @@ public class ProfileController {
             @RequestParam(defaultValue = "asc") String sortDirection) {
         Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
-        return ResponseEntity.ok(userService.getUserBookings(userId, pageable));
+        return ResponseEntity.ok(userService.getBookingHistory(userId, pageable));
     }
 }

@@ -248,8 +248,8 @@ public class TourBookingServiceImpl implements TourBookingService {
                     .paymentMethod(tourBooking.getPaymentMethod())
                     .paymentUrl(tourBooking.getPaymentUrl())
                     .status(tourBooking.getBookingStatus())
-                    .needHelp(tourBooking.isNeedHelp())
-                    .singleRooms(tourBooking.getSingleRooms())
+                    .needHelp(Boolean.TRUE.equals(tourBooking.getNeedHelp()))
+                    .singleRooms(tourBooking.getSingleRooms() != null ? tourBooking.getSingleRooms() : 0)
                     .build();
         } catch (Exception ex) {
             throw BusinessException.of("Lấy Thông Tin Tour Thất Bại", ex);

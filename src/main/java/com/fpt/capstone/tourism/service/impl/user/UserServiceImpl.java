@@ -171,17 +171,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public GeneralResponse<PagingDTO<BookingSummaryDTO>> getUserBookings(Long userId, Pageable pageable) {
+    public GeneralResponse<PagingDTO<BookingSummaryDTO>> getBookingHistory(Long userId, Pageable pageable) {
         userRepository.findUserById(userId)
                 .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND_MESSAGE));
 
-        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                Sort.by(Sort.Direction.ASC, "bookingStatus"));
-
-        Page<Booking> bookings = bookingRepository.findByUser_Id(userId, sortedPageable);
+        Page<Booking> bookings = bookingRepository.findByUser_Id(userId, pageable);
 
         List<BookingSummaryDTO> dtos = bookings.getContent().stream()
                 .map(b -> BookingSummaryDTO.builder()
+                        .id(b.getId())
                         .bookingCode(b.getBookingCode())
                         .tourName(b.getTourSchedule().getTour().getName())
                         .status(b.getBookingStatus() != null ? b.getBookingStatus().name() : null)

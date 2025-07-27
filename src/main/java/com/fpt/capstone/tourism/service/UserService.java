@@ -33,5 +33,5 @@ public interface UserService {
 
     GeneralResponse<String> changePassword(Long userId, ChangePasswordRequestDTO requestDTO);
 
-    GeneralResponse<PagingDTO<BookingSummaryDTO>> getUserBookings(Long userId, Pageable pageable);
+    GeneralResponse<PagingDTO<BookingSummaryDTO>> getBookingHistory(Long userId, Pageable pageable);
 }

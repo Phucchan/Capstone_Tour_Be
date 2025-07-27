@@ -102,10 +102,13 @@ public class SellerBookingServiceImpl implements SellerBookingService {
 
     private SellerBookingSummaryDTO toSummaryDTO(Booking booking) {
         return SellerBookingSummaryDTO.builder()
+                .id(booking.getId())
                 .tourName(booking.getTourSchedule().getTour().getName())
                 .departureDate(booking.getTourSchedule().getDepartureDate())
                 .bookingCode(booking.getBookingCode())
-                .seats(booking.getAdults() + booking.getChildren())
+                .seats(
+                        (booking.getAdults() != null ? booking.getAdults() : 0)
+                                + (booking.getChildren() != null ? booking.getChildren() : 0))
                 .customer(booking.getUser().getFullName())
                 .status(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
                 .build();
