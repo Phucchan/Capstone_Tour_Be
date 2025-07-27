@@ -330,6 +330,7 @@ public class Constants {
         public static final String SCHEDULE_ID_REQUIRED = "Mã lịch trình là bắt buộc đối với các cập nhật";
         public static final String TOUR_SCHEDULE_NOT_FOUND = "Không tìm thấy lịch trình tour";
         public static final String SCHEDULE_CANNOT_BE_UPDATED = "Không thể cập nhật lịch trình có trạng thái ĐANG DIỄN RA";
+        public static final String SCHEDULE_END_DATE_EXCEEDS_DURATION = "Ngày kết thúc vượt quá số ngày của tour";
 
         //===================================================
         // Pricing & Markup Messages

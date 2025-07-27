@@ -60,5 +60,7 @@ public interface TourManagementService {
     GeneralResponse<TourScheduleManagerDTO> createTourSchedule(Long tourId, TourScheduleCreateRequestDTO requestDTO);
 
     GeneralResponse<TourScheduleOptionsDTO> getScheduleOptions(Long tourId);
+
+    GeneralResponse<List<TourScheduleManagerDTO>> getTourSchedules(Long tourId);
 }
 

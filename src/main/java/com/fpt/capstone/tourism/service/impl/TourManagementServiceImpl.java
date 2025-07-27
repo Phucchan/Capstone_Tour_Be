@@ -44,6 +44,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -644,8 +645,17 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         schedule.setTour(tour);
         schedule.setCoordinator(coordinator);
         schedule.setTourPax(tourPax);
-        schedule.setDepartureDate(requestDTO.getDepartureDate());
-        schedule.setEndDate(requestDTO.getDepartureDate().plusDays(tour.getDurationDays() - 1L));
+        LocalDateTime departureDate = requestDTO.getDepartureDate();
+        LocalDateTime maxEndDate = departureDate.plusDays(tour.getDurationDays() - 1L);
+        LocalDateTime endDate = requestDTO.getEndDate();
+        if (endDate == null) {
+            endDate = maxEndDate;
+        } else if (endDate.isAfter(maxEndDate)) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.SCHEDULE_END_DATE_EXCEEDS_DURATION);
+        }
+
+        schedule.setDepartureDate(departureDate);
+        schedule.setEndDate(endDate);
         schedule.setPublished(false);
 
         TourSchedule saved = tourScheduleRepository.save(schedule);
@@ -696,5 +706,23 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .build();
 
         return GeneralResponse.of(dto, Constants.Message.GET_SCHEDULE_OPTIONS_SUCCESS);
+    }
+    @Override
+    public GeneralResponse<List<TourScheduleManagerDTO>> getTourSchedules(Long tourId) {
+        tourRepository.findById(tourId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
+
+        List<TourScheduleManagerDTO> schedules = tourScheduleRepository.findByTourId(tourId)
+                .stream()
+                .map(s -> TourScheduleManagerDTO.builder()
+                        .id(s.getId())
+                        .coordinatorId(s.getCoordinator() != null ? s.getCoordinator().getId() : null)
+                        .tourPaxId(s.getTourPax() != null ? s.getTourPax().getId() : null)
+                        .departureDate(s.getDepartureDate())
+                        .endDate(s.getEndDate())
+                        .build())
+                .collect(Collectors.toList());
+
+        return GeneralResponse.of(schedules);
     }
 }

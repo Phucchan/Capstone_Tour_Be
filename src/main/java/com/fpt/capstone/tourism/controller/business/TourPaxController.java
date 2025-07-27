@@ -8,7 +8,6 @@ import com.fpt.capstone.tourism.dto.request.tourManager.TourPriceCalculateReques
 import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxFullDTO;
 import com.fpt.capstone.tourism.service.PartnerServiceService;
 import com.fpt.capstone.tourism.service.TourPaxService;
-import com.fpt.capstone.tourism.service.TourService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +18,6 @@ import java.util.List;
 @RequestMapping("/business")
 public class TourPaxController {
     private final TourPaxService tourPaxService;
-    private final TourService tourService;
     private final PartnerServiceService partnerServiceService;
 
     @GetMapping("/tour/{tourId}/tour-pax")
@@ -38,6 +36,7 @@ public class TourPaxController {
     }
 
     @PostMapping("/tour/{tourId}/tour-pax/create")
+    // Example: http://localhost:8080/v1/business/tour/1/tour-pax/create
     public ResponseEntity<GeneralResponse<TourPaxFullDTO>> createTourPaxConfiguration(
             @PathVariable Long tourId,
             @RequestBody TourPaxCreateRequestDTO request) {
