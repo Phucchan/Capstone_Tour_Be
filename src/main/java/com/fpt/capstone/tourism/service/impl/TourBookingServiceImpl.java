@@ -6,6 +6,7 @@ import com.fpt.capstone.tourism.dto.common.user.BookedPersonDTO;
 import com.fpt.capstone.tourism.dto.common.user.TourCustomerDTO;
 import com.fpt.capstone.tourism.dto.request.booking.BookingRequestCustomerDTO;
 import com.fpt.capstone.tourism.dto.request.booking.BookingRequestDTO;
+import com.fpt.capstone.tourism.dto.response.BookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.booking.BookingConfirmResponse;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.BookingHelper;
@@ -28,6 +29,7 @@ import com.fpt.capstone.tourism.service.tourbooking.TourBookingService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -52,6 +54,7 @@ public class TourBookingServiceImpl implements TourBookingService {
     private final PaymentBillRepository paymentBillRepository;
     private final PaymentBillItemRepository paymentBillItemRepository;
     private final TourDetailMapper tourDetailMapper;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Value("${backend.base-url}")
     private String backendBaseUrl;
@@ -116,7 +119,7 @@ public class TourBookingServiceImpl implements TourBookingService {
 
             saveTourBookingService(result, allCustomers.size());
             createReceiptBookingBill(result, bookingRequestDTO.getTotal(), bookingRequestDTO.getFullName(), bookingRequestDTO.getPaymentMethod());
-
+            notifyNewBooking(result);
             return bookingCode;
 
         } catch (Exception ex) {
@@ -254,6 +257,17 @@ public class TourBookingServiceImpl implements TourBookingService {
         } catch (Exception ex) {
             throw BusinessException.of("Lấy Thông Tin Tour Thất Bại", ex);
         }
+    }
+    private void notifyNewBooking(Booking booking) {
+        BookingSummaryDTO dto = BookingSummaryDTO.builder()
+                .id(booking.getId())
+                .bookingCode(booking.getBookingCode())
+                .tourName(booking.getTourSchedule().getTour().getName())
+                .status(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
+                .totalAmount(booking.getTotalAmount())
+                .createdAt(booking.getCreatedAt())
+                .build();
+        messagingTemplate.convertAndSend("/topic/bookings", dto);
     }
 
 }
