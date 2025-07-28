@@ -5,11 +5,13 @@ import com.fpt.capstone.tourism.dto.request.seller.BookingCustomerUpdateDTO;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingDetailDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingSummaryDTO;
+import com.fpt.capstone.tourism.dto.response.tour.TourScheduleDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.tour.Booking;
 import com.fpt.capstone.tourism.model.tour.BookingCustomer;
 import com.fpt.capstone.tourism.repository.tour.TourDayRepository;
+import com.fpt.capstone.tourism.repository.tour.TourScheduleRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.repository.BookingCustomerRepository;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
@@ -22,6 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -31,6 +34,8 @@ public class SellerBookingServiceImpl implements SellerBookingService {
     private final BookingCustomerRepository bookingCustomerRepository;
     private final UserRepository userRepository;
     private final TourDayRepository tourDayRepository;
+    private final TourScheduleRepository tourScheduleRepository;
+
 
     @Override
     public GeneralResponse<PagingDTO<SellerBookingSummaryDTO>> getAvailableBookings(int page, int size) {
@@ -107,6 +112,30 @@ public class SellerBookingServiceImpl implements SellerBookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
 
+        SellerBookingDetailDTO dto = toDetailDTO(booking);
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Success", dto);
+    }
+
+    @Override
+    public GeneralResponse<SellerBookingDetailDTO> updateBookingSchedule(Long bookingId, Long scheduleId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        var newSchedule = tourScheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Schedule not found"));
+
+        if (!newSchedule.getTour().getId().equals(booking.getTourSchedule().getTour().getId())) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Schedule does not belong to the same tour");
+        }
+
+        booking.setTourSchedule(newSchedule);
+        bookingRepository.save(booking);
+
+        SellerBookingDetailDTO dto = toDetailDTO(booking);
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Success", dto);
+    }
+
+    private SellerBookingDetailDTO toDetailDTO(Booking booking) {
         var tour = booking.getTourSchedule().getTour();
 
         List<String> destinations = tourDayRepository.findByTourIdOrderByDayNumberAsc(tour.getId())
@@ -123,7 +152,26 @@ public class SellerBookingServiceImpl implements SellerBookingService {
         int soldSeats = bookingRepository.sumGuestsByTourScheduleId(booking.getTourSchedule().getId());
         int remainingSeats = totalSeats - soldSeats;
 
-        SellerBookingDetailDTO dto = SellerBookingDetailDTO.builder()
+        // Fetch upcoming schedules of the same tour
+        List<TourScheduleDTO> scheduleDTOs = tourScheduleRepository
+                .findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(
+                        tour.getId(), LocalDateTime.now())
+                .stream()
+                .map(s -> {
+                    int sold = bookingRepository.sumGuestsByTourScheduleId(s.getId());
+                    int avail = s.getTourPax().getMaxQuantity() - sold;
+                    return TourScheduleDTO.builder()
+                            .id(s.getId())
+                            .departureDate(s.getDepartureDate())
+                            .endDate(s.getEndDate())
+                            .price(s.getTourPax().getSellingPrice())
+                            .extraHotelCost(s.getTourPax().getExtraHotelCost())
+                            .availableSeats(avail)
+                            .build();
+                })
+                .toList();
+
+        return SellerBookingDetailDTO.builder()
                 .id(booking.getId())
                 .bookingCode(booking.getBookingCode())
                 .tourName(tour.getName())
@@ -139,9 +187,8 @@ public class SellerBookingServiceImpl implements SellerBookingService {
                 .totalSeats(totalSeats)
                 .soldSeats(soldSeats)
                 .remainingSeats(remainingSeats)
+                .schedules(scheduleDTOs)
                 .build();
-
-        return new GeneralResponse<>(HttpStatus.OK.value(), "Success", dto);
     }
 
     private SellerBookingSummaryDTO toSummaryDTO(Booking booking) {

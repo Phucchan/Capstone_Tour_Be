@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fpt.capstone.tourism.dto.response.tour.TourScheduleDTO;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -28,4 +30,5 @@ public class SellerBookingDetailDTO {
     private int totalSeats;
     private int soldSeats;
     private int remainingSeats;
+    private List<TourScheduleDTO> schedules;
 }

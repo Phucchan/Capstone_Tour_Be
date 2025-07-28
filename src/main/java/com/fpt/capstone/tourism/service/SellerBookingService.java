@@ -18,4 +18,6 @@ public interface SellerBookingService {
     GeneralResponse<PagingDTO<SellerBookingSummaryDTO>> getEditedTours(String sellerUsername, int page, int size);
 
     GeneralResponse<SellerBookingDetailDTO> getBookingDetail(Long bookingId);
+
+    GeneralResponse<SellerBookingDetailDTO> updateBookingSchedule(Long bookingId, Long scheduleId);
 }
