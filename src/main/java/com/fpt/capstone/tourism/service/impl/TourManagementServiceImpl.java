@@ -1,12 +1,14 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.constants.Constants;
+import com.fpt.capstone.tourism.dto.common.PartnerServiceShortDTO;
 import com.fpt.capstone.tourism.dto.common.ServiceTypeShortDTO;
 import com.fpt.capstone.tourism.dto.common.location.LocationShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.*;
+import com.fpt.capstone.tourism.dto.response.ServiceInfoDTO;
 import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourOptionsDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourThemeOptionDTO;
@@ -45,10 +47,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
+
 
 @Service
 public class TourManagementServiceImpl implements com.fpt.capstone.tourism.service.TourManagementService {
@@ -179,65 +180,97 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     }
 
     @Override
-    @Transactional // Đảm bảo tất cả các thao tác đều thành công hoặc thất bại cùng nhau
+    @Transactional
     public GeneralResponse<TourDetailManagerDTO> updateTour(Long id, TourUpdateManagerRequestDTO requestDTO) {
-        // 1. Tìm tour cần cập nhật
         Tour tour = tourRepository.findById(id)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
 
-        // 2. Cập nhật các trường thông tin cơ bản
+        // 1. Cập nhật thông tin cơ bản của tour
         tour.setName(requestDTO.getName());
         tour.setThumbnailUrl(requestDTO.getThumbnailUrl());
         tour.setDescription(requestDTO.getDescription());
         tour.setTourStatus(TourStatus.valueOf(requestDTO.getTourStatus()));
 
-        // 3. Cập nhật điểm khởi hành
         if (requestDTO.getDepartLocationId() != null) {
             Location depart = locationRepository.findById(requestDTO.getDepartLocationId())
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
             tour.setDepartLocation(depart);
         }
 
-        // 4. Cập nhật danh sách chủ đề (themes) - CÁCH LÀM ĐÚNG CHO ManyToMany
         if (requestDTO.getTourThemeIds() != null) {
             List<TourTheme> newThemes = tourThemeRepository.findAllById(requestDTO.getTourThemeIds());
             tour.getThemes().clear();
             tour.getThemes().addAll(newThemes);
         }
 
-        // 5. Cập nhật danh sách điểm đến (destinations) - CÁCH LÀM ĐÚNG CHO OneToMany với orphanRemoval=true
+        // 2. LOGIC MỚI: Đối chiếu và cập nhật danh sách ngày một cách an toàn
         if (requestDTO.getDestinationLocationIds() != null) {
-            // Xóa các ngày cũ khỏi tour
-            tour.getTourDays().clear();
+            List<Long> newDestinationIds = requestDTO.getDestinationLocationIds();
+            List<TourDay> existingDays = tour.getTourDays();
 
-            // Thêm lại các ngày mới
-            int dayNumber = 1;
-            for (Long destId : requestDTO.getDestinationLocationIds()) {
+            // Tìm những ngày cần xóa (có trong danh sách cũ nhưng không có trong danh sách mới)
+            List<TourDay> daysToRemove = existingDays.stream()
+                    .filter(day -> day.getLocation() != null && !newDestinationIds.contains(day.getLocation().getId()))
+                    .collect(Collectors.toList());
+
+            // Tìm những ID điểm đến đã tồn tại
+            List<Long> existingDestinationIds = existingDays.stream()
+                    .map(day -> day.getLocation() != null ? day.getLocation().getId() : null)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+            // Tìm những ID điểm đến mới cần thêm
+            List<Long> idsToAdd = newDestinationIds.stream()
+                    .filter(destId -> !existingDestinationIds.contains(destId))
+                    .collect(Collectors.toList());
+
+            // Thực hiện xóa
+            existingDays.removeAll(daysToRemove);
+            tourDayRepository.deleteAll(daysToRemove);
+
+            // Thực hiện thêm mới
+            for (Long destId : idsToAdd) {
                 Location dest = locationRepository.findById(destId)
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found for new day"));
                 TourDay day = new TourDay();
                 day.setTour(tour);
-                day.setDayNumber(dayNumber++);
                 day.setLocation(dest);
-                day.setTitle("Ngày " + (dayNumber - 1) + ": Tham quan " + dest.getName());
-                tour.getTourDays().add(day);
+                day.setTitle("Ngày mới: Tham quan " + dest.getName()); // Tiêu đề mặc định
+                existingDays.add(day);
             }
-            tour.setDurationDays(dayNumber - 1);
+
+            // SỬA LỖI: Sử dụng vòng lặp for-i để tránh lỗi "effectively final"
+            List<TourDay> finalDayList = new ArrayList<>();
+            Map<Long, TourDay> existingDaysByLocationId = existingDays.stream()
+                    .filter(d -> d.getLocation() != null)
+                    .collect(Collectors.toMap(d -> d.getLocation().getId(), d -> d, (d1, d2) -> d1));
+
+            for (int i = 0; i < newDestinationIds.size(); i++) {
+                Long destId = newDestinationIds.get(i);
+                TourDay dayToOrder = existingDaysByLocationId.get(destId);
+                if (dayToOrder != null) {
+                    dayToOrder.setDayNumber(i + 1);
+                    finalDayList.add(dayToOrder);
+                }
+            }
+
+            tour.getTourDays().clear();
+            tour.getTourDays().addAll(finalDayList);
+            tour.setDurationDays(finalDayList.size());
         }
 
-        // 6. Lưu lại tour, JPA sẽ tự động xử lý các thay đổi trong collection
         Tour savedTour = tourRepository.save(tour);
         return GeneralResponse.of(buildDetailDTO(savedTour.getId()), "Tour updated successfully");
     }
+
 
     @Override
     public GeneralResponse<List<TourDayManagerDTO>> getTourDays(Long tourId) {
         tourRepository.findById(tourId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
-        // SỬA LẠI: Gọi phương thức repository mới để tự động lọc ra các ngày đã bị xóa
+
         List<TourDay> days = tourDayRepository.findByTourIdAndDeletedIsFalseOrderByDayNumberAsc(tourId);
 
-        // Thay vì dùng mapper, chúng ta sẽ tự xây dựng DTO để đảm bảo đủ trường
         List<TourDayManagerDTO> dtos = days.stream().map(day -> {
             Location loc = day.getLocation();
             LocationShortDTO locationDTO = (loc != null) ?
@@ -248,13 +281,26 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                             .map(st -> new ServiceTypeShortDTO(st.getId(), st.getCode(), st.getName()))
                             .collect(Collectors.toList()) : Collections.emptyList();
 
+            // SỬA LỖI: Lấy danh sách các dịch vụ cụ thể (partner services) và map vào ServiceInfoDTO đã cập nhật
+            List<ServiceInfoDTO> serviceDTOs = day.getServices() != null ?
+                    day.getServices().stream()
+                            .filter(s -> s.getDeleted() == null || !s.getDeleted())
+                            .map(s -> ServiceInfoDTO.builder()
+                                    .id(s.getId())
+                                    .name(s.getDescription()) // <-- Bây giờ trường 'name' đã tồn tại
+                                    .partnerName(s.getPartner() != null ? s.getPartner().getName() : "N/A")
+                                    .serviceTypeName(s.getServiceType() != null ? s.getServiceType().getName() : "N/A")
+                                    .build())
+                            .collect(Collectors.toList()) : Collections.emptyList();
+
             return TourDayManagerDTO.builder()
-                    .id(day.getId()) // <-- Quan trọng nhất
+                    .id(day.getId())
                     .dayNumber(day.getDayNumber())
                     .title(day.getTitle())
                     .description(day.getDescription())
-                    .location(locationDTO) // <-- Thêm location
+                    .location(locationDTO)
                     .serviceTypes(serviceTypeDTOs)
+                    .services(serviceDTOs)
                     .build();
         }).collect(Collectors.toList());
 
@@ -406,18 +452,40 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
 
         List<TourDay> days = tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId);
-        List<ServiceBreakdownDTO> results = days.stream()
-                .flatMap(day -> day.getServices().stream().map(service -> ServiceBreakdownDTO.builder()
+
+        // Sử dụng vòng lặp for-each thay vì stream để dễ dàng kiểm tra null và gỡ lỗi
+        List<ServiceBreakdownDTO> results = new java.util.ArrayList<>();
+        for (TourDay day : days) {
+            for (com.fpt.capstone.tourism.model.partner.PartnerService service : day.getServices()) {
+
+                // Bắt đầu kiểm tra null để đảm bảo an toàn
+                String serviceTypeName = "N/A";
+                if (service.getServiceType() != null) {
+                    serviceTypeName = service.getServiceType().getName();
+                }
+
+                String partnerName = "N/A";
+                String partnerAddress = "N/A";
+                if (service.getPartner() != null) {
+                    partnerName = service.getPartner().getName();
+                    if (service.getPartner().getLocation() != null) {
+                        partnerAddress = service.getPartner().getLocation().getName();
+                    }
+                }
+                // Kết thúc kiểm tra null
+
+                results.add(ServiceBreakdownDTO.builder()
                         .dayId(day.getId())
                         .serviceId(service.getId())
                         .dayNumber(day.getDayNumber())
-                        .serviceTypeName(service.getServiceType().getName())
-                        .partnerName(service.getPartner().getName())
-                        .partnerAddress(service.getPartner().getLocation().getName())
+                        .serviceTypeName(serviceTypeName)
+                        .partnerName(partnerName)
+                        .partnerAddress(partnerAddress)
                         .nettPrice(service.getNettPrice())
                         .sellingPrice(service.getSellingPrice())
-                        .build()))
-                .collect(Collectors.toList());
+                        .build());
+            }
+        }
 
         return GeneralResponse.of(results);
     }

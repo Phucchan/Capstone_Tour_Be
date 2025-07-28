@@ -12,6 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import com.fpt.capstone.tourism.dto.response.tourManager.ServiceBreakdownDTO;
+import com.fpt.capstone.tourism.service.TourManagementService;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,6 +22,8 @@ import java.util.List;
 public class TourPaxController {
     private final TourPaxService tourPaxService;
     private final PartnerServiceService partnerServiceService;
+    private final TourManagementService tourManagementService;
+
 
     @GetMapping("/tour/{tourId}/tour-pax")
     // Example: http://localhost:8080/v1/business/tour/1/tour-pax
@@ -67,6 +72,16 @@ public class TourPaxController {
     // Example: http://localhost:8080/v1/business/partner-services
     public ResponseEntity<GeneralResponse<List<PartnerServiceShortDTO>>> getPartnerServices() {
         return ResponseEntity.ok(partnerServiceService.getPartnerServices());
+    }
+
+    /**
+     * API để lấy danh sách chi tiết các dịch vụ đã được thêm vào tour,
+     * dùng cho trang chiết tính.
+     */
+    @GetMapping("/tours/{tourId}/services")
+    public ResponseEntity<GeneralResponse<List<ServiceBreakdownDTO>>> getServiceBreakdown(
+            @PathVariable Long tourId) {
+        return ResponseEntity.ok(tourManagementService.getServiceBreakdown(tourId));
     }
 
 //    @GetMapping("/markup")
