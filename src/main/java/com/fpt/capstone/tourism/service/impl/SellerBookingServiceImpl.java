@@ -3,11 +3,13 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.seller.BookingCustomerUpdateDTO;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.seller.SellerBookingDetailDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingSummaryDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.tour.Booking;
 import com.fpt.capstone.tourism.model.tour.BookingCustomer;
+import com.fpt.capstone.tourism.repository.tour.TourDayRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.repository.BookingCustomerRepository;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
@@ -28,6 +30,7 @@ public class SellerBookingServiceImpl implements SellerBookingService {
     private final BookingRepository bookingRepository;
     private final BookingCustomerRepository bookingCustomerRepository;
     private final UserRepository userRepository;
+    private final TourDayRepository tourDayRepository;
 
     @Override
     public GeneralResponse<PagingDTO<SellerBookingSummaryDTO>> getAvailableBookings(int page, int size) {
@@ -98,6 +101,47 @@ public class SellerBookingServiceImpl implements SellerBookingService {
                 .build();
 
         return new GeneralResponse<>(HttpStatus.OK.value(), "Success", paging);
+    }
+    @Override
+    public GeneralResponse<SellerBookingDetailDTO> getBookingDetail(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        var tour = booking.getTourSchedule().getTour();
+
+        List<String> destinations = tourDayRepository.findByTourIdOrderByDayNumberAsc(tour.getId())
+                .stream()
+                .filter(day -> day.getLocation() != null)
+                .map(day -> day.getLocation().getName())
+                .toList();
+
+        List<String> themes = tour.getThemes() != null
+                ? tour.getThemes().stream().map(th -> th.getName()).toList()
+                : java.util.Collections.emptyList();
+
+        int totalSeats = booking.getTourSchedule().getTourPax().getMaxQuantity();
+        int soldSeats = bookingRepository.sumGuestsByTourScheduleId(booking.getTourSchedule().getId());
+        int remainingSeats = totalSeats - soldSeats;
+
+        SellerBookingDetailDTO dto = SellerBookingDetailDTO.builder()
+                .id(booking.getId())
+                .bookingCode(booking.getBookingCode())
+                .tourName(tour.getName())
+                .createdAt(booking.getCreatedAt())
+                .status(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
+                .operator(booking.getTourSchedule().getCoordinator().getFullName())
+                .departureDate(booking.getTourSchedule().getDepartureDate())
+                .tourType(tour.getTourType() != null ? tour.getTourType().name() : null)
+                .themes(themes)
+                .durationDays(tour.getDurationDays())
+                .departLocation(tour.getDepartLocation() != null ? tour.getDepartLocation().getName() : null)
+                .destinations(destinations)
+                .totalSeats(totalSeats)
+                .soldSeats(soldSeats)
+                .remainingSeats(remainingSeats)
+                .build();
+
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Success", dto);
     }
 
     private SellerBookingSummaryDTO toSummaryDTO(Booking booking) {

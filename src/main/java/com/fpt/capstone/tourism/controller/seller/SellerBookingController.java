@@ -42,4 +42,9 @@ public class SellerBookingController {
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(sellerBookingService.getEditedTours(sellerUsername, page, size));
     }
+    @GetMapping("/{bookingId}")
+    public ResponseEntity<GeneralResponse<SellerBookingDetailDTO>> getBookingDetail(
+            @PathVariable Long bookingId) {
+        return ResponseEntity.ok(sellerBookingService.getBookingDetail(bookingId));
+    }
 }
