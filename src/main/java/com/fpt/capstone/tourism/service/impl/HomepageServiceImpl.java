@@ -37,7 +37,6 @@ public class HomepageServiceImpl implements HomepageService {
     private final BlogRepository blogRepository;
     private final LocationRepository locationRepository;
     private final TourPaxRepository tourPaxRepository;
-    private final TourRepository tourRepository;
     private final TourScheduleRepository tourScheduleRepository;
     private final TourDiscountRepository tourDiscountRepository;
     private final TourMapper tourMapper;
@@ -51,13 +50,11 @@ public class HomepageServiceImpl implements HomepageService {
     @Override
     public HomepageDataDTO getHomepageData() {
         List<PopularLocationDTO> locations = getHomepageLocations();
-        List<TourSummaryDTO> highlyRatedTours = getHighlyRatedTours();
         List<BlogSummaryDTO> recentBlogs = getRecentBlogs();
         List<SaleTourDTO> saleTours = getSaleTours();
 
         return HomepageDataDTO.builder()
                 .locations(locations)
-                .highlyRatedTours(highlyRatedTours)
                 .saleTours(saleTours)
                 .recentBlogs(recentBlogs)
                 .build();
