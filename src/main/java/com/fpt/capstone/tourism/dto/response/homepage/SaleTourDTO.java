@@ -18,7 +18,6 @@ import java.util.List;
 @AllArgsConstructor
 public class SaleTourDTO {
     private Long id;
-    private Long tourId;
     private String name;
     private String thumbnailUrl;
     private Double averageRating;

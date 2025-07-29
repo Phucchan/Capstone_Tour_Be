@@ -208,7 +208,6 @@ public class TourServiceImpl implements TourService {
         List<LocalDateTime> departureDates = List.of(schedule.getDepartureDate());
         return SaleTourDTO.builder()
                 .id(schedule.getId())
-                .tourId(tour.getId())
                 .name(tour.getName())
                 .thumbnailUrl(tour.getThumbnailUrl())
                 .durationDays(tour.getDurationDays())
