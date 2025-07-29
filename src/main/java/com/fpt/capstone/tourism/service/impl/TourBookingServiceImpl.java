@@ -28,6 +28,7 @@ import com.fpt.capstone.tourism.service.payment.PaymentBillRepository;
 import com.fpt.capstone.tourism.service.tourbooking.TourBookingService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;

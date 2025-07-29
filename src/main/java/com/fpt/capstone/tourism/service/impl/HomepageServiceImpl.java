@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.response.homepage.*;
 import com.fpt.capstone.tourism.mapper.BlogMapper;
+import com.fpt.capstone.tourism.mapper.TourMapper;
 import com.fpt.capstone.tourism.model.blog.Blog;
 import com.fpt.capstone.tourism.model.blog.Tag;
 import com.fpt.capstone.tourism.model.tour.Tour;
@@ -39,6 +40,8 @@ public class HomepageServiceImpl implements HomepageService {
     private final TourRepository tourRepository;
     private final TourScheduleRepository tourScheduleRepository;
     private final TourDiscountRepository tourDiscountRepository;
+    private final TourMapper tourMapper;
+
 
     // Các mapper
     private final BlogMapper blogMapper;
@@ -171,20 +174,11 @@ public class HomepageServiceImpl implements HomepageService {
                 .map(TourSchedule::getDepartureDate)
                 .collect(Collectors.toList());
 
-        // Xây dựng DTO
-        return TourSummaryDTO.builder()
-                .id(tour.getId())
-                .name(tour.getName())
-                .thumbnailUrl(tour.getThumbnailUrl())
-                .durationDays(tour.getDurationDays())
-                .region(tour.getRegion() != null ? tour.getRegion().name() : null)
-                .locationName(tour.getDepartLocation() != null ? tour.getDepartLocation().getName() : null)
-                .averageRating(averageRating)
-                .startingPrice(startingPrice)
-                .code(tour.getCode())
-                .tourTransport(tour.getTourTransport() != null ? tour.getTourTransport().name() : null)
-                .departureDates(departureDates)
-                .build();
+        TourSummaryDTO dto = tourMapper.tourToTourSummaryDTO(tour);
+        dto.setAverageRating(averageRating);
+        dto.setStartingPrice(startingPrice);
+        dto.setDepartureDates(departureDates);
+        return dto;
 
     }
 }

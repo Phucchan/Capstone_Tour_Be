@@ -12,9 +12,6 @@ import java.util.List;
 public interface SellerBookingService {
     GeneralResponse<PagingDTO<SellerBookingSummaryDTO>> getAvailableBookings(int page, int size);
 
-    GeneralResponse<Booking> updateBooking(Long bookingId, String sellerUsername,
-                                           List<BookingCustomerUpdateDTO> customers);
-
     GeneralResponse<PagingDTO<SellerBookingSummaryDTO>> getEditedTours(String sellerUsername, int page, int size);
 
     GeneralResponse<SellerBookingDetailDTO> getBookingDetail(Long bookingId);

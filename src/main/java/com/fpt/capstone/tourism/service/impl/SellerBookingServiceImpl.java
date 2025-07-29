@@ -1,15 +1,12 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
-import com.fpt.capstone.tourism.dto.request.seller.BookingCustomerUpdateDTO;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingDetailDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourScheduleDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
-import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.tour.Booking;
-import com.fpt.capstone.tourism.model.tour.BookingCustomer;
 import com.fpt.capstone.tourism.repository.tour.TourDayRepository;
 import com.fpt.capstone.tourism.repository.tour.TourScheduleRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
@@ -56,38 +53,7 @@ public class SellerBookingServiceImpl implements SellerBookingService {
         return new GeneralResponse<>(HttpStatus.OK.value(), "Success", paging);
     }
 
-    @Override
-    public GeneralResponse<Booking> updateBooking(Long bookingId, String sellerUsername,
-                                                  List<BookingCustomerUpdateDTO> customers) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
-        User seller = userRepository.findByUsername(sellerUsername)
-                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Seller not found"));
 
-        if (customers != null) {
-            for (BookingCustomerUpdateDTO dto : customers) {
-                BookingCustomer customer = bookingCustomerRepository.findById(dto.getId())
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking customer not found"));
-                if (!customer.getBooking().getId().equals(bookingId)) {
-                    throw BusinessException.of(HttpStatus.BAD_REQUEST, "Customer does not belong to booking");
-                }
-                customer.setFullName(dto.getFullName());
-                customer.setAddress(dto.getAddress());
-                customer.setEmail(dto.getEmail());
-                customer.setDateOfBirth(dto.getDateOfBirth());
-                customer.setPhoneNumber(dto.getPhoneNumber());
-                customer.setPickUpAddress(dto.getPickUpAddress());
-                customer.setGender(dto.getGender());
-                customer.setPaxType(dto.getPaxType());
-                customer.setSingleRoom(dto.isSingleRoom());
-                bookingCustomerRepository.save(customer);
-            }
-        }
-
-        booking.setSeller(seller);
-        Booking saved = bookingRepository.save(booking);
-        return new GeneralResponse<>(HttpStatus.OK.value(), "Updated", saved);
-    }
 
     @Override
     public GeneralResponse<PagingDTO<SellerBookingSummaryDTO>> getEditedTours(String sellerUsername, int page, int size) {

@@ -27,14 +27,6 @@ public class SellerBookingController {
         return ResponseEntity.ok(sellerBookingService.getAvailableBookings(page, size));
     }
 
-    @PutMapping("/{bookingId}")
-    public ResponseEntity<GeneralResponse<Booking>> updateBooking(
-            @PathVariable Long bookingId,
-            @RequestParam String sellerUsername,
-            @RequestBody(required = false) List<BookingCustomerUpdateDTO> customers) {
-        return ResponseEntity.ok(sellerBookingService.updateBooking(bookingId, sellerUsername, customers));
-    }
-
     @GetMapping("/edited")
     //sellerUsername=wangbinh
     public ResponseEntity<GeneralResponse<PagingDTO<SellerBookingSummaryDTO>>> getEditedTours(
