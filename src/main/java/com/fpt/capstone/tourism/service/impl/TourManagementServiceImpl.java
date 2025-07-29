@@ -36,6 +36,7 @@ import com.fpt.capstone.tourism.repository.tour.TourThemeRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.service.LocationService;
 import com.fpt.capstone.tourism.specifications.TourSpecification;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -52,42 +53,29 @@ import java.util.stream.Collectors;
 
 
 @Service
+@RequiredArgsConstructor
 public class TourManagementServiceImpl implements com.fpt.capstone.tourism.service.TourManagementService {
 
-    @Autowired
-    private TourManagementRepository tourRepository;
-    @Autowired
-    private TourManagementMapper tourMapper;
-    @Autowired
-    private LocationService locationService;
-    @Autowired
-    private TourThemeRepository tourThemeRepository;
-    @Autowired
-    private LocationRepository locationRepository;
-    @Autowired
-    private TourDayRepository tourDayRepository;
-    @Autowired
-    private TourDayManagerMapper tourDayManagerMapper;
-    @Autowired
-    private TourPaxRepository tourPaxRepository;
-    @Autowired
-    private PartnerServiceRepository partnerServiceRepository;
-    @Autowired
-    private ServiceTypeRepository serviceTypeRepository;
-    @Autowired
-    private TourScheduleRepository tourScheduleRepository;
-    @Autowired
-    private UserMapper userMapper;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private TourHelper tourHelper;
+    private final TourManagementRepository tourRepository;
+    private final TourManagementMapper tourMapper;
+    private final LocationService locationService;
+    private final TourThemeRepository tourThemeRepository;
+    private final LocationRepository locationRepository;
+    private final TourDayRepository tourDayRepository;
+    private final TourDayManagerMapper tourDayManagerMapper;
+    private final TourPaxRepository tourPaxRepository;
+    private final PartnerServiceRepository partnerServiceRepository;
+    private final ServiceTypeRepository serviceTypeRepository;
+    private final TourScheduleRepository tourScheduleRepository;
+    private final UserMapper userMapper;
+    private final UserRepository userRepository;
+    private final TourHelper tourHelper;
 
     @Override
     public GeneralResponse<PagingDTO<TourResponseManagerDTO>> getListTours(int page, int size, String keyword,
                                                                            TourType tourType, TourStatus tourStatus) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
-        Specification<Tour> spec = Specification.where(null);
+        Specification<Tour> spec = (root, query, cb) -> cb.conjunction();
         if (keyword != null && !keyword.trim().isEmpty()) {
             spec = spec.and(TourSpecification.hasNameLike(keyword));
         }
@@ -271,38 +259,9 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
 
         List<TourDay> days = tourDayRepository.findByTourIdAndDeletedIsFalseOrderByDayNumberAsc(tourId);
 
-        List<TourDayManagerDTO> dtos = days.stream().map(day -> {
-            Location loc = day.getLocation();
-            LocationShortDTO locationDTO = (loc != null) ?
-                    new LocationShortDTO(loc.getId(), loc.getName()) : null;
-
-            List<ServiceTypeShortDTO> serviceTypeDTOs = day.getServiceTypes() != null ?
-                    day.getServiceTypes().stream()
-                            .map(st -> new ServiceTypeShortDTO(st.getId(), st.getCode(), st.getName()))
-                            .collect(Collectors.toList()) : Collections.emptyList();
-
-            // SỬA LỖI: Lấy danh sách các dịch vụ cụ thể (partner services) và map vào ServiceInfoDTO đã cập nhật
-            List<ServiceInfoDTO> serviceDTOs = day.getServices() != null ?
-                    day.getServices().stream()
-                            .filter(s -> s.getDeleted() == null || !s.getDeleted())
-                            .map(s -> ServiceInfoDTO.builder()
-                                    .id(s.getId())
-                                    .name(s.getDescription()) // <-- Bây giờ trường 'name' đã tồn tại
-                                    .partnerName(s.getPartner() != null ? s.getPartner().getName() : "N/A")
-                                    .serviceTypeName(s.getServiceType() != null ? s.getServiceType().getName() : "N/A")
-                                    .build())
-                            .collect(Collectors.toList()) : Collections.emptyList();
-
-            return TourDayManagerDTO.builder()
-                    .id(day.getId())
-                    .dayNumber(day.getDayNumber())
-                    .title(day.getTitle())
-                    .description(day.getDescription())
-                    .location(locationDTO)
-                    .serviceTypes(serviceTypeDTOs)
-                    .services(serviceDTOs)
-                    .build();
-        }).collect(Collectors.toList());
+        List<TourDayManagerDTO> dtos = days.stream()
+                .map(tourDayManagerMapper::toDTO)
+                .collect(Collectors.toList());
 
         return GeneralResponse.of(dtos);
     }
