@@ -116,7 +116,7 @@ public class SellerBookingServiceImpl implements SellerBookingService {
 
         int totalSeats = booking.getTourSchedule().getTourPax().getMaxQuantity();
         int soldSeats = bookingRepository.sumGuestsByTourScheduleId(booking.getTourSchedule().getId());
-        int remainingSeats = totalSeats - soldSeats;
+        int remainingSeats = Math.max(totalSeats - soldSeats, 0);
 
         // Fetch upcoming schedules of the same tour
         List<TourScheduleDTO> scheduleDTOs = tourScheduleRepository
@@ -125,7 +125,7 @@ public class SellerBookingServiceImpl implements SellerBookingService {
                 .stream()
                 .map(s -> {
                     int sold = bookingRepository.sumGuestsByTourScheduleId(s.getId());
-                    int avail = s.getTourPax().getMaxQuantity() - sold;
+                    int avail = Math.max(s.getTourPax().getMaxQuantity() - sold, 0);
                     return TourScheduleDTO.builder()
                             .id(s.getId())
                             .departureDate(s.getDepartureDate())

@@ -143,7 +143,7 @@ public class TourServiceImpl implements TourService {
             // Tính toán số chỗ trống
             int totalSlots = schedule.getTourPax().getMaxQuantity();
             int bookedSlots = bookingRepository.sumGuestsByTourScheduleId(schedule.getId());
-            int availableSeats = totalSlots - bookedSlots;
+            int availableSeats = Math.max(totalSlots - bookedSlots, 0);
 
             // Gán số chỗ trống vào DTO
             dto.setAvailableSeats(availableSeats);
