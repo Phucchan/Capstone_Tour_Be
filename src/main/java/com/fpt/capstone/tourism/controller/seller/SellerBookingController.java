@@ -1,12 +1,15 @@
 package com.fpt.capstone.tourism.controller.seller;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.request.booking.BookingBasicRequestDTO;
+import com.fpt.capstone.tourism.dto.request.booking.BookingRequestCustomerDTO;
 import com.fpt.capstone.tourism.dto.request.seller.BookingCustomerUpdateDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingDetailDTO;
 import com.fpt.capstone.tourism.model.tour.Booking;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingSummaryDTO;
 import com.fpt.capstone.tourism.service.SellerBookingService;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.service.tourbooking.TourBookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +22,7 @@ import java.util.List;
 public class SellerBookingController {
 
     private final SellerBookingService sellerBookingService;
+    private final TourBookingService tourBookingService;
 
     @GetMapping("/available")
     public ResponseEntity<GeneralResponse<PagingDTO<SellerBookingSummaryDTO>>> getAvailableBookings(
@@ -56,5 +60,16 @@ public class SellerBookingController {
             @PathVariable Long bookingId,
             @RequestParam String sellerUsername) {
         return ResponseEntity.ok(sellerBookingService.claimBooking(bookingId, sellerUsername));
+    }
+    @PostMapping
+    public ResponseEntity<GeneralResponse<String>> createBasic(@RequestBody BookingBasicRequestDTO requestDTO) {
+        return ResponseEntity.ok(GeneralResponse.of(tourBookingService.createBasicBooking(requestDTO)));
+    }
+
+    @PostMapping("/{bookingCode}/customers")
+    public ResponseEntity<GeneralResponse<String>> addCustomers(@PathVariable String bookingCode,
+                                                                @RequestBody List<BookingRequestCustomerDTO> customers) {
+        tourBookingService.addCustomers(bookingCode, customers);
+        return ResponseEntity.ok(GeneralResponse.of("success"));
     }
 }

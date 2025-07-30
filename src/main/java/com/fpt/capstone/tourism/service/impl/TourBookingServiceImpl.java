@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.dto.common.tour.TourScheduleShortInfoDTO;
 import com.fpt.capstone.tourism.dto.common.tour.TourShortInfoDTO;
 import com.fpt.capstone.tourism.dto.common.user.BookedPersonDTO;
 import com.fpt.capstone.tourism.dto.common.user.TourCustomerDTO;
+import com.fpt.capstone.tourism.dto.request.booking.BookingBasicRequestDTO;
 import com.fpt.capstone.tourism.dto.request.booking.BookingRequestCustomerDTO;
 import com.fpt.capstone.tourism.dto.request.booking.BookingRequestDTO;
 import com.fpt.capstone.tourism.dto.response.BookingSummaryDTO;
@@ -28,7 +29,6 @@ import com.fpt.capstone.tourism.service.payment.PaymentBillRepository;
 import com.fpt.capstone.tourism.service.tourbooking.TourBookingService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -56,6 +56,7 @@ public class TourBookingServiceImpl implements TourBookingService {
     private final PaymentBillItemRepository paymentBillItemRepository;
     private final TourDetailMapper tourDetailMapper;
     private final SimpMessagingTemplate messagingTemplate;
+    private final com.fpt.capstone.tourism.repository.tour.TourScheduleRepository tourScheduleRepository;
 
     @Value("${backend.base-url}")
     private String backendBaseUrl;
@@ -269,6 +270,78 @@ public class TourBookingServiceImpl implements TourBookingService {
                 .createdAt(booking.getCreatedAt())
                 .build();
         messagingTemplate.convertAndSend("/topic/bookings", dto);
+    }
+    @Override
+    @Transactional
+    public String createBasicBooking(BookingBasicRequestDTO requestDTO) {
+        try {
+            var schedule = tourScheduleRepository.findById(requestDTO.getScheduleId())
+                    .orElseThrow(() -> BusinessException.of("Schedule not found"));
+
+            String bookingCode = bookingHelper.generateBookingCode(
+                    requestDTO.getTourId() != null ? requestDTO.getTourId() : schedule.getTour().getId(),
+                    requestDTO.getScheduleId(), requestDTO.getUserId());
+
+            Booking booking = Booking.builder()
+                    .tourSchedule(schedule)
+                    .bookingCode(bookingCode)
+                    .user(User.builder().id(requestDTO.getUserId()).build())
+                    .bookingStatus(BookingStatus.PENDING)
+                    .paymentMethod(requestDTO.getPaymentMethod())
+                    .expiredAt(requestDTO.getPaymentDeadline())
+                    .note(requestDTO.getNote())
+                    .build();
+
+            bookingRepository.save(booking);
+
+            BookingCustomer bookedPerson = BookingCustomer.builder()
+                    .paxType(PaxType.ADULT)
+                    .fullName(requestDTO.getFullName())
+                    .email(requestDTO.getEmail())
+                    .phoneNumber(requestDTO.getPhone())
+                    .address(requestDTO.getAddress())
+                    .bookedPerson(true)
+                    .booking(booking)
+                    .build();
+
+            bookingCustomerRepository.save(bookedPerson);
+
+            notifyNewBooking(booking);
+            return bookingCode;
+        } catch (Exception ex) {
+            throw BusinessException.of("Tạo Booking Thất Bại", ex);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void addCustomers(String bookingCode, java.util.List<BookingRequestCustomerDTO> customers) {
+        try {
+            Booking booking = bookingRepository.findByBookingCode(bookingCode);
+            if (booking == null) {
+                throw BusinessException.of("Booking not found");
+            }
+
+            List<BookingCustomer> entities = bookingCustomerMapper.toEntity(customers);
+            for (BookingCustomer bc : entities) {
+                bc.setBooking(booking);
+            }
+            bookingCustomerRepository.saveAll(entities);
+
+            // update guest counts
+            booking.setAdults((int) entities.stream().filter(c -> c.getPaxType() == PaxType.ADULT).count()
+                    + (booking.getAdults() != null ? booking.getAdults() : 0));
+            booking.setChildren((int) entities.stream().filter(c -> c.getPaxType() == PaxType.CHILD).count()
+                    + (booking.getChildren() != null ? booking.getChildren() : 0));
+            booking.setInfants((int) entities.stream().filter(c -> c.getPaxType() == PaxType.INFANT).count()
+                    + (booking.getInfants() != null ? booking.getInfants() : 0));
+            booking.setToddlers((int) entities.stream().filter(c -> c.getPaxType() == PaxType.TODDLER).count()
+                    + (booking.getToddlers() != null ? booking.getToddlers() : 0));
+
+            bookingRepository.save(booking);
+        } catch (Exception ex) {
+            throw BusinessException.of("Thêm khách hàng thất bại", ex);
+        }
     }
 
 }
