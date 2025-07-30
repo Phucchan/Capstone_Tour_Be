@@ -27,6 +27,5 @@ public interface PartnerServiceRepository extends JpaRepository<PartnerService, 
     @Query("SELECT ps FROM PartnerService ps WHERE ps.deleted = FALSE")
     List<PartnerService> findByDeletedFalse();
 
-    @Query("SELECT ps FROM PartnerService ps WHERE ps.partner.id = :partnerId AND ps.deleted = FALSE")
-    List<PartnerService> findByPartnerId(@Param("partnerId") Long partnerId);
+
 }

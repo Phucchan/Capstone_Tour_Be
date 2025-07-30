@@ -70,11 +70,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Object[]> findMonthlyRevenueSummary(@Param("startDate") LocalDateTime startDate,
                                              @Param("endDate") LocalDateTime endDate);
 
-    List<Booking> findByUser_UsernameOrderByCreatedAtDesc(String username);
 
     Page<Booking> findByUser_Id(Long userId, Pageable pageable);
 
-    Page<Booking> findByUser_Username(String username, Pageable pageable);
 
 
     Page<Booking> findBySellerIsNullOrderByCreatedAtAsc(Pageable pageable);

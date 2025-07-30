@@ -37,6 +37,5 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
      */
     @Query("SELECT DISTINCT td.location FROM Tour t JOIN t.tourDays td WHERE t.tourStatus = 'PUBLISHED' AND t.deleted = false")
     List<Location> findDistinctDestinations();
-    boolean existsByCode(String code);
 
 }
