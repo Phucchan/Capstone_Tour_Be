@@ -50,7 +50,12 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                                                                       LocalDate endDate) {
         LocalDateTime start = startDate != null ? startDate.atStartOfDay() : null;
         LocalDateTime end = endDate != null ? endDate.atTime(LocalTime.MAX) : null;
-        List<Object[]> results = bookingRepository.findMonthlyRevenueByTour(tourId, start, end);
+        List<Object[]> results;
+        if (tourId != null) {
+            results = bookingRepository.findMonthlyRevenueByTour(tourId, start, end);
+        } else {
+            results = bookingRepository.findMonthlyRevenueSummary(start, end);
+        }
         List<MonthlyRevenueDTO> dtos = results.stream()
                 .map(r -> MonthlyRevenueDTO.builder()
                         .year(((Number) r[0]).intValue())
@@ -103,5 +108,18 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         LocalDateTime end = endDate != null ? endDate.atTime(LocalTime.MAX) : null;
         Long count = userRepository.countNewUsers(start, end);
         return GeneralResponse.of(count);
+    }
+    @Override
+    public GeneralResponse<BookingStatsDTO> getBookingStats(LocalDate startDate,
+                                                            LocalDate endDate) {
+        LocalDateTime start = startDate != null ? startDate.atStartOfDay() : null;
+        LocalDateTime end = endDate != null ? endDate.atTime(LocalTime.MAX) : null;
+        Long cancelled = bookingRepository.countCancelledBookings(start, end);
+        Long returning = bookingRepository.countReturningCustomers(start, end);
+        BookingStatsDTO dto = BookingStatsDTO.builder()
+                .cancelledBookings(cancelled)
+                .returningCustomers(returning)
+                .build();
+        return GeneralResponse.of(dto);
     }
 }

@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.response.analytic.BookingStatsDTO;
 import com.fpt.capstone.tourism.dto.response.analytic.MonthlyNewUserDTO;
 import com.fpt.capstone.tourism.dto.response.analytic.MonthlyRevenueDTO;
 import com.fpt.capstone.tourism.dto.response.analytic.TourRevenueDTO;
@@ -32,4 +33,7 @@ public interface AnalyticsService {
 
     GeneralResponse<Long> getTotalNewUsers(LocalDate startDate,
                                            LocalDate endDate);
+
+    GeneralResponse<BookingStatsDTO> getBookingStats(LocalDate startDate,
+                                                     LocalDate endDate);
 }

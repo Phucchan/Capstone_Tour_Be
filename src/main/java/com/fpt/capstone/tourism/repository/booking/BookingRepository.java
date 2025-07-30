@@ -57,7 +57,18 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                             @Param("startDate") LocalDateTime startDate,
                                             @Param("endDate") LocalDateTime endDate);
 
-
+    @Query(value = "SELECT EXTRACT(YEAR FROM b.created_at) AS yr, " +
+            "EXTRACT(MONTH FROM b.created_at) AS mon, " +
+            "SUM(b.total_amount) AS revenue " +
+            "FROM bookings b " +
+            "WHERE b.booking_status <> 'CANCELLED' " +
+            "AND (CAST(:startDate AS timestamp) IS NULL OR b.created_at >= :startDate) " +
+            "AND (CAST(:endDate AS timestamp) IS NULL OR b.created_at <= :endDate) " +
+            "GROUP BY yr, mon " +
+            "ORDER BY mon",
+            nativeQuery = true)
+    List<Object[]> findMonthlyRevenueSummary(@Param("startDate") LocalDateTime startDate,
+                                             @Param("endDate") LocalDateTime endDate);
 
     List<Booking> findByUser_UsernameOrderByCreatedAtDesc(String username);
 
@@ -91,6 +102,26 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             nativeQuery = true)
     Long countBookings(@Param("startDate") LocalDateTime startDate,
                        @Param("endDate") LocalDateTime endDate);
+
+    @Query(value = "SELECT COUNT(*) FROM bookings b " +
+            "WHERE b.booking_status = 'CANCELLED' " +
+            "AND (CAST(:startDate AS timestamp) IS NULL OR b.created_at >= :startDate) " +
+            "AND (CAST(:endDate AS timestamp) IS NULL OR b.created_at <= :endDate)",
+            nativeQuery = true)
+    Long countCancelledBookings(@Param("startDate") LocalDateTime startDate,
+                                @Param("endDate") LocalDateTime endDate);
+
+    // SỬA LỖI: Thêm CAST(... AS timestamp)
+    @Query(value = "SELECT COUNT(*) FROM (" +
+            "SELECT b.user_id FROM bookings b " +
+            "WHERE b.booking_status <> 'CANCELLED' " +
+            "AND (CAST(:startDate AS timestamp) IS NULL OR b.created_at >= :startDate) " +
+            "AND (CAST(:endDate AS timestamp) IS NULL OR b.created_at <= :endDate) " +
+            "GROUP BY b.user_id HAVING COUNT(*) > 1) t",
+            nativeQuery = true)
+    Long countReturningCustomers(@Param("startDate") LocalDateTime startDate,
+                                 @Param("endDate") LocalDateTime endDate);
+
 
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

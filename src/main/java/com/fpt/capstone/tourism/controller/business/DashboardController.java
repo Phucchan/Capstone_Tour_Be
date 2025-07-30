@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.controller.business;
 
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.response.analytic.BookingStatsDTO;
 import com.fpt.capstone.tourism.dto.response.analytic.MonthlyNewUserDTO;
 import com.fpt.capstone.tourism.dto.response.analytic.MonthlyRevenueDTO;
 import com.fpt.capstone.tourism.dto.response.analytic.TourRevenueDTO;
@@ -29,13 +30,14 @@ public class DashboardController {
         return ResponseEntity.ok(analyticsService.getTopToursByRevenue(limit, startDate, endDate));
     }
 
-    @GetMapping("/tours/{tourId}/monthly")
-    public ResponseEntity<GeneralResponse<List<MonthlyRevenueDTO>>> getMonthlyRevenue(@PathVariable Long tourId,
+    @GetMapping({"/tours/{tourId}/monthly", "/monthly"})
+    public ResponseEntity<GeneralResponse<List<MonthlyRevenueDTO>>> getMonthlyRevenue(@PathVariable(required = false) Long tourId,
                                                                                       @RequestParam int year,
                                                                                       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
                                                                                       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         return ResponseEntity.ok(analyticsService.getMonthlyRevenue(tourId, year, startDate, endDate));
     }
+
 
     // postman http://localhost:8080/admin/revenue/tours/1/monthly?year=2023
     @GetMapping("/users/monthly")
@@ -65,5 +67,11 @@ public class DashboardController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         return ResponseEntity.ok(analyticsService.getTotalNewUsers(startDate, endDate));
+    }
+    @GetMapping("/bookings/stats")
+    public ResponseEntity<GeneralResponse<BookingStatsDTO>> getBookingStats(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return ResponseEntity.ok(analyticsService.getBookingStats(startDate, endDate));
     }
 }
