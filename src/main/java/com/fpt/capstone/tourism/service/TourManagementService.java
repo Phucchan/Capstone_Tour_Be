@@ -45,22 +45,11 @@ public interface TourManagementService {
 
     GeneralResponse<List<ServiceBreakdownDTO>> getServiceBreakdown(Long tourId);
 
-    GeneralResponse<TourPaxManagerDTO> createTourPax(Long tourId, TourPaxManagerCreateRequestDTO requestDTO);
-
-    GeneralResponse<TourPaxManagerDTO> getTourPax(Long tourId, Long paxId);
-
-    GeneralResponse<TourPaxManagerDTO> updateTourPax(Long tourId, Long paxId, TourPaxManagerCreateRequestDTO requestDTO);
-
-    GeneralResponse<String> deleteTourPax(Long tourId, Long paxId);
 
     GeneralResponse<TourOptionsDTO> getTourOptions();
 
     GeneralResponse<List<ServiceTypeShortDTO>> getServiceTypes();
 
-    GeneralResponse<TourScheduleManagerDTO> createTourSchedule(Long tourId, TourScheduleCreateRequestDTO requestDTO);
 
-    GeneralResponse<TourScheduleOptionsDTO> getScheduleOptions(Long tourId);
-
-    GeneralResponse<List<TourScheduleManagerDTO>> getTourSchedules(Long tourId);
 }
 

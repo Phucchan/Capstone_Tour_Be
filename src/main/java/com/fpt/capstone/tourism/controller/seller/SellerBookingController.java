@@ -51,4 +51,10 @@ public class SellerBookingController {
             @RequestParam Long scheduleId) {
         return ResponseEntity.ok(sellerBookingService.updateBookingSchedule(bookingId, scheduleId));
     }
+    @PatchMapping("/{bookingId}/claim")
+    public ResponseEntity<GeneralResponse<SellerBookingDetailDTO>> claimBooking(
+            @PathVariable Long bookingId,
+            @RequestParam String sellerUsername) {
+        return ResponseEntity.ok(sellerBookingService.claimBooking(bookingId, sellerUsername));
+    }
 }

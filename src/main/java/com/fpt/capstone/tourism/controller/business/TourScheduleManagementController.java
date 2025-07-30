@@ -4,7 +4,7 @@ import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourScheduleCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourScheduleManagerDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourScheduleOptionsDTO;
-import com.fpt.capstone.tourism.service.TourManagementService;
+import com.fpt.capstone.tourism.service.TourScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,24 +18,24 @@ import java.util.List;
 public class TourScheduleManagementController {
 
     @Autowired
-    private final TourManagementService tourManagementService;
+    private final TourScheduleService tourScheduleService;
 
     @PostMapping("/tours/{tourId}/schedules")
     //postman http://localhost:8080/v1/business/tours/1/schedules
     public ResponseEntity<GeneralResponse<TourScheduleManagerDTO>> createSchedule(
             @PathVariable Long tourId,
             @RequestBody TourScheduleCreateRequestDTO requestDTO) {
-        return ResponseEntity.ok(tourManagementService.createTourSchedule(tourId, requestDTO));
+        return ResponseEntity.ok(tourScheduleService.createTourSchedule(tourId, requestDTO));
     }
     @GetMapping("/tours/{tourId}/schedule-options")
     //postman http://localhost:8080/v1/business/tours/1/schedule-options
     public ResponseEntity<GeneralResponse<TourScheduleOptionsDTO>> getScheduleOptions(@PathVariable Long tourId) {
-        return ResponseEntity.ok(tourManagementService.getScheduleOptions(tourId));
+        return ResponseEntity.ok(tourScheduleService.getScheduleOptions(tourId));
     }
     @GetMapping("/tours/{tourId}/schedules")
     // Example: http://localhost:8080/v1/business/tours/1/schedules
     public ResponseEntity<GeneralResponse<List<TourScheduleManagerDTO>>> getSchedules(
             @PathVariable Long tourId) {
-        return ResponseEntity.ok(tourManagementService.getTourSchedules(tourId));
+        return ResponseEntity.ok(tourScheduleService.getTourSchedules(tourId));
     }
 }

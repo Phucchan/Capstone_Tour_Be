@@ -17,4 +17,6 @@ public interface SellerBookingService {
     GeneralResponse<SellerBookingDetailDTO> getBookingDetail(Long bookingId);
 
     GeneralResponse<SellerBookingDetailDTO> updateBookingSchedule(Long bookingId, Long scheduleId);
+
+    GeneralResponse<SellerBookingDetailDTO> claimBooking(Long bookingId, String sellerUsername);
 }

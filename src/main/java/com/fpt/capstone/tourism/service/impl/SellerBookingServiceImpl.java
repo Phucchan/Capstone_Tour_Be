@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -95,6 +96,25 @@ public class SellerBookingServiceImpl implements SellerBookingService {
         }
 
         booking.setTourSchedule(newSchedule);
+        bookingRepository.save(booking);
+
+        SellerBookingDetailDTO dto = toDetailDTO(booking);
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Success", dto);
+    }
+    @Override
+    @Transactional
+    public GeneralResponse<SellerBookingDetailDTO> claimBooking(Long bookingId, String sellerUsername) {
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        if (booking.getSeller() != null) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Booking already assigned");
+        }
+
+        var seller = userRepository.findByUsername(sellerUsername)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Seller not found"));
+
+        booking.setSeller(seller);
         bookingRepository.save(booking);
 
         SellerBookingDetailDTO dto = toDetailDTO(booking);
