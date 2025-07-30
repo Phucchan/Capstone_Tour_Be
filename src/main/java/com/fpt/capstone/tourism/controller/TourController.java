@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.dto.common.location.LocationDTO;
 import com.fpt.capstone.tourism.dto.common.location.LocationShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.PublicLocationDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.SaleTourDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.tour.SearchTourResponseDTO;
@@ -61,16 +62,20 @@ public class TourController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
         PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, departId, destId, date, pageable);
-        List<LocationShortDTO> departures = locationService.getAllDepartures().stream()
-                .map(d -> LocationShortDTO.builder()
+        List<PublicLocationDTO> departures = locationService.getAllDepartures().stream()
+                .map(d -> PublicLocationDTO.builder()
                         .id(d.getId())
                         .name(d.getName())
+                        .description(d.getDescription())
+                        .image(d.getImage())
                         .build())
                 .collect(Collectors.toList());
-        List<LocationShortDTO> destinations = locationService.getAllDestinations().stream()
-                .map(d -> LocationShortDTO.builder()
+        List<PublicLocationDTO> destinations = locationService.getAllDestinations().stream()
+                .map(d -> PublicLocationDTO.builder()
                         .id(d.getId())
                         .name(d.getName())
+                        .description(d.getDescription())
+                        .image(d.getImage())
                         .build())
                 .collect(Collectors.toList());
         TourLocationOptionsDTO options = TourLocationOptionsDTO.builder()
@@ -99,7 +104,7 @@ public class TourController {
         return ResponseEntity.ok(GeneralResponse.of(result, "Discount tours loaded successfully."));
     }
     @GetMapping("/destinations/{destId}/search")
-    //postman http://localhost:8080/v1/public/tours/destinations/1/search?destId=2&page=0&size=6&sortField=createdAt&sortDirection=desc
+    //postman http://localhost:8080/v1/public/tours/destinations/1/search?priceMin=1000000&priceMax=5000000&departId=2&date=2023-10-01&page=0&size=6&sortField=createdAt&sortDirection=desc
     public ResponseEntity<GeneralResponse<SearchTourResponseDTO>> searchToursByDestination(
             @PathVariable("destId") Long destIdPath,
             @RequestParam(required = false) Double priceMin,
@@ -123,16 +128,20 @@ public class TourController {
 
         PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, departId, effectiveDestId, date, pageable);
 
-        List<LocationShortDTO> departures = locationService.getAllDepartures().stream()
-                .map(d -> LocationShortDTO.builder()
+        List<PublicLocationDTO> departures = locationService.getAllDepartures().stream()
+                .map(d -> PublicLocationDTO.builder()
                         .id(d.getId())
                         .name(d.getName())
+                        .description(d.getDescription())
+                        .image(d.getImage())
                         .build())
                 .collect(Collectors.toList());
-        List<LocationShortDTO> destinations = locationService.getAllDestinations().stream()
-                .map(d -> LocationShortDTO.builder()
+        List<PublicLocationDTO> destinations = locationService.getAllDestinations().stream()
+                .map(d -> PublicLocationDTO.builder()
                         .id(d.getId())
                         .name(d.getName())
+                        .description(d.getDescription())
+                        .image(d.getImage())
                         .build())
                 .collect(Collectors.toList());
         TourLocationOptionsDTO options = TourLocationOptionsDTO.builder()
