@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.booking.BookingBasicRequestDTO;
 import com.fpt.capstone.tourism.dto.request.booking.BookingRequestCustomerDTO;
 import com.fpt.capstone.tourism.dto.request.booking.BookingRequestDTO;
+import com.fpt.capstone.tourism.dto.request.seller.SellerBookingCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.booking.BookingConfirmResponse;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.tour.Booking;
@@ -14,7 +15,7 @@ public interface TourBookingService {
     void addCustomers(String bookingCode, java.util.List<BookingRequestCustomerDTO> customers);
     void saveTourBookingService(Booking booking, int totalCustomers);
     void createReceiptBookingBill(Booking tourBooking, Double total, String fullName, PaymentMethod paymentMethod);
-
+    String createBasicBookingWithCustomers(SellerBookingCreateRequestDTO requestDTO);
     void confirmPayment(int paymentStatus, String orderInfo);
 
     BookingConfirmResponse getTourBookingDetails(String bookingCode);

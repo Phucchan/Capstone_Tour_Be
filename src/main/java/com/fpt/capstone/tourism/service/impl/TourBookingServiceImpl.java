@@ -7,6 +7,7 @@ import com.fpt.capstone.tourism.dto.common.user.TourCustomerDTO;
 import com.fpt.capstone.tourism.dto.request.booking.BookingBasicRequestDTO;
 import com.fpt.capstone.tourism.dto.request.booking.BookingRequestCustomerDTO;
 import com.fpt.capstone.tourism.dto.request.booking.BookingRequestDTO;
+import com.fpt.capstone.tourism.dto.request.seller.SellerBookingCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.BookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.booking.BookingConfirmResponse;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
@@ -342,6 +343,28 @@ public class TourBookingServiceImpl implements TourBookingService {
         } catch (Exception ex) {
             throw BusinessException.of("Thêm khách hàng thất bại", ex);
         }
+    }
+    @Override
+    @Transactional
+    public String createBasicBookingWithCustomers(SellerBookingCreateRequestDTO requestDTO) {
+        String bookingCode = createBasicBooking(
+                BookingBasicRequestDTO.builder()
+                        .userId(requestDTO.getUserId())
+                        .tourId(requestDTO.getTourId())
+                        .scheduleId(requestDTO.getScheduleId())
+                        .fullName(requestDTO.getFullName())
+                        .address(requestDTO.getAddress())
+                        .email(requestDTO.getEmail())
+                        .phone(requestDTO.getPhone())
+                        .paymentDeadline(requestDTO.getPaymentDeadline())
+                        .paymentMethod(requestDTO.getPaymentMethod())
+                        .note(requestDTO.getNote())
+                        .build());
+
+        if (requestDTO.getCustomers() != null && !requestDTO.getCustomers().isEmpty()) {
+            addCustomers(bookingCode, requestDTO.getCustomers());
+        }
+        return bookingCode;
     }
 
 }
