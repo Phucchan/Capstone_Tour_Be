@@ -9,14 +9,16 @@ import com.fpt.capstone.tourism.dto.response.booking.BookingConfirmResponse;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.tour.Booking;
 
+import java.util.List;
+
 public interface TourBookingService {
     String createBooking(BookingRequestDTO bookingRequestDTO);
-    String createBasicBooking(BookingBasicRequestDTO requestDTO);
-    void addCustomers(String bookingCode, java.util.List<BookingRequestCustomerDTO> customers);
     void saveTourBookingService(Booking booking, int totalCustomers);
     void createReceiptBookingBill(Booking tourBooking, Double total, String fullName, PaymentMethod paymentMethod);
     String createBasicBookingWithCustomers(SellerBookingCreateRequestDTO requestDTO);
+    void addCustomersToSchedule(Long bookingId, Long scheduleId, List<BookingRequestCustomerDTO> customers);
     void confirmPayment(int paymentStatus, String orderInfo);
-
     BookingConfirmResponse getTourBookingDetails(String bookingCode);
+    String createBasicBooking(BookingBasicRequestDTO requestDTO);
+    void addCustomers(String bookingCode, java.util.List<BookingRequestCustomerDTO> customers);
 }

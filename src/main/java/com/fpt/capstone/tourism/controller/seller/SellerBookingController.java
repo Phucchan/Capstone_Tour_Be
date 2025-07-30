@@ -63,14 +63,21 @@ public class SellerBookingController {
             @RequestParam String sellerUsername) {
         return ResponseEntity.ok(sellerBookingService.claimBooking(bookingId, sellerUsername));
     }
-
     @PostMapping
-     // postman http://localhost:8080/seller/bookings
     public ResponseEntity<GeneralResponse<String>> createBooking(
             @RequestBody SellerBookingCreateRequestDTO requestDTO) {
         return ResponseEntity.ok(GeneralResponse.of(
                 tourBookingService.createBasicBookingWithCustomers(requestDTO)));
     }
+    @PostMapping("/{bookingId}/schedule/{scheduleId}/customers")
+    public ResponseEntity<GeneralResponse<String>> addCustomersToSchedule(
+            @PathVariable Long bookingId,
+            @PathVariable Long scheduleId,
+            @RequestBody List<BookingRequestCustomerDTO> customers) {
+        tourBookingService.addCustomersToSchedule(bookingId, scheduleId, customers);
+        return ResponseEntity.ok(GeneralResponse.of("success"));
+    }
 }
+
 
 
