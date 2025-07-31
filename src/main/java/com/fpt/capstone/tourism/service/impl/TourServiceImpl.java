@@ -206,8 +206,11 @@ public class TourServiceImpl implements TourService {
         Double startingPrice = schedule.getTourPax() != null ? schedule.getTourPax().getSellingPrice() : null;
 
         List<LocalDateTime> departureDates = List.of(schedule.getDepartureDate());
+        int totalSlots = schedule.getTourPax().getMaxQuantity();
+        int bookedSlots = bookingRepository.sumGuestsByTourScheduleId(schedule.getId());
+        int availableSeats = Math.max(totalSlots - bookedSlots, 0);
         return SaleTourDTO.builder()
-                .id(schedule.getId())
+                .scheduleId(schedule.getId())
                 .name(tour.getName())
                 .thumbnailUrl(tour.getThumbnailUrl())
                 .durationDays(tour.getDurationDays())
@@ -219,6 +222,7 @@ public class TourServiceImpl implements TourService {
                 .tourTransport(tour.getTourTransport() != null ? tour.getTourTransport().name() : null)
                 .departureDates(departureDates)
                 .discountPercent(discount.getDiscountPercent())
+                .availableSeats(availableSeats)
                 .build();
     }
 }

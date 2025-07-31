@@ -17,7 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SaleTourDTO {
-    private Long id;
+    private Long scheduleId;
     private String name;
     private String thumbnailUrl;
     private Double averageRating;
@@ -29,4 +29,5 @@ public class SaleTourDTO {
     private String tourTransport;
     private List<LocalDateTime> departureDates;
     private double discountPercent;
+    private int availableSeats;
 }

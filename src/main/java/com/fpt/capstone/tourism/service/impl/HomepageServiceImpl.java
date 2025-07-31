@@ -9,6 +9,7 @@ import com.fpt.capstone.tourism.model.tour.Tour;
 import com.fpt.capstone.tourism.model.tour.TourDiscount;
 import com.fpt.capstone.tourism.model.tour.TourSchedule;
 import com.fpt.capstone.tourism.repository.blog.BlogRepository;
+import com.fpt.capstone.tourism.repository.booking.BookingRepository;
 import com.fpt.capstone.tourism.repository.tour.*;
 import com.fpt.capstone.tourism.service.HomepageService;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +41,7 @@ public class HomepageServiceImpl implements HomepageService {
     private final TourScheduleRepository tourScheduleRepository;
     private final TourDiscountRepository tourDiscountRepository;
     private final TourMapper tourMapper;
-
+    private final BookingRepository bookingRepository;
 
     // Các mapper
     private final BlogMapper blogMapper;
@@ -131,9 +132,11 @@ public class HomepageServiceImpl implements HomepageService {
         Double startingPrice = schedule.getTourPax() != null ? schedule.getTourPax().getSellingPrice() : null;
 
         List<LocalDateTime> departureDates = List.of(schedule.getDepartureDate());
-
+        int totalSlots = schedule.getTourPax().getMaxQuantity();
+        int bookedSlots = bookingRepository.sumGuestsByTourScheduleId(schedule.getId());
+        int availableSeats = Math.max(totalSlots - bookedSlots, 0);
         return SaleTourDTO.builder()
-                .id(schedule.getId())
+                .scheduleId(schedule.getId())
                 .name(tour.getName())
                 .thumbnailUrl(tour.getThumbnailUrl())
                 .durationDays(tour.getDurationDays())
@@ -145,6 +148,7 @@ public class HomepageServiceImpl implements HomepageService {
                 .tourTransport(tour.getTourTransport() != null ? tour.getTourTransport().name() : null)
                 .departureDates(departureDates)
                 .discountPercent(discount.getDiscountPercent())
+                .availableSeats(availableSeats)
                 .build();
     }
 
