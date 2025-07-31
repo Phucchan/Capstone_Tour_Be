@@ -2,11 +2,13 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.request.seller.SellerBookingUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingDetailDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourScheduleDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.tour.Booking;
+import com.fpt.capstone.tourism.model.tour.BookingCustomer;
 import com.fpt.capstone.tourism.repository.tour.TourDayRepository;
 import com.fpt.capstone.tourism.repository.tour.TourScheduleRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
@@ -120,6 +122,33 @@ public class SellerBookingServiceImpl implements SellerBookingService {
         SellerBookingDetailDTO dto = toDetailDTO(booking);
         return new GeneralResponse<>(HttpStatus.OK.value(), "Success", dto);
     }
+    @Override
+    @Transactional
+    public GeneralResponse<SellerBookingDetailDTO> updateBookedPerson(Long bookingId, SellerBookingUpdateRequestDTO requestDTO) {
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        BookingCustomer bookedPerson = bookingCustomerRepository
+                .findFirstByBooking_IdAndBookedPersonTrue(bookingId);
+        if (bookedPerson == null) {
+            throw BusinessException.of(HttpStatus.NOT_FOUND, "Booked person not found");
+        }
+
+        if (requestDTO.getFullName() != null) bookedPerson.setFullName(requestDTO.getFullName());
+        if (requestDTO.getAddress() != null) bookedPerson.setAddress(requestDTO.getAddress());
+        if (requestDTO.getEmail() != null) bookedPerson.setEmail(requestDTO.getEmail());
+        if (requestDTO.getPhone() != null) bookedPerson.setPhoneNumber(requestDTO.getPhone());
+
+        if (requestDTO.getPaymentDeadline() != null) {
+            booking.setExpiredAt(requestDTO.getPaymentDeadline());
+        }
+
+        bookingCustomerRepository.save(bookedPerson);
+        bookingRepository.save(booking);
+
+        SellerBookingDetailDTO dto = toDetailDTO(booking);
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Success", dto);
+    }
 
     private SellerBookingDetailDTO toDetailDTO(Booking booking) {
         var tour = booking.getTourSchedule().getTour();
@@ -137,6 +166,8 @@ public class SellerBookingServiceImpl implements SellerBookingService {
         int totalSeats = booking.getTourSchedule().getTourPax().getMaxQuantity();
         int soldSeats = bookingRepository.sumGuestsByTourScheduleId(booking.getTourSchedule().getId());
         int remainingSeats = Math.max(totalSeats - soldSeats, 0);
+        BookingCustomer bookedPerson = bookingCustomerRepository
+                .findFirstByBooking_IdAndBookedPersonTrue(booking.getId());
 
         // Fetch upcoming schedules of the same tour
         List<TourScheduleDTO> scheduleDTOs = tourScheduleRepository
@@ -160,6 +191,11 @@ public class SellerBookingServiceImpl implements SellerBookingService {
         return SellerBookingDetailDTO.builder()
                 .id(booking.getId())
                 .bookingCode(booking.getBookingCode())
+                .customerName(bookedPerson != null ? bookedPerson.getFullName() : null)
+                .address(bookedPerson != null ? bookedPerson.getAddress() : null)
+                .email(bookedPerson != null ? bookedPerson.getEmail() : null)
+                .phoneNumber(bookedPerson != null ? bookedPerson.getPhoneNumber() : null)
+                .paymentDeadline(booking.getExpiredAt())
                 .tourName(tour.getName())
                 .createdAt(booking.getCreatedAt())
                 .status(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
@@ -176,6 +212,7 @@ public class SellerBookingServiceImpl implements SellerBookingService {
                 .schedules(scheduleDTOs)
                 .build();
     }
+
 
     private SellerBookingSummaryDTO toSummaryDTO(Booking booking) {
         return SellerBookingSummaryDTO.builder()

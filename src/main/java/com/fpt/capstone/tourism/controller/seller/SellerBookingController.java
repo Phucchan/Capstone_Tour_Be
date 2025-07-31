@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.dto.request.booking.BookingBasicRequestDTO;
 import com.fpt.capstone.tourism.dto.request.booking.BookingRequestCustomerDTO;
 import com.fpt.capstone.tourism.dto.request.seller.BookingCustomerUpdateDTO;
 import com.fpt.capstone.tourism.dto.request.seller.SellerBookingCreateRequestDTO;
+import com.fpt.capstone.tourism.dto.request.seller.SellerBookingUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingDetailDTO;
 import com.fpt.capstone.tourism.model.tour.Booking;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingSummaryDTO;
@@ -63,12 +64,14 @@ public class SellerBookingController {
             @RequestParam String sellerUsername) {
         return ResponseEntity.ok(sellerBookingService.claimBooking(bookingId, sellerUsername));
     }
-    @PostMapping
-    public ResponseEntity<GeneralResponse<String>> createBooking(
-            @RequestBody SellerBookingCreateRequestDTO requestDTO) {
-        return ResponseEntity.ok(GeneralResponse.of(
-                tourBookingService.createBasicBookingWithCustomers(requestDTO)));
+    @PutMapping("/{bookingId}")
+    // update thông tin khách hàng
+    public ResponseEntity<GeneralResponse<SellerBookingDetailDTO>> updateBookedPerson(
+            @PathVariable Long bookingId,
+            @RequestBody SellerBookingUpdateRequestDTO requestDTO) {
+        return ResponseEntity.ok(sellerBookingService.updateBookedPerson(bookingId, requestDTO));
     }
+
     @PostMapping("/{bookingId}/schedule/{scheduleId}/customers")
     public ResponseEntity<GeneralResponse<String>> addCustomersToSchedule(
             @PathVariable Long bookingId,

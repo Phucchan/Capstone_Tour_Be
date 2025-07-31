@@ -18,6 +18,11 @@ public class SellerBookingDetailDTO {
     private Long id;
     private String bookingCode;
     private String tourName;
+    private String customerName;
+    private String address;
+    private String email;
+    private String phoneNumber;
+    private LocalDateTime paymentDeadline;
     private LocalDateTime createdAt;
     private String status;
     private String operator;
