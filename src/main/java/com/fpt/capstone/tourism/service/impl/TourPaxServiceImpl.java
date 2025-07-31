@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxUpdateRequestDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.ServiceBreakdownDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxFullDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.enums.CostType;
@@ -19,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPriceCalculateRequestDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,6 +35,8 @@ public class TourPaxServiceImpl implements TourPaxService {
     private final TourRepository tourRepository;
     private final TourPaxRepository tourPaxRepository;
     private final TourDayRepository tourDayRepository;
+    private static final Logger log = LoggerFactory.getLogger(TourPaxServiceImpl.class);
+
 
     private Tour getTourOrThrow(Long tourId) {
         return tourRepository.findById(tourId)
@@ -159,15 +164,24 @@ public class TourPaxServiceImpl implements TourPaxService {
     @Override
     @Transactional
     public GeneralResponse<List<TourPaxFullDTO>> calculatePrices(Long tourId, TourPriceCalculateRequestDTO request) {
+        log.info("Bắt đầu tính giá cho tour ID: {}", tourId);
         try {
             getTourOrThrow(tourId);
-            List<TourDay> days = tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId);
+
+            // SỬA LỖI: Gọi phương thức mới findByTourIdWithServices để đảm bảo danh sách dịch vụ được tải lên.
+            List<TourDay> days = tourDayRepository.findByTourIdWithServices(tourId);
+
+            if (days.isEmpty()) {
+                log.warn("Tour ID: {} không có ngày nào được cấu hình. Không thể tính chi phí.", tourId);
+            }
 
             double fixedCost = 0d;
             double perPersonCost = 0d;
+
             for (TourDay day : days) {
                 for (PartnerService service : day.getServices()) {
                     if (Boolean.TRUE.equals(service.getDeleted())) continue;
+
                     if (service.getCostType() == CostType.FIXED) {
                         fixedCost += service.getNettPrice();
                     } else if (service.getCostType() == CostType.PER_PERSON) {
@@ -175,25 +189,39 @@ public class TourPaxServiceImpl implements TourPaxService {
                     }
                 }
             }
+            log.info("Tour ID: {}. Chi phí tính toán được: fixedCost = {}, perPersonCost = {}", tourId, fixedCost, perPersonCost);
 
             double profitRate = request.getProfitRate() != null ? request.getProfitRate() / 100d : 0d;
             double extraCost = request.getExtraCost() != null ? request.getExtraCost() : 0d;
 
             List<TourPax> paxList = tourPaxRepository.findByTourId(tourId);
+            if (paxList.isEmpty()) {
+                log.warn("Tour ID: {} không có khung giá (pax) nào.", tourId);
+            }
+
             for (TourPax pax : paxList) {
                 int paxCount = pax.getMaxQuantity();
-                double totalCostPerPax = (fixedCost + perPersonCost * paxCount) / paxCount;
+                if (paxCount == 0) {
+                    log.error("Lỗi nghiêm trọng: maxQuantity của Pax ID {} bằng 0. Bỏ qua.", pax.getId());
+                    continue;
+                }
+
+                double totalCostPerPax = (fixedCost / paxCount) + perPersonCost;
                 pax.setFixedPrice(totalCostPerPax);
+
                 double sellingPrice = totalCostPerPax * (1 + profitRate) + extraCost;
                 pax.setSellingPrice(sellingPrice);
+                log.info(" -> Pax ID {}: ({} - {} khách): Giá vốn = {}, Giá bán = {}", pax.getId(), pax.getMinQuantity(), pax.getMaxQuantity(), totalCostPerPax, sellingPrice);
             }
 
             tourPaxRepository.saveAll(paxList);
             List<TourPaxFullDTO> dtos = paxList.stream().map(this::toDTO).collect(Collectors.toList());
+            log.info("Hoàn tất tính giá cho tour ID: {}", tourId);
             return new GeneralResponse<>(HttpStatus.OK.value(), CONFIG_UPDATED, dtos);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
+            log.error("Lỗi không xác định khi tính giá cho tour ID: " + tourId, ex);
             throw BusinessException.of(HttpStatus.INTERNAL_SERVER_ERROR, FAILED_TO_UPDATE_PAX_CONFIGURATION, ex);
         }
     }
@@ -210,5 +238,49 @@ public class TourPaxServiceImpl implements TourPaxService {
                 .sellingPrice(pax.getSellingPrice())
                 .isDeleted(Boolean.TRUE.equals(pax.getDeleted()))
                 .build();
+    }
+
+    @Override
+    public GeneralResponse<List<ServiceBreakdownDTO>> getServiceBreakdown(Long tourId) {
+        tourRepository.findById(tourId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
+
+        List<TourDay> days = tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId);
+
+        // Sử dụng vòng lặp for-each thay vì stream để dễ dàng kiểm tra null và gỡ lỗi
+        List<ServiceBreakdownDTO> results = new java.util.ArrayList<>();
+        for (TourDay day : days) {
+            for (com.fpt.capstone.tourism.model.partner.PartnerService service : day.getServices()) {
+
+                // Bắt đầu kiểm tra null để đảm bảo an toàn
+                String serviceTypeName = "N/A";
+                if (service.getServiceType() != null) {
+                    serviceTypeName = service.getServiceType().getName();
+                }
+
+                String partnerName = "N/A";
+                String partnerAddress = "N/A";
+                if (service.getPartner() != null) {
+                    partnerName = service.getPartner().getName();
+                    if (service.getPartner().getLocation() != null) {
+                        partnerAddress = service.getPartner().getLocation().getName();
+                    }
+                }
+                // Kết thúc kiểm tra null
+
+                results.add(ServiceBreakdownDTO.builder()
+                        .dayId(day.getId())
+                        .serviceId(service.getId())
+                        .dayNumber(day.getDayNumber())
+                        .serviceTypeName(serviceTypeName)
+                        .partnerName(partnerName)
+                        .partnerAddress(partnerAddress)
+                        .nettPrice(service.getNettPrice())
+                        .sellingPrice(service.getSellingPrice())
+                        .build());
+            }
+        }
+
+        return GeneralResponse.of(results);
     }
 }

@@ -403,49 +403,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         return GeneralResponse.of(Constants.Message.TOUR_DAY_DELETED_SUCCESS);
     }
 
-    @Override
-    public GeneralResponse<List<ServiceBreakdownDTO>> getServiceBreakdown(Long tourId) {
-        tourRepository.findById(tourId)
-                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
 
-        List<TourDay> days = tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId);
-
-        // Sử dụng vòng lặp for-each thay vì stream để dễ dàng kiểm tra null và gỡ lỗi
-        List<ServiceBreakdownDTO> results = new java.util.ArrayList<>();
-        for (TourDay day : days) {
-            for (com.fpt.capstone.tourism.model.partner.PartnerService service : day.getServices()) {
-
-                // Bắt đầu kiểm tra null để đảm bảo an toàn
-                String serviceTypeName = "N/A";
-                if (service.getServiceType() != null) {
-                    serviceTypeName = service.getServiceType().getName();
-                }
-
-                String partnerName = "N/A";
-                String partnerAddress = "N/A";
-                if (service.getPartner() != null) {
-                    partnerName = service.getPartner().getName();
-                    if (service.getPartner().getLocation() != null) {
-                        partnerAddress = service.getPartner().getLocation().getName();
-                    }
-                }
-                // Kết thúc kiểm tra null
-
-                results.add(ServiceBreakdownDTO.builder()
-                        .dayId(day.getId())
-                        .serviceId(service.getId())
-                        .dayNumber(day.getDayNumber())
-                        .serviceTypeName(serviceTypeName)
-                        .partnerName(partnerName)
-                        .partnerAddress(partnerAddress)
-                        .nettPrice(service.getNettPrice())
-                        .sellingPrice(service.getSellingPrice())
-                        .build());
-            }
-        }
-
-        return GeneralResponse.of(results);
-    }
 
     @Override
     public GeneralResponse<TourDayManagerDTO> addServiceToTourDay(Long tourId, Long dayId, Long serviceId) {
