@@ -46,4 +46,13 @@ public class TourSchedule extends BaseEntity {
     @Column(name = "is_published")
     private boolean published;
 
+    @Column(name = "price", nullable = false)
+    private double price;
+
+    @Column(name = "extra_hotel_cost", nullable = false)
+    private double extraHotelCost;
+
+    @Column(name = "available_seats", nullable = false)
+    private Integer availableSeats;
+
 }
