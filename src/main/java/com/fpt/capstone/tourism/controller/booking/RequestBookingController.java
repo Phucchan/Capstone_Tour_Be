@@ -18,4 +18,8 @@ public class RequestBookingController {
     public ResponseEntity<GeneralResponse<RequestBookingDTO>> create(@RequestBody RequestBookingDTO requestBookingDTO) {
         return ResponseEntity.ok(requestBookingService.createRequest(requestBookingDTO));
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<GeneralResponse<RequestBookingDTO>> get(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(requestBookingService.getRequest(id));
+    }
 }
