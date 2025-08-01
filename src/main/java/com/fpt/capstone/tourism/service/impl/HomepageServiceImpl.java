@@ -137,6 +137,7 @@ public class HomepageServiceImpl implements HomepageService {
         int availableSeats = Math.max(totalSlots - bookedSlots, 0);
         return SaleTourDTO.builder()
                 .scheduleId(schedule.getId())
+                .tourId(tour.getId())
                 .name(tour.getName())
                 .thumbnailUrl(tour.getThumbnailUrl())
                 .durationDays(tour.getDurationDays())
