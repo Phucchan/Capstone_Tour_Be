@@ -8,6 +8,7 @@ import com.fpt.capstone.tourism.dto.request.seller.SellerBookingCreateRequestDTO
 import com.fpt.capstone.tourism.dto.response.booking.BookingConfirmResponse;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.tour.Booking;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 
@@ -18,4 +19,13 @@ public interface TourBookingService {
     void addCustomersToSchedule(Long bookingId, Long scheduleId, List<BookingRequestCustomerDTO> customers);
     void confirmPayment(int paymentStatus, String orderInfo);
     BookingConfirmResponse getTourBookingDetails(String bookingCode);
+
+    @Transactional
+    String createBasicBookingWithCustomers(SellerBookingCreateRequestDTO requestDTO);
+
+    @Transactional
+    String createBasicBooking(BookingBasicRequestDTO requestDTO);
+
+    @Transactional
+    void addCustomers(String bookingCode, List<BookingRequestCustomerDTO> customers);
 }
