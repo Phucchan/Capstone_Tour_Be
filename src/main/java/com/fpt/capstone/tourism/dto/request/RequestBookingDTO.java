@@ -12,6 +12,10 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RequestBookingDTO {
+    private Long userId;
+    private Long departLocationId;
+    private Double priceMin;
+    private Double priceMax;
     private String location;
     private String locationDetail;
     private LocalDate startDate;
