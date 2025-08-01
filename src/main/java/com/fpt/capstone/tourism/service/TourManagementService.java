@@ -23,7 +23,7 @@ public interface TourManagementService {
 
     GeneralResponse<TourDetailManagerDTO> createTour(TourCreateManagerRequestDTO requestDTO);
 
-    public GeneralResponse<Object> changeStatus(Long id, ChangeStatusDTO changeStatusDTO);
+    GeneralResponse<Object> changeStatus(Long id, ChangeStatusDTO changeStatusDTO);
 
     GeneralResponse<TourDetailOptionsDTO> getTourDetail(Long id);
 
@@ -42,8 +42,6 @@ public interface TourManagementService {
     GeneralResponse<TourDayManagerDTO> updateServiceInTourDay(Long tourId, Long dayId, Long serviceId, Long newServiceId);
 
     GeneralResponse<TourDayManagerDTO> removeServiceFromTourDay(Long tourId, Long dayId, Long serviceId);
-
-    GeneralResponse<List<ServiceBreakdownDTO>> getServiceBreakdown(Long tourId);
 
 
     GeneralResponse<TourOptionsDTO> getTourOptions();

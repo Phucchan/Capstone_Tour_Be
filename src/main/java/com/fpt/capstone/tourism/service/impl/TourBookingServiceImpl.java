@@ -132,6 +132,41 @@ public class TourBookingServiceImpl implements TourBookingService {
 
     @Override
     @Transactional
+    public void addCustomersToSchedule(Long bookingId, Long scheduleId, java.util.List<BookingRequestCustomerDTO> customers) {
+        try {
+            Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                    .orElseThrow(() -> BusinessException.of("Booking not found"));
+
+            if (!booking.getTourSchedule().getId().equals(scheduleId)) {
+                throw BusinessException.of("Schedule mismatch");
+            }
+
+            List<BookingCustomer> entities = bookingCustomerMapper.toEntity(customers);
+            for (BookingCustomer bc : entities) {
+                bc.setBooking(booking);
+            }
+            bookingCustomerRepository.saveAll(entities);
+
+            booking.setAdults((int) entities.stream().filter(c -> c.getPaxType() == PaxType.ADULT).count()
+                    + (booking.getAdults() != null ? booking.getAdults() : 0));
+            booking.setChildren((int) entities.stream().filter(c -> c.getPaxType() == PaxType.CHILD).count()
+                    + (booking.getChildren() != null ? booking.getChildren() : 0));
+            booking.setInfants((int) entities.stream().filter(c -> c.getPaxType() == PaxType.INFANT).count()
+                    + (booking.getInfants() != null ? booking.getInfants() : 0));
+            booking.setToddlers((int) entities.stream().filter(c -> c.getPaxType() == PaxType.TODDLER).count()
+                    + (booking.getToddlers() != null ? booking.getToddlers() : 0));
+
+            bookingRepository.save(booking);
+        } catch (Exception ex) {
+            throw BusinessException.of("Thêm khách hàng thất bại", ex);
+        }
+    }
+
+
+
+
+    @Override
+    @Transactional
     public void saveTourBookingService(Booking booking, int totalCustomers) {
         TourSchedule tourSchedule = booking.getTourSchedule();
         List<PartnerServiceWithDayDTO> dtos = partnerServiceRepository.findServicesWithDayNumberByScheduleId(tourSchedule.getId());
@@ -273,15 +308,79 @@ public class TourBookingServiceImpl implements TourBookingService {
         messagingTemplate.convertAndSend("/topic/bookings", dto);
     }
 
+
+
     @Override
     @Transactional
-    public void addCustomersToSchedule(Long bookingId, Long scheduleId, java.util.List<BookingRequestCustomerDTO> customers) {
-        try {
-            Booking booking = bookingRepository.findByIdForUpdate(bookingId)
-                    .orElseThrow(() -> BusinessException.of("Booking not found"));
+    public String createBasicBookingWithCustomers(SellerBookingCreateRequestDTO requestDTO) {
+        String bookingCode = createBasicBooking(
+                BookingBasicRequestDTO.builder()
+                        .userId(requestDTO.getUserId())
+                        .tourId(requestDTO.getTourId())
+                        .scheduleId(requestDTO.getScheduleId())
+                        .fullName(requestDTO.getFullName())
+                        .address(requestDTO.getAddress())
+                        .email(requestDTO.getEmail())
+                        .phone(requestDTO.getPhone())
+                        .paymentDeadline(requestDTO.getPaymentDeadline())
+                        .paymentMethod(requestDTO.getPaymentMethod())
+                        .note(requestDTO.getNote())
+                        .build());
 
-            if (!booking.getTourSchedule().getId().equals(scheduleId)) {
-                throw BusinessException.of("Schedule mismatch");
+        if (requestDTO.getCustomers() != null && !requestDTO.getCustomers().isEmpty()) {
+            addCustomers(bookingCode, requestDTO.getCustomers());
+        }
+        return bookingCode;
+    }
+    @Override
+    @Transactional
+    public String createBasicBooking(BookingBasicRequestDTO requestDTO) {
+        try {
+            var schedule = tourScheduleRepository.findById(requestDTO.getScheduleId())
+                    .orElseThrow(() -> BusinessException.of("Schedule not found"));
+
+            String bookingCode = bookingHelper.generateBookingCode(
+                    requestDTO.getTourId() != null ? requestDTO.getTourId() : schedule.getTour().getId(),
+                    requestDTO.getScheduleId(), requestDTO.getUserId());
+
+            Booking booking = Booking.builder()
+                    .tourSchedule(schedule)
+                    .bookingCode(bookingCode)
+                    .user(User.builder().id(requestDTO.getUserId()).build())
+                    .bookingStatus(BookingStatus.PENDING)
+                    .paymentMethod(requestDTO.getPaymentMethod())
+                    .expiredAt(requestDTO.getPaymentDeadline())
+                    .note(requestDTO.getNote())
+                    .build();
+
+            bookingRepository.save(booking);
+
+            BookingCustomer bookedPerson = BookingCustomer.builder()
+                    .paxType(PaxType.ADULT)
+                    .fullName(requestDTO.getFullName())
+                    .email(requestDTO.getEmail())
+                    .phoneNumber(requestDTO.getPhone())
+                    .address(requestDTO.getAddress())
+                    .bookedPerson(true)
+                    .booking(booking)
+                    .build();
+
+            bookingCustomerRepository.save(bookedPerson);
+
+            notifyNewBooking(booking);
+            return bookingCode;
+        } catch (Exception ex) {
+            throw BusinessException.of("Tạo Booking Thất Bại", ex);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void addCustomers(String bookingCode, java.util.List<BookingRequestCustomerDTO> customers) {
+        try {
+            Booking booking = bookingRepository.findByBookingCode(bookingCode);
+            if (booking == null) {
+                throw BusinessException.of("Booking not found");
             }
 
             List<BookingCustomer> entities = bookingCustomerMapper.toEntity(customers);
@@ -290,6 +389,7 @@ public class TourBookingServiceImpl implements TourBookingService {
             }
             bookingCustomerRepository.saveAll(entities);
 
+            // update guest counts
             booking.setAdults((int) entities.stream().filter(c -> c.getPaxType() == PaxType.ADULT).count()
                     + (booking.getAdults() != null ? booking.getAdults() : 0));
             booking.setChildren((int) entities.stream().filter(c -> c.getPaxType() == PaxType.CHILD).count()
@@ -304,4 +404,5 @@ public class TourBookingServiceImpl implements TourBookingService {
             throw BusinessException.of("Thêm khách hàng thất bại", ex);
         }
     }
+
 }

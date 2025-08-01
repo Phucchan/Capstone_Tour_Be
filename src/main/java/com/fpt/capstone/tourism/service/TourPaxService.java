@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPriceCalculateRequestDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.ServiceBreakdownDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxFullDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxUpdateRequestDTO;
@@ -22,4 +23,7 @@ public interface TourPaxService {
 
     @Transactional
     GeneralResponse<List<TourPaxFullDTO>> calculatePrices(Long tourId, TourPriceCalculateRequestDTO request);
+
+    GeneralResponse<List<ServiceBreakdownDTO>> getServiceBreakdown(Long tourId);
+
 }

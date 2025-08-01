@@ -58,17 +58,21 @@ public class TourScheduleServiceImpl implements TourScheduleService {
         schedule.setTour(tour);
         schedule.setCoordinator(coordinator);
         schedule.setTourPax(tourPax);
+
+        // Lấy giá và phụ phí từ TourPax và gán vào TourSchedule
+        schedule.setPrice(tourPax.getSellingPrice());
+        schedule.setExtraHotelCost(tourPax.getExtraHotelCost());
+        // Tính toán số ghế trống ban đầu
+        schedule.setAvailableSeats(tourPax.getMaxQuantity());
+        // ================================================================
+
+
         LocalDateTime departureDate = requestDTO.getDepartureDate();
-        LocalDateTime maxEndDate = departureDate.plusDays(tour.getDurationDays() - 1L);
-        LocalDateTime endDate = requestDTO.getEndDate();
-        if (endDate == null) {
-            endDate = maxEndDate;
-        } else if (endDate.isAfter(maxEndDate)) {
-            throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.SCHEDULE_END_DATE_EXCEEDS_DURATION);
-        }
+        // SỬA LỖI: Tính toán ngày kết thúc phải dựa trên durationDays của Tour
+        LocalDateTime endDate = departureDate.plusDays(tour.getDurationDays() - 1L);
 
         schedule.setDepartureDate(departureDate);
-        schedule.setEndDate(endDate);
+        schedule.setEndDate(endDate); // Gán ngày kết thúc đã được tính toán
         schedule.setPublished(false);
 
         TourSchedule saved = tourScheduleRepository.save(schedule);

@@ -13,8 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import com.fpt.capstone.tourism.dto.response.tourManager.ServiceBreakdownDTO;
-import com.fpt.capstone.tourism.service.TourManagementService;
-import org.springframework.http.HttpStatus;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,7 +20,7 @@ import org.springframework.http.HttpStatus;
 public class TourPaxController {
     private final TourPaxService tourPaxService;
     private final PartnerServiceService partnerServiceService;
-    private final TourManagementService tourManagementService;
+
 
 
     @GetMapping("/tour/{tourId}/tour-pax")
@@ -81,19 +79,7 @@ public class TourPaxController {
     @GetMapping("/tours/{tourId}/services")
     public ResponseEntity<GeneralResponse<List<ServiceBreakdownDTO>>> getServiceBreakdown(
             @PathVariable Long tourId) {
-        return ResponseEntity.ok(tourManagementService.getServiceBreakdown(tourId));
+        return ResponseEntity.ok(tourPaxService.getServiceBreakdown(tourId));
     }
 
-//    @GetMapping("/markup")
-//    public ResponseEntity<GeneralResponse<TourMarkupResponseDTO>> getTourMarkupPercentage(
-//            @PathVariable Long tourId) {
-//        return ResponseEntity.ok(tourService.getTourMarkupPercentage(tourId));
-//    }
-//
-//    @PutMapping("/update-markup")
-//    public ResponseEntity<GeneralResponse<TourResponseDTO>> updateTourMarkupPercentage(
-//            @PathVariable Long tourId,
-//            @RequestBody TourMarkupUpdateRequestDTO request) {
-//        return ResponseEntity.ok(tourService.updateTourMarkupPercentage(tourId, request.getMarkUpPercent()));
-//    }
 }
