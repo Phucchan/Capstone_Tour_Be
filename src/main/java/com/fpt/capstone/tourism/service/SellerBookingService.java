@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.request.booking.BookingRequestCustomerDTO;
 import com.fpt.capstone.tourism.dto.request.seller.BookingCustomerUpdateDTO;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.seller.SellerBookingUpdateRequestDTO;
@@ -25,4 +26,8 @@ public interface SellerBookingService {
     GeneralResponse<SellerBookingDetailDTO> updateBookedPerson(Long bookingId, SellerBookingUpdateRequestDTO requestDTO);
 
     GeneralResponse<SellerBookingDetailDTO> updateBookingStatus(Long bookingId, BookingStatus status);
+
+    GeneralResponse<SellerBookingDetailDTO> updateCustomer(Long customerId, BookingRequestCustomerDTO requestDTO);
+
+    GeneralResponse<SellerBookingDetailDTO> deleteCustomer(Long customerId);
 }

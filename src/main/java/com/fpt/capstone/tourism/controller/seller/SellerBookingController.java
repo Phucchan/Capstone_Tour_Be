@@ -83,6 +83,18 @@ public class SellerBookingController {
             @RequestParam BookingStatus status) {
         return ResponseEntity.ok(sellerBookingService.updateBookingStatus(bookingId, status));
     }
+    @PutMapping("/customers/{customerId}")
+    public ResponseEntity<GeneralResponse<SellerBookingDetailDTO>> updateCustomer(
+            @PathVariable Long customerId,
+            @RequestBody BookingRequestCustomerDTO requestDTO) {
+        return ResponseEntity.ok(sellerBookingService.updateCustomer(customerId, requestDTO));
+    }
+
+    @DeleteMapping("/customers/{customerId}")
+    public ResponseEntity<GeneralResponse<SellerBookingDetailDTO>> deleteCustomer(
+            @PathVariable Long customerId) {
+        return ResponseEntity.ok(sellerBookingService.deleteCustomer(customerId));
+    }
 }
 
 
