@@ -114,8 +114,12 @@ public class LocationServiceImpl implements LocationService {
     public GeneralResponse<PagingDTO<LocationDTO>> getListLocation(int page, int size, String keyword) {
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
-            Specification<Location> spec = buildSearchSpecification(keyword, false);
-            Page<Location> locationPage = locationRepository.findAll(spec, pageable);
+            Page<Location> locationPage;
+            if (keyword != null && !keyword.isEmpty()) {
+                locationPage = locationRepository.findByNameContainingIgnoreCase(keyword, pageable);
+            } else {
+                locationPage = locationRepository.findAll(pageable);
+            }
             return buildPagedResponse(locationPage);
         } catch (BusinessException be) {
             throw be;
@@ -124,22 +128,7 @@ public class LocationServiceImpl implements LocationService {
         }
     }
 
-    private Specification<Location> buildSearchSpecification(String keyword, Boolean isDeleted) {
-        return (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
 
-            if (keyword != null && !keyword.isEmpty()) {
-                Predicate namePredicate = cb.like(root.get("name"), "%" + keyword + "%");
-                predicates.add(namePredicate);
-            }
-
-            if (isDeleted != null) {
-                predicates.add(cb.equal(root.get("deleted"), isDeleted));
-            }
-
-            return cb.and(predicates.toArray(new Predicate[0]));
-        };
-    }
 
     @Override
     public GeneralResponse<LocationDTO> updateLocation(Long id, LocationRequestDTO locationRequestDTO) {
@@ -176,6 +165,6 @@ public class LocationServiceImpl implements LocationService {
                 .items(locationDTOS) // Bây giờ sẽ không còn lỗi
                 .build();
 
-        return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
+        return new GeneralResponse<>(HttpStatus.OK.value(), GET_LOCATIONS_SUCCESS, pagingDTO);
     }
 }
