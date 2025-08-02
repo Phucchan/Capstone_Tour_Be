@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.seller.SellerBookingUpdateRequestDTO;
+import com.fpt.capstone.tourism.dto.response.seller.SellerBookingCustomerDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingDetailDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourScheduleDTO;
@@ -169,6 +170,22 @@ public class SellerBookingServiceImpl implements SellerBookingService {
         BookingCustomer bookedPerson = bookingCustomerRepository
                 .findFirstByBooking_IdAndBookedPersonTrue(booking.getId());
 
+        List<SellerBookingCustomerDTO> customerDTOs = bookingCustomerRepository.findByBooking_Id(booking.getId()).stream()
+                .filter(c -> !c.isBookedPerson())
+                .map(c -> SellerBookingCustomerDTO.builder()
+                        .id(c.getId())
+                        .fullName(c.getFullName())
+                        .phoneNumber(c.getPhoneNumber())
+                        .dateOfBirth(c.getDateOfBirth())
+                        .gender(c.getGender())
+                        .paxType(c.getPaxType())
+                        .pickUpAddress(c.getPickUpAddress())
+                        .singleRoom(c.isSingleRoom())
+                        .note(c.getNote())
+                        .status(c.getDeleted() != null && c.getDeleted() ? "DELETED" : "ACTIVE")
+                        .build())
+                .toList();
+
         // Fetch upcoming schedules of the same tour
         List<TourScheduleDTO> scheduleDTOs = tourScheduleRepository
                 .findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(
@@ -210,6 +227,7 @@ public class SellerBookingServiceImpl implements SellerBookingService {
                 .soldSeats(soldSeats)
                 .remainingSeats(remainingSeats)
                 .schedules(scheduleDTOs)
+                .customers(customerDTOs)
                 .build();
     }
 
