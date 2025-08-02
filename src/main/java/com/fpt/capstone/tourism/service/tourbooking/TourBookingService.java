@@ -1,14 +1,10 @@
 package com.fpt.capstone.tourism.service.tourbooking;
 
-import com.fpt.capstone.tourism.dto.general.GeneralResponse;
-import com.fpt.capstone.tourism.dto.request.booking.BookingBasicRequestDTO;
 import com.fpt.capstone.tourism.dto.request.booking.BookingRequestCustomerDTO;
 import com.fpt.capstone.tourism.dto.request.booking.BookingRequestDTO;
-import com.fpt.capstone.tourism.dto.request.seller.SellerBookingCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.booking.BookingConfirmResponse;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.tour.Booking;
-import jakarta.transaction.Transactional;
 
 import java.util.List;
 

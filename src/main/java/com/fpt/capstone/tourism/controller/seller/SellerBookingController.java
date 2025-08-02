@@ -2,7 +2,6 @@ package com.fpt.capstone.tourism.controller.seller;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.booking.BookingRequestCustomerDTO;
-import com.fpt.capstone.tourism.dto.request.seller.SellerBookingCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.seller.SellerBookingUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingDetailDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingSummaryDTO;
