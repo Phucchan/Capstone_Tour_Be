@@ -33,7 +33,7 @@ public class RequestBooking extends BaseEntity {
     @JoinColumn(name = "depart_location_id")
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Location departLocation;
+    private Location departureLocation;
 
     @Column(name = "price_min")
     private Double priceMin;
@@ -41,11 +41,11 @@ public class RequestBooking extends BaseEntity {
     @Column(name = "price_max")
     private Double priceMax;
 
-    @Column(columnDefinition = "text")
-    private String location;
+    @Column(name = "location", columnDefinition = "text")
+    private String destination;
 
     @Column(name = "location_detail", columnDefinition = "text")
-    private String locationDetail;
+    private String destinationDetail;
 
     @Column(name = "start_date")
     private LocalDate startDate;
