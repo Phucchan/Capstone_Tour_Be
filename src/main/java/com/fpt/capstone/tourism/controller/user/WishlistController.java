@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.controller.user;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.response.WishlistTourSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
 import com.fpt.capstone.tourism.service.WishlistService;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ public class WishlistController {
     }
     @GetMapping
     //postman http://localhost:8080/v1/public/users/1/wishlists
-    public ResponseEntity<GeneralResponse<List<TourSummaryDTO>>> getWishlist(@PathVariable Long userId) {
+    public ResponseEntity<GeneralResponse<List<WishlistTourSummaryDTO>>> getWishlist(@PathVariable Long userId) {
         return ResponseEntity.ok(wishlistService.getWishlist(userId));
     }
 }

@@ -40,7 +40,7 @@ public class SellerBookingController {
     }
 
     @GetMapping("/{bookingId}")
-    //postman http://localhost:8080/seller/bookings/1
+    //postman http://localhost:8080/v1/seller/bookings/17
     public ResponseEntity<GeneralResponse<SellerBookingDetailDTO>> getBookingDetail(
             @PathVariable Long bookingId) {
         return ResponseEntity.ok(sellerBookingService.getBookingDetail(bookingId));

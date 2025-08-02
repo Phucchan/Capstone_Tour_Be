@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.response.WishlistTourSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.TourMapper;
@@ -75,10 +76,10 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
-    public GeneralResponse<List<TourSummaryDTO>> getWishlist(Long userId) {
+    public GeneralResponse<List<WishlistTourSummaryDTO>> getWishlist(Long userId) {
         try {
             List<Wishlist> wishlists = wishlistRepository.findByUserId(userId);
-            List<TourSummaryDTO> dtos = wishlists.stream()
+            List<WishlistTourSummaryDTO> dtos = wishlists.stream()
                     .map(w -> {
                         Tour tour = w.getTour();
                         TourSummaryDTO dto = tourMapper.tourToTourSummaryDTO(tour);
@@ -86,7 +87,10 @@ public class WishlistServiceImpl implements WishlistService {
                         Double startingPrice = tourPaxRepository.findStartingPriceByTourId(tour.getId());
                         dto.setAverageRating(rating);
                         dto.setStartingPrice(startingPrice);
-                        return dto;
+                        return WishlistTourSummaryDTO.builder()
+                                .wishlistId(w.getId())
+                                .tour(dto)
+                                .build();
                     })
                     .collect(Collectors.toList());
             return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.WISHLIST_LOAD_SUCCESS, dtos);
