@@ -38,4 +38,6 @@ public interface LocationRepository extends JpaRepository<Location, Long>, JpaSp
 
     @Query(value = "SELECT * FROM location WHERE is_deleted = FALSE", nativeQuery = true)
     List<Location> findAllLocations();
+
+    List<Location> findByDeletedFalseOrderByNameAsc();
 }
