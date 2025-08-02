@@ -438,6 +438,8 @@ public class TourBookingServiceImpl implements TourBookingService {
             booking.setTotalAmount(booking.getTotalAmount() + totalAdded
                     + extraHotel * singleRooms);
 
+            
+
             bookingRepository.save(booking);
         } catch (Exception ex) {
             throw BusinessException.of("Thêm khách hàng thất bại", ex);
