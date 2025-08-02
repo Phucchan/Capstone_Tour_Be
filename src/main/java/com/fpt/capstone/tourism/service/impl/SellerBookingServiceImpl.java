@@ -8,6 +8,7 @@ import com.fpt.capstone.tourism.dto.response.seller.SellerBookingDetailDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourScheduleDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.model.enums.BookingStatus;
 import com.fpt.capstone.tourism.model.tour.Booking;
 import com.fpt.capstone.tourism.model.tour.BookingCustomer;
 import com.fpt.capstone.tourism.repository.tour.TourDayRepository;
@@ -145,6 +146,26 @@ public class SellerBookingServiceImpl implements SellerBookingService {
         }
 
         bookingCustomerRepository.save(bookedPerson);
+        bookingRepository.save(booking);
+
+        SellerBookingDetailDTO dto = toDetailDTO(booking);
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Success", dto);
+    }
+    @Override
+    @Transactional
+    public GeneralResponse<SellerBookingDetailDTO> updateBookingStatus(Long bookingId, BookingStatus status) {
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        if (status != BookingStatus.CONFIRMED) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Invalid status");
+        }
+
+        if (booking.getBookingStatus() != BookingStatus.PENDING) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Booking is not pending");
+        }
+
+        booking.setBookingStatus(BookingStatus.CONFIRMED);
         bookingRepository.save(booking);
 
         SellerBookingDetailDTO dto = toDetailDTO(booking);

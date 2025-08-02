@@ -6,6 +6,7 @@ import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.seller.SellerBookingUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingDetailDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingSummaryDTO;
+import com.fpt.capstone.tourism.model.enums.BookingStatus;
 import com.fpt.capstone.tourism.model.tour.Booking;
 
 import java.util.List;
@@ -22,4 +23,6 @@ public interface SellerBookingService {
     GeneralResponse<SellerBookingDetailDTO> claimBooking(Long bookingId, String sellerUsername);
 
     GeneralResponse<SellerBookingDetailDTO> updateBookedPerson(Long bookingId, SellerBookingUpdateRequestDTO requestDTO);
+
+    GeneralResponse<SellerBookingDetailDTO> updateBookingStatus(Long bookingId, BookingStatus status);
 }

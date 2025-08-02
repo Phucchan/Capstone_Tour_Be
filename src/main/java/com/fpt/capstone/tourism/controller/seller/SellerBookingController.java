@@ -6,6 +6,7 @@ import com.fpt.capstone.tourism.dto.request.seller.SellerBookingCreateRequestDTO
 import com.fpt.capstone.tourism.dto.request.seller.SellerBookingUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingDetailDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingSummaryDTO;
+import com.fpt.capstone.tourism.model.enums.BookingStatus;
 import com.fpt.capstone.tourism.service.SellerBookingService;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.service.tourbooking.TourBookingService;
@@ -76,6 +77,12 @@ public class SellerBookingController {
             @RequestBody List<BookingRequestCustomerDTO> customers) {
         tourBookingService.addCustomersToSchedule(bookingId, scheduleId, customers);
         return ResponseEntity.ok(GeneralResponse.of("success"));
+    }
+    @PatchMapping("/{bookingId}/status")
+    public ResponseEntity<GeneralResponse<SellerBookingDetailDTO>> updateBookingStatus(
+            @PathVariable Long bookingId,
+            @RequestParam BookingStatus status) {
+        return ResponseEntity.ok(sellerBookingService.updateBookingStatus(bookingId, status));
     }
 }
 

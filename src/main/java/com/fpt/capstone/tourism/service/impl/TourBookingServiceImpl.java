@@ -147,14 +147,33 @@ public class TourBookingServiceImpl implements TourBookingService {
             }
             bookingCustomerRepository.saveAll(entities);
 
-            booking.setAdults((int) entities.stream().filter(c -> c.getPaxType() == PaxType.ADULT).count()
-                    + (booking.getAdults() != null ? booking.getAdults() : 0));
-            booking.setChildren((int) entities.stream().filter(c -> c.getPaxType() == PaxType.CHILD).count()
-                    + (booking.getChildren() != null ? booking.getChildren() : 0));
-            booking.setInfants((int) entities.stream().filter(c -> c.getPaxType() == PaxType.INFANT).count()
-                    + (booking.getInfants() != null ? booking.getInfants() : 0));
-            booking.setToddlers((int) entities.stream().filter(c -> c.getPaxType() == PaxType.TODDLER).count()
-                    + (booking.getToddlers() != null ? booking.getToddlers() : 0));
+            long adults = entities.stream().filter(c -> c.getPaxType() == PaxType.ADULT).count();
+            long children = entities.stream().filter(c -> c.getPaxType() == PaxType.CHILD).count();
+            long infants = entities.stream().filter(c -> c.getPaxType() == PaxType.INFANT).count();
+            long toddlers = entities.stream().filter(c -> c.getPaxType() == PaxType.TODDLER).count();
+
+            booking.setAdults((int) adults + (booking.getAdults() != null ? booking.getAdults() : 0));
+            booking.setChildren((int) children + (booking.getChildren() != null ? booking.getChildren() : 0));
+            booking.setInfants((int) infants + (booking.getInfants() != null ? booking.getInfants() : 0));
+            booking.setToddlers((int) toddlers + (booking.getToddlers() != null ? booking.getToddlers() : 0));
+
+            int singleRooms = (int) entities.stream().filter(BookingCustomer::isSingleRoom).count();
+            booking.setSingleRooms((booking.getSingleRooms() != null ? booking.getSingleRooms() : 0) + singleRooms);
+
+            double pricePerPerson = booking.getSellingPrice() != null ? booking.getSellingPrice()
+                    : booking.getTourSchedule().getTourPax().getSellingPrice();
+            double extraHotel = booking.getExtraHotelCost() != null ? booking.getExtraHotelCost()
+                    : booking.getTourSchedule().getTourPax().getExtraHotelCost();
+
+            double totalAdded = pricePerPerson * adults
+                    + pricePerPerson * 0.75 * children
+                    + pricePerPerson * 0.5 * infants
+                    + pricePerPerson * toddlers;
+
+            booking.setSellingPrice(pricePerPerson);
+            booking.setExtraHotelCost(extraHotel);
+            booking.setTotalAmount(booking.getTotalAmount() + totalAdded
+                    + extraHotel * singleRooms);
 
             bookingRepository.save(booking);
         } catch (Exception ex) {
@@ -351,6 +370,8 @@ public class TourBookingServiceImpl implements TourBookingService {
                     .paymentMethod(requestDTO.getPaymentMethod())
                     .expiredAt(requestDTO.getPaymentDeadline())
                     .note(requestDTO.getNote())
+                    .sellingPrice(schedule.getTourPax().getSellingPrice())
+                    .extraHotelCost(schedule.getTourPax().getExtraHotelCost())
                     .build();
 
             bookingRepository.save(booking);
@@ -389,15 +410,33 @@ public class TourBookingServiceImpl implements TourBookingService {
             }
             bookingCustomerRepository.saveAll(entities);
 
-            // update guest counts
-            booking.setAdults((int) entities.stream().filter(c -> c.getPaxType() == PaxType.ADULT).count()
-                    + (booking.getAdults() != null ? booking.getAdults() : 0));
-            booking.setChildren((int) entities.stream().filter(c -> c.getPaxType() == PaxType.CHILD).count()
-                    + (booking.getChildren() != null ? booking.getChildren() : 0));
-            booking.setInfants((int) entities.stream().filter(c -> c.getPaxType() == PaxType.INFANT).count()
-                    + (booking.getInfants() != null ? booking.getInfants() : 0));
-            booking.setToddlers((int) entities.stream().filter(c -> c.getPaxType() == PaxType.TODDLER).count()
-                    + (booking.getToddlers() != null ? booking.getToddlers() : 0));
+            long adults = entities.stream().filter(c -> c.getPaxType() == PaxType.ADULT).count();
+            long children = entities.stream().filter(c -> c.getPaxType() == PaxType.CHILD).count();
+            long infants = entities.stream().filter(c -> c.getPaxType() == PaxType.INFANT).count();
+            long toddlers = entities.stream().filter(c -> c.getPaxType() == PaxType.TODDLER).count();
+
+            booking.setAdults((int) adults + (booking.getAdults() != null ? booking.getAdults() : 0));
+            booking.setChildren((int) children + (booking.getChildren() != null ? booking.getChildren() : 0));
+            booking.setInfants((int) infants + (booking.getInfants() != null ? booking.getInfants() : 0));
+            booking.setToddlers((int) toddlers + (booking.getToddlers() != null ? booking.getToddlers() : 0));
+
+            int singleRooms = (int) entities.stream().filter(BookingCustomer::isSingleRoom).count();
+            booking.setSingleRooms((booking.getSingleRooms() != null ? booking.getSingleRooms() : 0) + singleRooms);
+
+            double pricePerPerson = booking.getSellingPrice() != null ? booking.getSellingPrice()
+                    : booking.getTourSchedule().getTourPax().getSellingPrice();
+            double extraHotel = booking.getExtraHotelCost() != null ? booking.getExtraHotelCost()
+                    : booking.getTourSchedule().getTourPax().getExtraHotelCost();
+
+            double totalAdded = pricePerPerson * adults
+                    + pricePerPerson * 0.75 * children
+                    + pricePerPerson * 0.5 * infants
+                    + pricePerPerson * toddlers;
+
+            booking.setSellingPrice(pricePerPerson);
+            booking.setExtraHotelCost(extraHotel);
+            booking.setTotalAmount(booking.getTotalAmount() + totalAdded
+                    + extraHotel * singleRooms);
 
             bookingRepository.save(booking);
         } catch (Exception ex) {
