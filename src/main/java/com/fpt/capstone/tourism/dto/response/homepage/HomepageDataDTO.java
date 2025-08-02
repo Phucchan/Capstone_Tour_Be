@@ -10,10 +10,7 @@ public class HomepageDataDTO {
      * A list of featured locations.
      */
     private List<PopularLocationDTO> locations;
-    /**
-     * A list of top-rated or featured tours.
-     */
-    private List<TourSummaryDTO> highlyRatedTours;
+
     /**
      * A list of tours currently on sale or promotion.
      */
