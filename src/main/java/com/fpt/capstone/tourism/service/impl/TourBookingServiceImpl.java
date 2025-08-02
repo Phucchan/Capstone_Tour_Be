@@ -122,7 +122,7 @@ public class TourBookingServiceImpl implements TourBookingService {
 
             saveTourBookingService(result, allCustomers.size());
             createReceiptBookingBill(result, bookingRequestDTO.getTotal(), bookingRequestDTO.getFullName(), bookingRequestDTO.getPaymentMethod());
-            notifyNewBooking(result);
+            notifyNewBooking(result, bookingRequestDTO.getTourName());
             return bookingCode;
 
         } catch (Exception ex) {
@@ -301,6 +301,18 @@ public class TourBookingServiceImpl implements TourBookingService {
                 .id(booking.getId())
                 .bookingCode(booking.getBookingCode())
                 .tourName(booking.getTourSchedule().getTour().getName())
+                .status(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
+                .totalAmount(booking.getTotalAmount())
+                .createdAt(booking.getCreatedAt())
+                .build();
+        messagingTemplate.convertAndSend("/topic/bookings", dto);
+    }
+
+    private void notifyNewBooking(Booking booking, String tourName) {
+        BookingSummaryDTO dto = BookingSummaryDTO.builder()
+                .id(booking.getId())
+                .bookingCode(booking.getBookingCode())
+                .tourName(tourName)
                 .status(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
                 .totalAmount(booking.getTotalAmount())
                 .createdAt(booking.getCreatedAt())

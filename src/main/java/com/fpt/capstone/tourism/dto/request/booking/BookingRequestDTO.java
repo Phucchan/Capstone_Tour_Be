@@ -27,5 +27,5 @@ public class BookingRequestDTO {
     private Double total;
     private Double sellingPrice;
     private Double extraHotelCost;
-
+    private String tourName;
 }
