@@ -62,7 +62,7 @@ public class HomepageServiceImpl implements HomepageService {
     }
 
     private List<PopularLocationDTO> getHomepageLocations() {
-        List<Location> locations = locationRepository.findTopVisitedLocations(8);
+        List<Location> locations = locationRepository.findLocationsWithMostTours(8);
         if (locations.size() < 8) {
             int remain = 8 - locations.size();
             Set<Long> existingIds = locations.stream()
