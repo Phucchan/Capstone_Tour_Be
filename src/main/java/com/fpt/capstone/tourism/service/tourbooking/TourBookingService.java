@@ -20,12 +20,4 @@ public interface TourBookingService {
     void confirmPayment(int paymentStatus, String orderInfo);
     BookingConfirmResponse getTourBookingDetails(String bookingCode);
 
-    @Transactional
-    String createBasicBookingWithCustomers(SellerBookingCreateRequestDTO requestDTO);
-
-    @Transactional
-    String createBasicBooking(BookingBasicRequestDTO requestDTO);
-
-    @Transactional
-    void addCustomers(String bookingCode, List<BookingRequestCustomerDTO> customers);
 }
