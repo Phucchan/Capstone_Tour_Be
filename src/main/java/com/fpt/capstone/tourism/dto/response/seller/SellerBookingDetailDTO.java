@@ -37,4 +37,5 @@ public class SellerBookingDetailDTO {
     private int remainingSeats;
     private List<TourScheduleDTO> schedules;
     private List<SellerBookingCustomerDTO> customers;
+//    private List<SellerPaymentBillDTO> bills;
 }
