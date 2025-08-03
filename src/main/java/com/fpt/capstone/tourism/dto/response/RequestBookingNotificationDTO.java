@@ -17,7 +17,7 @@ public class RequestBookingNotificationDTO {
     private String customerName;
     private String customerPhone;
     private String customerEmail;
-    private String location;
+    private String destination;
     private LocalDate startDate;
     private LocalDate endDate;
     private LocalDateTime createdAt;

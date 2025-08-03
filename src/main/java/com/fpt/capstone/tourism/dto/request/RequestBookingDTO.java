@@ -13,11 +13,11 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class RequestBookingDTO {
     private Long userId;
-    private Long departLocationId;
+    private Long departureLocationId;
     private Double priceMin;
     private Double priceMax;
-    private String location;
-    private String locationDetail;
+    private String destination;
+    private String destinationDetail;
     private LocalDate startDate;
     private LocalDate endDate;
     private TourTransport transport;

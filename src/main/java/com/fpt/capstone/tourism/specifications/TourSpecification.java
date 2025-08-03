@@ -70,10 +70,12 @@ public class TourSpecification {
             }
             // Join với bảng TourDay để lấy điểm đến của từng ngày
             Join<Tour, TourDay> tourDayJoin = root.join("tourDays");
+            Join<TourDay, Location> locationJoin = tourDayJoin.join("location");
             query.distinct(true); // Đảm bảo không trả về tour trùng lặp
             return criteriaBuilder.and(
-                    criteriaBuilder.equal(tourDayJoin.get("location").get("id"), destId),
-                    criteriaBuilder.isFalse(tourDayJoin.get("deleted"))
+                    criteriaBuilder.equal(locationJoin.get("id"), destId),
+                    criteriaBuilder.isFalse(tourDayJoin.get("deleted")),
+                    criteriaBuilder.isFalse(locationJoin.get("deleted"))
             );
         };
     }

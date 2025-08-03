@@ -2,11 +2,15 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.request.booking.BookingRequestCustomerDTO;
 import com.fpt.capstone.tourism.dto.request.seller.SellerBookingUpdateRequestDTO;
+import com.fpt.capstone.tourism.dto.response.seller.SellerBookingCustomerDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingDetailDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourScheduleDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.model.enums.BookingStatus;
+import com.fpt.capstone.tourism.model.enums.PaxType;
 import com.fpt.capstone.tourism.model.tour.Booking;
 import com.fpt.capstone.tourism.model.tour.BookingCustomer;
 import com.fpt.capstone.tourism.repository.tour.TourDayRepository;
@@ -149,6 +153,156 @@ public class SellerBookingServiceImpl implements SellerBookingService {
         SellerBookingDetailDTO dto = toDetailDTO(booking);
         return new GeneralResponse<>(HttpStatus.OK.value(), "Success", dto);
     }
+    @Override
+    @Transactional
+    public GeneralResponse<SellerBookingDetailDTO> updateBookingStatus(Long bookingId, BookingStatus status) {
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        if (status != BookingStatus.CONFIRMED) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Invalid status");
+        }
+
+        if (booking.getBookingStatus() != BookingStatus.PENDING) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Booking is not pending");
+        }
+
+        booking.setBookingStatus(BookingStatus.CONFIRMED);
+        bookingRepository.save(booking);
+
+        SellerBookingDetailDTO dto = toDetailDTO(booking);
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Success", dto);
+    }
+    @Override
+    @Transactional
+    public GeneralResponse<SellerBookingDetailDTO> updateCustomer(Long customerId, BookingRequestCustomerDTO requestDTO) {
+        BookingCustomer customer = bookingCustomerRepository.findById(customerId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Customer not found"));
+
+        if (customer.isBookedPerson()) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Cannot update booked person");
+        }
+
+        Booking booking = bookingRepository.findByIdForUpdate(customer.getBooking().getId())
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        PaxType oldType = customer.getPaxType();
+        boolean oldSingle = customer.isSingleRoom();
+
+        customer.setFullName(requestDTO.getFullName());
+        customer.setGender(requestDTO.getGender());
+        customer.setDateOfBirth(requestDTO.getDateOfBirth());
+        customer.setSingleRoom(requestDTO.isSingleRoom());
+        customer.setPaxType(requestDTO.getPaxType());
+        customer.setEmail(requestDTO.getEmail());
+        customer.setPhoneNumber(requestDTO.getPhoneNumber());
+        customer.setAddress(requestDTO.getAddress());
+        customer.setPickUpAddress(requestDTO.getPickUpAddress());
+        customer.setNote(requestDTO.getNote());
+
+        adjustBookingOnUpdate(booking, oldType, customer.getPaxType(), oldSingle, customer.isSingleRoom());
+
+        bookingCustomerRepository.save(customer);
+        bookingRepository.save(booking);
+
+        SellerBookingDetailDTO dto = toDetailDTO(booking);
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Success", dto);
+    }
+
+    @Override
+    @Transactional
+    public GeneralResponse<SellerBookingDetailDTO> deleteCustomer(Long customerId) {
+        BookingCustomer customer = bookingCustomerRepository.findById(customerId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Customer not found"));
+
+        if (customer.isBookedPerson()) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Cannot delete booked person");
+        }
+
+        Booking booking = bookingRepository.findByIdForUpdate(customer.getBooking().getId())
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        PaxType type = customer.getPaxType();
+        boolean single = customer.isSingleRoom();
+
+        customer.softDelete();
+
+        adjustBookingOnDelete(booking, type, single);
+
+        bookingCustomerRepository.save(customer);
+        bookingRepository.save(booking);
+
+        SellerBookingDetailDTO dto = toDetailDTO(booking);
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Success", dto);
+    }
+
+    private void adjustBookingOnUpdate(Booking booking, PaxType oldType, PaxType newType,
+                                       boolean oldSingle, boolean newSingle) {
+        double pricePerPerson = booking.getSellingPrice() != null ? booking.getSellingPrice()
+                : booking.getTourSchedule().getTourPax().getSellingPrice();
+        double extraHotel = booking.getExtraHotelCost() != null ? booking.getExtraHotelCost()
+                : booking.getTourSchedule().getTourPax().getExtraHotelCost();
+
+        if (oldType != newType) {
+            decrementPax(booking, oldType);
+            incrementPax(booking, newType);
+            double diff = priceFor(newType, pricePerPerson) - priceFor(oldType, pricePerPerson);
+            booking.setTotalAmount(booking.getTotalAmount() + diff);
+        }
+
+        if (oldSingle != newSingle) {
+            int current = booking.getSingleRooms() != null ? booking.getSingleRooms() : 0;
+            if (newSingle) {
+                booking.setSingleRooms(current + 1);
+                booking.setTotalAmount(booking.getTotalAmount() + extraHotel);
+            } else {
+                booking.setSingleRooms(Math.max(current - 1, 0));
+                booking.setTotalAmount(booking.getTotalAmount() - extraHotel);
+            }
+        }
+    }
+
+    private void adjustBookingOnDelete(Booking booking, PaxType type, boolean single) {
+        double pricePerPerson = booking.getSellingPrice() != null ? booking.getSellingPrice()
+                : booking.getTourSchedule().getTourPax().getSellingPrice();
+        double extraHotel = booking.getExtraHotelCost() != null ? booking.getExtraHotelCost()
+                : booking.getTourSchedule().getTourPax().getExtraHotelCost();
+
+        decrementPax(booking, type);
+        booking.setTotalAmount(booking.getTotalAmount() - priceFor(type, pricePerPerson));
+
+        if (single) {
+            int current = booking.getSingleRooms() != null ? booking.getSingleRooms() : 0;
+            booking.setSingleRooms(Math.max(current - 1, 0));
+            booking.setTotalAmount(booking.getTotalAmount() - extraHotel);
+        }
+    }
+
+    private void decrementPax(Booking booking, PaxType type) {
+        switch (type) {
+            case ADULT -> booking.setAdults((booking.getAdults() != null ? booking.getAdults() : 0) - 1);
+            case CHILD -> booking.setChildren((booking.getChildren() != null ? booking.getChildren() : 0) - 1);
+            case INFANT -> booking.setInfants((booking.getInfants() != null ? booking.getInfants() : 0) - 1);
+            case TODDLER -> booking.setToddlers((booking.getToddlers() != null ? booking.getToddlers() : 0) - 1);
+        }
+    }
+
+    private void incrementPax(Booking booking, PaxType type) {
+        switch (type) {
+            case ADULT -> booking.setAdults((booking.getAdults() != null ? booking.getAdults() : 0) + 1);
+            case CHILD -> booking.setChildren((booking.getChildren() != null ? booking.getChildren() : 0) + 1);
+            case INFANT -> booking.setInfants((booking.getInfants() != null ? booking.getInfants() : 0) + 1);
+            case TODDLER -> booking.setToddlers((booking.getToddlers() != null ? booking.getToddlers() : 0) + 1);
+        }
+    }
+
+    private double priceFor(PaxType type, double basePrice) {
+        return switch (type) {
+            case CHILD -> basePrice * 0.75;
+            case INFANT -> basePrice * 0.5;
+            case ADULT, TODDLER -> basePrice;
+        };
+    }
 
     private SellerBookingDetailDTO toDetailDTO(Booking booking) {
         var tour = booking.getTourSchedule().getTour();
@@ -168,6 +322,22 @@ public class SellerBookingServiceImpl implements SellerBookingService {
         int remainingSeats = Math.max(totalSeats - soldSeats, 0);
         BookingCustomer bookedPerson = bookingCustomerRepository
                 .findFirstByBooking_IdAndBookedPersonTrue(booking.getId());
+
+        List<SellerBookingCustomerDTO> customerDTOs = bookingCustomerRepository.findByBooking_Id(booking.getId()).stream()
+                .filter(c -> !c.isBookedPerson())
+                .map(c -> SellerBookingCustomerDTO.builder()
+                        .id(c.getId())
+                        .fullName(c.getFullName())
+                        .phoneNumber(c.getPhoneNumber())
+                        .dateOfBirth(c.getDateOfBirth())
+                        .gender(c.getGender())
+                        .paxType(c.getPaxType())
+                        .pickUpAddress(c.getPickUpAddress())
+                        .singleRoom(c.isSingleRoom())
+                        .note(c.getNote())
+                        .status(c.getDeleted() != null && c.getDeleted() ? "DELETED" : "ACTIVE")
+                        .build())
+                .toList();
 
         // Fetch upcoming schedules of the same tour
         List<TourScheduleDTO> scheduleDTOs = tourScheduleRepository
@@ -199,6 +369,7 @@ public class SellerBookingServiceImpl implements SellerBookingService {
                 .tourName(tour.getName())
                 .createdAt(booking.getCreatedAt())
                 .status(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
+                .paymentMethod(booking.getPaymentMethod() != null ? booking.getPaymentMethod().name() : null)
                 .operator(booking.getTourSchedule().getCoordinator().getFullName())
                 .departureDate(booking.getTourSchedule().getDepartureDate())
                 .tourType(tour.getTourType() != null ? tour.getTourType().name() : null)
@@ -210,6 +381,8 @@ public class SellerBookingServiceImpl implements SellerBookingService {
                 .soldSeats(soldSeats)
                 .remainingSeats(remainingSeats)
                 .schedules(scheduleDTOs)
+                .customers(customerDTOs)
+                .totalAmount(booking.getTotalAmount())
                 .build();
     }
 

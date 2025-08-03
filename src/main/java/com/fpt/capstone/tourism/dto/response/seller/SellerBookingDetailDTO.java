@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -25,6 +26,7 @@ public class SellerBookingDetailDTO {
     private LocalDateTime paymentDeadline;
     private LocalDateTime createdAt;
     private String status;
+    private String paymentMethod;
     private String operator;
     private LocalDateTime departureDate;
     private String tourType;
@@ -36,4 +38,6 @@ public class SellerBookingDetailDTO {
     private int soldSeats;
     private int remainingSeats;
     private List<TourScheduleDTO> schedules;
+    private List<SellerBookingCustomerDTO> customers;
+private double totalAmount;
 }

@@ -4,10 +4,8 @@ import com.fpt.capstone.tourism.dto.common.tour.TourScheduleShortInfoDTO;
 import com.fpt.capstone.tourism.dto.common.tour.TourShortInfoDTO;
 import com.fpt.capstone.tourism.dto.common.user.BookedPersonDTO;
 import com.fpt.capstone.tourism.dto.common.user.TourCustomerDTO;
-import com.fpt.capstone.tourism.dto.request.booking.BookingBasicRequestDTO;
 import com.fpt.capstone.tourism.dto.request.booking.BookingRequestCustomerDTO;
 import com.fpt.capstone.tourism.dto.request.booking.BookingRequestDTO;
-import com.fpt.capstone.tourism.dto.request.seller.SellerBookingCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.BookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.booking.BookingConfirmResponse;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
@@ -147,14 +145,33 @@ public class TourBookingServiceImpl implements TourBookingService {
             }
             bookingCustomerRepository.saveAll(entities);
 
-            booking.setAdults((int) entities.stream().filter(c -> c.getPaxType() == PaxType.ADULT).count()
-                    + (booking.getAdults() != null ? booking.getAdults() : 0));
-            booking.setChildren((int) entities.stream().filter(c -> c.getPaxType() == PaxType.CHILD).count()
-                    + (booking.getChildren() != null ? booking.getChildren() : 0));
-            booking.setInfants((int) entities.stream().filter(c -> c.getPaxType() == PaxType.INFANT).count()
-                    + (booking.getInfants() != null ? booking.getInfants() : 0));
-            booking.setToddlers((int) entities.stream().filter(c -> c.getPaxType() == PaxType.TODDLER).count()
-                    + (booking.getToddlers() != null ? booking.getToddlers() : 0));
+            long adults = entities.stream().filter(c -> c.getPaxType() == PaxType.ADULT).count();
+            long children = entities.stream().filter(c -> c.getPaxType() == PaxType.CHILD).count();
+            long infants = entities.stream().filter(c -> c.getPaxType() == PaxType.INFANT).count();
+            long toddlers = entities.stream().filter(c -> c.getPaxType() == PaxType.TODDLER).count();
+
+            booking.setAdults((int) adults + (booking.getAdults() != null ? booking.getAdults() : 0));
+            booking.setChildren((int) children + (booking.getChildren() != null ? booking.getChildren() : 0));
+            booking.setInfants((int) infants + (booking.getInfants() != null ? booking.getInfants() : 0));
+            booking.setToddlers((int) toddlers + (booking.getToddlers() != null ? booking.getToddlers() : 0));
+
+            int singleRooms = (int) entities.stream().filter(BookingCustomer::isSingleRoom).count();
+            booking.setSingleRooms((booking.getSingleRooms() != null ? booking.getSingleRooms() : 0) + singleRooms);
+
+            double pricePerPerson = booking.getSellingPrice() != null ? booking.getSellingPrice()
+                    : booking.getTourSchedule().getTourPax().getSellingPrice();
+            double extraHotel = booking.getExtraHotelCost() != null ? booking.getExtraHotelCost()
+                    : booking.getTourSchedule().getTourPax().getExtraHotelCost();
+
+            double totalAdded = pricePerPerson * adults
+                    + pricePerPerson * 0.75 * children
+                    + pricePerPerson * 0.5 * infants
+                    + pricePerPerson * toddlers;
+
+            booking.setSellingPrice(pricePerPerson);
+            booking.setExtraHotelCost(extraHotel);
+            booking.setTotalAmount(booking.getTotalAmount() + totalAdded
+                    + extraHotel * singleRooms);
 
             bookingRepository.save(booking);
         } catch (Exception ex) {
@@ -318,103 +335,6 @@ public class TourBookingServiceImpl implements TourBookingService {
                 .createdAt(booking.getCreatedAt())
                 .build();
         messagingTemplate.convertAndSend("/topic/bookings", dto);
-    }
-
-
-
-    @Override
-    @Transactional
-    public String createBasicBookingWithCustomers(SellerBookingCreateRequestDTO requestDTO) {
-        String bookingCode = createBasicBooking(
-                BookingBasicRequestDTO.builder()
-                        .userId(requestDTO.getUserId())
-                        .tourId(requestDTO.getTourId())
-                        .scheduleId(requestDTO.getScheduleId())
-                        .fullName(requestDTO.getFullName())
-                        .address(requestDTO.getAddress())
-                        .email(requestDTO.getEmail())
-                        .phone(requestDTO.getPhone())
-                        .paymentDeadline(requestDTO.getPaymentDeadline())
-                        .paymentMethod(requestDTO.getPaymentMethod())
-                        .note(requestDTO.getNote())
-                        .build());
-
-        if (requestDTO.getCustomers() != null && !requestDTO.getCustomers().isEmpty()) {
-            addCustomers(bookingCode, requestDTO.getCustomers());
-        }
-        return bookingCode;
-    }
-    @Override
-    @Transactional
-    public String createBasicBooking(BookingBasicRequestDTO requestDTO) {
-        try {
-            var schedule = tourScheduleRepository.findById(requestDTO.getScheduleId())
-                    .orElseThrow(() -> BusinessException.of("Schedule not found"));
-
-            String bookingCode = bookingHelper.generateBookingCode(
-                    requestDTO.getTourId() != null ? requestDTO.getTourId() : schedule.getTour().getId(),
-                    requestDTO.getScheduleId(), requestDTO.getUserId());
-
-            Booking booking = Booking.builder()
-                    .tourSchedule(schedule)
-                    .bookingCode(bookingCode)
-                    .user(User.builder().id(requestDTO.getUserId()).build())
-                    .bookingStatus(BookingStatus.PENDING)
-                    .paymentMethod(requestDTO.getPaymentMethod())
-                    .expiredAt(requestDTO.getPaymentDeadline())
-                    .note(requestDTO.getNote())
-                    .build();
-
-            bookingRepository.save(booking);
-
-            BookingCustomer bookedPerson = BookingCustomer.builder()
-                    .paxType(PaxType.ADULT)
-                    .fullName(requestDTO.getFullName())
-                    .email(requestDTO.getEmail())
-                    .phoneNumber(requestDTO.getPhone())
-                    .address(requestDTO.getAddress())
-                    .bookedPerson(true)
-                    .booking(booking)
-                    .build();
-
-            bookingCustomerRepository.save(bookedPerson);
-
-            notifyNewBooking(booking);
-            return bookingCode;
-        } catch (Exception ex) {
-            throw BusinessException.of("Tạo Booking Thất Bại", ex);
-        }
-    }
-
-    @Override
-    @Transactional
-    public void addCustomers(String bookingCode, java.util.List<BookingRequestCustomerDTO> customers) {
-        try {
-            Booking booking = bookingRepository.findByBookingCode(bookingCode);
-            if (booking == null) {
-                throw BusinessException.of("Booking not found");
-            }
-
-            List<BookingCustomer> entities = bookingCustomerMapper.toEntity(customers);
-            for (BookingCustomer bc : entities) {
-                bc.setBooking(booking);
-            }
-            bookingCustomerRepository.saveAll(entities);
-
-            // update guest counts
-            booking.setAdults((int) entities.stream().filter(c -> c.getPaxType() == PaxType.ADULT).count()
-                    + (booking.getAdults() != null ? booking.getAdults() : 0));
-            booking.setChildren((int) entities.stream().filter(c -> c.getPaxType() == PaxType.CHILD).count()
-                    + (booking.getChildren() != null ? booking.getChildren() : 0));
-            booking.setInfants((int) entities.stream().filter(c -> c.getPaxType() == PaxType.INFANT).count()
-                    + (booking.getInfants() != null ? booking.getInfants() : 0));
-            booking.setToddlers((int) entities.stream().filter(c -> c.getPaxType() == PaxType.TODDLER).count()
-                    + (booking.getToddlers() != null ? booking.getToddlers() : 0));
-
-            bookingRepository.save(booking);
-        } catch (Exception ex) {
-            throw BusinessException.of("Thêm khách hàng thất bại", ex);
-        }
     }
 
 }

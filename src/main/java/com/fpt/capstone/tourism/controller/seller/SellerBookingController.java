@@ -2,10 +2,10 @@ package com.fpt.capstone.tourism.controller.seller;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.booking.BookingRequestCustomerDTO;
-import com.fpt.capstone.tourism.dto.request.seller.SellerBookingCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.seller.SellerBookingUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingDetailDTO;
 import com.fpt.capstone.tourism.dto.response.seller.SellerBookingSummaryDTO;
+import com.fpt.capstone.tourism.model.enums.BookingStatus;
 import com.fpt.capstone.tourism.service.SellerBookingService;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.service.tourbooking.TourBookingService;
@@ -40,7 +40,7 @@ public class SellerBookingController {
     }
 
     @GetMapping("/{bookingId}")
-    //postman http://localhost:8080/seller/bookings/1
+    //postman http://localhost:8080/v1/seller/bookings/17
     public ResponseEntity<GeneralResponse<SellerBookingDetailDTO>> getBookingDetail(
             @PathVariable Long bookingId) {
         return ResponseEntity.ok(sellerBookingService.getBookingDetail(bookingId));
@@ -76,6 +76,24 @@ public class SellerBookingController {
             @RequestBody List<BookingRequestCustomerDTO> customers) {
         tourBookingService.addCustomersToSchedule(bookingId, scheduleId, customers);
         return ResponseEntity.ok(GeneralResponse.of("success"));
+    }
+    @PatchMapping("/{bookingId}/status")
+    public ResponseEntity<GeneralResponse<SellerBookingDetailDTO>> updateBookingStatus(
+            @PathVariable Long bookingId,
+            @RequestParam BookingStatus status) {
+        return ResponseEntity.ok(sellerBookingService.updateBookingStatus(bookingId, status));
+    }
+    @PutMapping("/customers/{customerId}")
+    public ResponseEntity<GeneralResponse<SellerBookingDetailDTO>> updateCustomer(
+            @PathVariable Long customerId,
+            @RequestBody BookingRequestCustomerDTO requestDTO) {
+        return ResponseEntity.ok(sellerBookingService.updateCustomer(customerId, requestDTO));
+    }
+
+    @DeleteMapping("/customers/{customerId}")
+    public ResponseEntity<GeneralResponse<SellerBookingDetailDTO>> deleteCustomer(
+            @PathVariable Long customerId) {
+        return ResponseEntity.ok(sellerBookingService.deleteCustomer(customerId));
     }
 }
 

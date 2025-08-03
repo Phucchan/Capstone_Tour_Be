@@ -37,19 +37,35 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     public List<LocationDTO> getAllDepartures() {
-        List<Location> locations = tourRepository.findDistinctDepartLocations();
-        return locations.stream()
+        return locationRepository.findByDeletedFalseOrderByNameAsc()
+                .stream()
                 .map(locationMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<LocationDTO> getAllDestinations() {
-        List<Location> locations = tourRepository.findDistinctDestinations();
-        return locations.stream()
+        return locationRepository.findByDeletedFalseOrderByNameAsc()
+                .stream()
                 .map(locationMapper::toDTO)
                 .collect(Collectors.toList());
     }
+
+    private GeneralResponse<PagingDTO<LocationDTO>> buildPagedResponse(Page<Location> locationPage) {
+        List<LocationDTO> locationDTOS = locationPage.getContent().stream()
+                .map(locationMapper::toDTO)
+                .collect(Collectors.toList());
+
+        PagingDTO<LocationDTO> pagingDTO = PagingDTO.<LocationDTO>builder()
+                .page(locationPage.getNumber())
+                .size(locationPage.getSize())
+                .total(locationPage.getTotalElements())
+                .items(locationDTOS)
+                .build();
+
+        return new GeneralResponse<>(HttpStatus.OK.value(), GET_LOCATIONS_SUCCESS, pagingDTO);
+    }
+
     @Override
     public GeneralResponse<LocationDTO> saveLocation(LocationRequestDTO locationRequestDTO) {
         try {
@@ -150,21 +166,6 @@ public class LocationServiceImpl implements LocationService {
     }
 
 
-    // SỬA LẠI TOÀN BỘ PHƯƠNG THỨC NÀY
-    private GeneralResponse<PagingDTO<LocationDTO>> buildPagedResponse(Page<Location> locationPage) {
-        // Chuyển đổi List<Location> sang List<LocationDTO>
-        List<LocationDTO> locationDTOS = locationPage.getContent().stream()
-                .map(locationMapper::toDTO)
-                .collect(Collectors.toList());
 
-        // Xây dựng PagingDTO với kiểu đúng là <LocationDTO>
-        PagingDTO<LocationDTO> pagingDTO = PagingDTO.<LocationDTO>builder()
-                .page(locationPage.getNumber())
-                .size(locationPage.getSize())
-                .total(locationPage.getTotalElements())
-                .items(locationDTOS) // Bây giờ sẽ không còn lỗi
-                .build();
 
-        return new GeneralResponse<>(HttpStatus.OK.value(), GET_LOCATIONS_SUCCESS, pagingDTO);
-    }
 }

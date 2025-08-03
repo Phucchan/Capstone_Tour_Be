@@ -35,8 +35,8 @@ public class RequestBookingServiceImpl implements RequestBookingService {
         if (requestBookingDTO.getUserId() != null) {
             requestBooking.setUser(userRepository.findUserById(requestBookingDTO.getUserId()).orElse(null));
         }
-        if (requestBookingDTO.getDepartLocationId() != null) {
-            requestBooking.setDepartLocation(locationRepository.findById(requestBookingDTO.getDepartLocationId()).orElse(null));
+        if (requestBookingDTO.getDepartureLocationId() != null) {
+            requestBooking.setDepartureLocation(locationRepository.findById(requestBookingDTO.getDepartureLocationId()).orElse(null));
         }
         RequestBooking saved = requestBookingRepository.save(requestBooking);
         notifyNewRequestBooking(saved);
@@ -59,7 +59,7 @@ public class RequestBookingServiceImpl implements RequestBookingService {
                 .customerName(requestBooking.getCustomerName())
                 .customerPhone(requestBooking.getCustomerPhone())
                 .customerEmail(requestBooking.getCustomerEmail())
-                .location(requestBooking.getLocation())
+                .destination(requestBooking.getDestination())
                 .startDate(requestBooking.getStartDate())
                 .endDate(requestBooking.getEndDate())
                 .createdAt(requestBooking.getCreatedAt())

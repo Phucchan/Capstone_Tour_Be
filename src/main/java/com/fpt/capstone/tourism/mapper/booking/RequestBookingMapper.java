@@ -15,12 +15,12 @@ public interface RequestBookingMapper extends EntityMapper<RequestBookingDTO, Re
 
     @Override
     @Mapping(target = "user", source = "userId", qualifiedByName = "mapUser")
-    @Mapping(target = "departLocation", source = "departLocationId", qualifiedByName = "mapLocation")
+    @Mapping(target = "departureLocation", source = "departureLocationId", qualifiedByName = "mapLocation")
     RequestBooking toEntity(RequestBookingDTO dto);
 
     @Override
     @Mapping(target = "userId", source = "user.id")
-    @Mapping(target = "departLocationId", source = "departLocation.id")
+    @Mapping(target = "departureLocationId", source = "departureLocation.id")
     RequestBookingDTO toDTO(RequestBooking entity);
 
 

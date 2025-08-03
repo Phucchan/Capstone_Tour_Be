@@ -15,11 +15,11 @@ public class RequestBookingController {
     private final RequestBookingService requestBookingService;
 
     @PostMapping
-    public ResponseEntity<GeneralResponse<RequestBookingDTO>> create(@RequestBody RequestBookingDTO requestBookingDTO) {
+    public ResponseEntity<GeneralResponse<RequestBookingDTO>> createRequest(@RequestBody RequestBookingDTO requestBookingDTO) {
         return ResponseEntity.ok(requestBookingService.createRequest(requestBookingDTO));
     }
-    @GetMapping("/{id}")
-    public ResponseEntity<GeneralResponse<RequestBookingDTO>> get(@PathVariable("id") Long id) {
+    @GetMapping("/notification/{id}")
+    public ResponseEntity<GeneralResponse<RequestBookingDTO>> getNotification(@PathVariable("id") Long id) {
         return ResponseEntity.ok(requestBookingService.getRequest(id));
     }
 }
