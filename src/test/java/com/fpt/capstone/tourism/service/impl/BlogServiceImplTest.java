@@ -264,7 +264,7 @@ class BlogServiceImplTest {
         // Assert
         assertEquals(HttpStatus.OK.value(), response.getStatus());
         assertEquals(Constants.Message.BLOG_DELETE_SUCCESS, response.getMessage());
-        assertFalse(existingBlog.getDeleted());
+        assertTrue(existingBlog.getDeleted());
         verify(blogRepository, times(1)).save(existingBlog);
     }
 
