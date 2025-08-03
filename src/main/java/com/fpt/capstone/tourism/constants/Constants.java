@@ -563,8 +563,6 @@ public class Constants {
                                                                 {
                                                                         "dayNumber": 1,
                                                                         "title": "Khám phá Sa Pa",
-                                                                        "locationImageUrl": "https://example.com/sapa-thumbnail.jpg",
-                                                                        "shortDescription": "Ngày đầu tiên tại Sa Pa với những hoạt động thú vị.",
                                                                         "date": "2025-07-20",
                                                                         "totalSpend": 2400000,
                                                                         "locationId": 101,
