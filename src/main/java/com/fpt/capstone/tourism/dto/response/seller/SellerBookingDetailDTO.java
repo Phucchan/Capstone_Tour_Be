@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -38,4 +39,5 @@ public class SellerBookingDetailDTO {
     private List<TourScheduleDTO> schedules;
     private List<SellerBookingCustomerDTO> customers;
 //    private List<SellerPaymentBillDTO> bills;
+private double totalAmount;
 }

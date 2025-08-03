@@ -381,6 +381,7 @@ public class SellerBookingServiceImpl implements SellerBookingService {
                 .remainingSeats(remainingSeats)
                 .schedules(scheduleDTOs)
                 .customers(customerDTOs)
+                .totalAmount(booking.getTotalAmount())
                 .build();
     }
 
