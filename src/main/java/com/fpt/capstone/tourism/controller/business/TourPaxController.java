@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import com.fpt.capstone.tourism.dto.response.tourManager.ServiceBreakdownDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.TourCostSummaryDTO;
 
 @RestController
 @RequiredArgsConstructor
@@ -80,6 +81,16 @@ public class TourPaxController {
     public ResponseEntity<GeneralResponse<List<ServiceBreakdownDTO>>> getServiceBreakdown(
             @PathVariable Long tourId) {
         return ResponseEntity.ok(tourPaxService.getServiceBreakdown(tourId));
+    }
+
+    /**
+     * API để lấy tổng hợp chi phí gốc của tour.
+     * Cung cấp cho frontend dữ liệu đáng tin cậy để tính giá xem trước.
+     */
+    @GetMapping("/tours/{tourId}/cost-summary")
+    public ResponseEntity<GeneralResponse<TourCostSummaryDTO>> getTourCostSummary(
+            @PathVariable Long tourId) {
+        return ResponseEntity.ok(tourPaxService.getTourCostSummary(tourId));
     }
 
 }
