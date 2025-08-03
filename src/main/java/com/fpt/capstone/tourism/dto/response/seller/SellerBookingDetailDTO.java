@@ -26,6 +26,7 @@ public class SellerBookingDetailDTO {
     private LocalDateTime paymentDeadline;
     private LocalDateTime createdAt;
     private String status;
+    private String paymentMethod;
     private String operator;
     private LocalDateTime departureDate;
     private String tourType;
@@ -38,6 +39,5 @@ public class SellerBookingDetailDTO {
     private int remainingSeats;
     private List<TourScheduleDTO> schedules;
     private List<SellerBookingCustomerDTO> customers;
-//    private List<SellerPaymentBillDTO> bills;
 private double totalAmount;
 }
