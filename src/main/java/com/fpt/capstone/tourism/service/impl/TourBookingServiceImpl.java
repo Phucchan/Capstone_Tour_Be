@@ -165,8 +165,7 @@ public class TourBookingServiceImpl implements TourBookingService {
 
             double totalAdded = pricePerPerson * adults
                     + pricePerPerson * 0.75 * children
-                    + pricePerPerson * 0.5 * infants
-                    + pricePerPerson * toddlers;
+                    + pricePerPerson * 0.5 * toddlers;
 
             booking.setSellingPrice(pricePerPerson);
             booking.setExtraHotelCost(extraHotel);

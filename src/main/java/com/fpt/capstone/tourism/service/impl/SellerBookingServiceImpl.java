@@ -366,8 +366,9 @@ public class SellerBookingServiceImpl implements SellerBookingService {
     private double priceFor(PaxType type, double basePrice) {
         return switch (type) {
             case CHILD -> basePrice * 0.75;
-            case INFANT -> basePrice * 0.5;
-            case ADULT, TODDLER -> basePrice;
+            case TODDLER -> basePrice * 0.5;
+            case INFANT -> 0;
+            case ADULT -> basePrice;
         };
     }
 
