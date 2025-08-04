@@ -18,6 +18,7 @@ import com.fpt.capstone.tourism.repository.tour.TourScheduleRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.repository.BookingCustomerRepository;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
+import com.fpt.capstone.tourism.service.EmailService;
 import com.fpt.capstone.tourism.service.SellerBookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,6 +31,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +45,7 @@ public class SellerBookingServiceImpl implements SellerBookingService {
     private final UserRepository userRepository;
     private final TourDayRepository tourDayRepository;
     private final TourScheduleRepository tourScheduleRepository;
+    private final EmailService emailService;
 
 
     @Override
@@ -169,6 +176,66 @@ public class SellerBookingServiceImpl implements SellerBookingService {
 
         booking.setBookingStatus(BookingStatus.CONFIRMED);
         bookingRepository.save(booking);
+
+        // Send confirmation email to the booked person
+        BookingCustomer bookedPerson = bookingCustomerRepository
+                .findFirstByBooking_IdAndBookedPersonTrue(booking.getId());
+        if (bookedPerson != null && bookedPerson.getEmail() != null) {
+            double total = booking.getTotalAmount();
+            double deposit = total * 0.7;
+            double remaining = total - deposit;
+
+            var tour = booking.getTourSchedule().getTour();
+            var days = tourDayRepository.findByTourIdOrderByDayNumberAsc(tour.getId());
+            List<String> destinations = days.stream()
+                    .map(d -> d.getLocation() != null ? d.getLocation().getName() : null)
+                    .filter(Objects::nonNull)
+                    .toList();
+            Set<String> services = days.stream()
+                    .flatMap(d -> d.getServiceTypes().stream())
+                    .map(st -> st.getName())
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+
+            int adults = booking.getAdults() != null ? booking.getAdults() : 0;
+            int children = booking.getChildren() != null ? booking.getChildren() : 0;
+            int infants = booking.getInfants() != null ? booking.getInfants() : 0;
+            int toddlers = booking.getToddlers() != null ? booking.getToddlers() : 0;
+            int totalGuests = adults + children + infants + toddlers;
+
+            String subject = "Booking confirmation for " + tour.getName();
+            StringBuilder content = new StringBuilder()
+                    .append("Hello ").append(bookedPerson.getFullName()).append(",\n\n")
+                    .append("Your tour booking has been confirmed. Below are the details:\n\n")
+                    .append("Tour: ").append(tour.getName()).append("\n")
+                    .append("Group code: ").append(booking.getBookingCode()).append("\n")
+                    .append("Departure: ").append(booking.getTourSchedule().getDepartureDate()).append(" from ")
+                    .append(tour.getDepartLocation() != null ? tour.getDepartLocation().getName() : "N/A").append("\n")
+                    .append("End date: ").append(booking.getTourSchedule().getEndDate()).append("\n\n")
+                    .append("Group information:\n")
+                    .append(" - Adults: ").append(adults).append("\n")
+                    .append(" - Children: ").append(children).append("\n")
+                    .append(" - Infants: ").append(infants).append("\n")
+                    .append(" - Toddlers: ").append(toddlers).append("\n")
+                    .append(" - Total guests: ").append(totalGuests).append("\n\n");
+
+            if (!destinations.isEmpty()) {
+                content.append("Destinations: ").append(String.join(", ", destinations)).append("\n");
+            }
+            if (!services.isEmpty()) {
+                content.append("Services included: ").append(String.join(", ", services)).append("\n");
+            }
+
+            content.append("\nPayment details:\n")
+                    .append(" - Total amount: ").append(String.format("%.2f", total)).append("\n")
+                    .append(" - Deposit (70%): ").append(String.format("%.2f", deposit)).append(" due by ")
+                    .append(booking.getExpiredAt()).append("\n")
+                    .append(" - Remaining (30%): ").append(String.format("%.2f", remaining))
+                    .append(" payable after the tour\n\n")
+                    .append("If you have any questions, please contact us.\n")
+                    .append("Thank you for choosing our service.");
+
+            emailService.sendEmail(bookedPerson.getEmail(), subject, content.toString());
+        }
 
         SellerBookingDetailDTO dto = toDetailDTO(booking);
         return new GeneralResponse<>(HttpStatus.OK.value(), "Success", dto);
