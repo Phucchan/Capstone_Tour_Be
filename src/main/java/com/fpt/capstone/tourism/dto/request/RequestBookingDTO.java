@@ -27,6 +27,7 @@ public class RequestBookingDTO {
     private int adults;
     private int children;
     private int infants;
+    private int toddlers;
     private int hotelRooms;
     private RoomCategory roomCategory;
     private String customerName;

@@ -18,7 +18,7 @@ import java.util.Optional;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
 
-    @Query("SELECT COALESCE(SUM(b.adults + b.children), 0) FROM Booking b " +
+    @Query("SELECT COALESCE(SUM(b.adults + b.children + b.infants + b.toddlers), 0) FROM Booking b " +
             "WHERE b.tourSchedule.id = :scheduleId " +
             "AND b.bookingStatus <> com.fpt.capstone.tourism.model.enums.BookingStatus.CANCELLED")
     Integer sumGuestsByTourScheduleId(@Param("scheduleId") Long scheduleId);
