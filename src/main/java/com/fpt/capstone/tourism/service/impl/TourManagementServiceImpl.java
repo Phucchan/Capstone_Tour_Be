@@ -104,7 +104,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         tour.setName(requestDTO.getName());
         tour.setThumbnailUrl(requestDTO.getThumbnailUrl());
         tour.setDescription(requestDTO.getDescription());
-        tour.setTourType(TourType.FIXED);
+        tour.setTourType(requestDTO.getTourType() != null ? requestDTO.getTourType() : TourType.FIXED);
         tour.setTourStatus(TourStatus.DRAFT);
 
         Location depart = locationRepository.findById(requestDTO.getDepartLocationId())
