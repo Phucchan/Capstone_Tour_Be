@@ -16,4 +16,5 @@ public class TourPaxCreateRequestDTO {
     private Double fixedPrice;
     private Double extraHotelCost;
     private Double sellingPrice;
+    private boolean manualPrice;
 }

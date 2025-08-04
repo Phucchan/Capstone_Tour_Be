@@ -19,6 +19,7 @@ public class TourPaxFullDTO {
     private Double fixedPrice;
     private Double extraHotelCost;
     private Double sellingPrice;
+    private boolean manualPrice;
     private boolean isDeleted;
 
 }

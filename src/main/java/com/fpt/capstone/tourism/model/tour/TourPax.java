@@ -31,12 +31,14 @@ public class TourPax extends BaseEntity {
     private int maxQuantity;
 
     @Column(name = "selling_price")
-    private double sellingPrice;
+    private double sellingPrice;// Giá bán
 
     @Column(name = "fixed_price")
-    private double fixedPrice;
+    private double fixedPrice; // Giá vốn
 
     @Column(name = "extra_hotel_cost")
-    private double extraHotelCost;
+    private double extraHotelCost; // Phụ thu phòng đơn
 
+    @Column(name = "manual_price", nullable = false, columnDefinition = "boolean default false")
+    private boolean manualPrice = false; // Cờ xác định giá được nhập thủ công hay không
 }

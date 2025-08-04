@@ -19,4 +19,11 @@ public interface TourPaxRepository extends JpaRepository<TourPax, Long> {
     Double findStartingPriceByTourId(Long tourId);
 
     List<TourPax> findByTourId(Long tourId);
+
+    /**
+     * Finds all non-deleted TourPax configurations for a given tour.
+     * @param tourId The ID of the tour.
+     * @return A list of active TourPax configurations.
+     */
+    List<TourPax> findByTourIdAndDeletedIsFalse(Long tourId);
 }

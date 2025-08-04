@@ -369,6 +369,7 @@ public class SellerBookingServiceImpl implements SellerBookingService {
                 .tourName(tour.getName())
                 .createdAt(booking.getCreatedAt())
                 .status(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
+                .paymentMethod(booking.getPaymentMethod() != null ? booking.getPaymentMethod().name() : null)
                 .operator(booking.getTourSchedule().getCoordinator().getFullName())
                 .departureDate(booking.getTourSchedule().getDepartureDate())
                 .tourType(tour.getTourType() != null ? tour.getTourType().name() : null)
@@ -381,6 +382,7 @@ public class SellerBookingServiceImpl implements SellerBookingService {
                 .remainingSeats(remainingSeats)
                 .schedules(scheduleDTOs)
                 .customers(customerDTOs)
+                .totalAmount(booking.getTotalAmount())
                 .build();
     }
 

@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.ServiceBreakdownDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.TourCostSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxFullDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.enums.CostType;
@@ -90,13 +91,16 @@ public class TourPaxServiceImpl implements TourPaxService {
             if (request.getMinQuantity() > request.getMaxQuantity()) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, PAX_CONFIG_INVALID_RANGE);
             }
+            // Thêm validation chống trùng lặp
+            validatePaxRange(tourId, null, request.getMinQuantity(), request.getMaxQuantity());
+
             TourPax pax = TourPax.builder()
                     .tour(tour)
                     .minQuantity(request.getMinQuantity())
                     .maxQuantity(request.getMaxQuantity())
                     .fixedPrice(request.getFixedPrice() == null ? 0d : request.getFixedPrice())
-                    .extraHotelCost(request.getExtraHotelCost() == null ? 0d : request.getExtraHotelCost())
                     .sellingPrice(request.getSellingPrice() == null ? 0d : request.getSellingPrice())
+                    .manualPrice(request.isManualPrice())
                     .build();
             pax = tourPaxRepository.save(pax);
             return new GeneralResponse<>(HttpStatus.CREATED.value(), PAX_CONFIG_CREATE_SUCCESS, toDTO(pax));
@@ -122,17 +126,15 @@ public class TourPaxServiceImpl implements TourPaxService {
             if (minQty > maxQty) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, PAX_CONFIG_INVALID_RANGE);
             }
+            // Thêm validation chống trùng lặp
+            validatePaxRange(tourId, paxId, minQty, maxQty);
+
             pax.setMinQuantity(minQty);
             pax.setMaxQuantity(maxQty);
-            if (request.getFixedPrice() != null) {
-                pax.setFixedPrice(request.getFixedPrice());
-            }
-            if (request.getExtraHotelCost() != null) {
-                pax.setExtraHotelCost(request.getExtraHotelCost());
-            }
-            if (request.getSellingPrice() != null) {
-                pax.setSellingPrice(request.getSellingPrice());
-            }
+            if (request.getFixedPrice() != null) pax.setFixedPrice(request.getFixedPrice());
+            if (request.getSellingPrice() != null) pax.setSellingPrice(request.getSellingPrice());
+            if (request.getManualPrice() != null) pax.setManualPrice(request.getManualPrice());
+
             pax = tourPaxRepository.save(pax);
             return new GeneralResponse<>(HttpStatus.OK.value(), PAX_CONFIG_UPDATE_SUCCESS, toDTO(pax));
         } catch (BusinessException ex) {
@@ -166,40 +168,26 @@ public class TourPaxServiceImpl implements TourPaxService {
     public GeneralResponse<List<TourPaxFullDTO>> calculatePrices(Long tourId, TourPriceCalculateRequestDTO request) {
         log.info("Bắt đầu tính giá cho tour ID: {}", tourId);
         try {
-            getTourOrThrow(tourId);
-
-            // SỬA LỖI: Gọi phương thức mới findByTourIdWithServices để đảm bảo danh sách dịch vụ được tải lên.
-            List<TourDay> days = tourDayRepository.findByTourIdWithServices(tourId);
-
-            if (days.isEmpty()) {
-                log.warn("Tour ID: {} không có ngày nào được cấu hình. Không thể tính chi phí.", tourId);
-            }
-
-            double fixedCost = 0d;
-            double perPersonCost = 0d;
-
-            for (TourDay day : days) {
-                for (PartnerService service : day.getServices()) {
-                    if (Boolean.TRUE.equals(service.getDeleted())) continue;
-
-                    if (service.getCostType() == CostType.FIXED) {
-                        fixedCost += service.getNettPrice();
-                    } else if (service.getCostType() == CostType.PER_PERSON) {
-                        perPersonCost += service.getNettPrice();
-                    }
-                }
-            }
+            TourCostSummaryDTO costSummary = getTourCostSummary(tourId).getData();
+            double fixedCost = costSummary.getTotalFixedCost();
+            double perPersonCost = costSummary.getTotalPerPersonCost();
             log.info("Tour ID: {}. Chi phí tính toán được: fixedCost = {}, perPersonCost = {}", tourId, fixedCost, perPersonCost);
 
             double profitRate = request.getProfitRate() != null ? request.getProfitRate() / 100d : 0d;
             double extraCost = request.getExtraCost() != null ? request.getExtraCost() : 0d;
 
-            List<TourPax> paxList = tourPaxRepository.findByTourId(tourId);
+            List<TourPax> paxList = tourPaxRepository.findByTourIdAndDeletedIsFalse(tourId);
             if (paxList.isEmpty()) {
                 log.warn("Tour ID: {} không có khung giá (pax) nào.", tourId);
             }
 
             for (TourPax pax : paxList) {
+                // --- LOGIC MỚI: Chỉ tính toán nếu giá không được nhập thủ công ---
+                if (pax.isManualPrice()) {
+                    log.info(" -> Bỏ qua Pax ID {} vì giá được nhập thủ công.", pax.getId());
+                    continue;
+                }
+
                 int paxCount = pax.getMaxQuantity();
                 if (paxCount == 0) {
                     log.error("Lỗi nghiêm trọng: maxQuantity của Pax ID {} bằng 0. Bỏ qua.", pax.getId());
@@ -227,6 +215,56 @@ public class TourPaxServiceImpl implements TourPaxService {
     }
 
 
+
+
+    @Override
+    public GeneralResponse<List<ServiceBreakdownDTO>> getServiceBreakdown(Long tourId) {
+        getTourOrThrow(tourId);
+        List<TourDay> days = tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId);
+
+        List<ServiceBreakdownDTO> results = new java.util.ArrayList<>();
+        for (TourDay day : days) {
+            for (PartnerService service : day.getServices()) {
+                if (Boolean.TRUE.equals(service.getDeleted())) continue;
+
+                results.add(ServiceBreakdownDTO.builder()
+                        .dayId(day.getId())
+                        .serviceId(service.getId())
+                        .dayNumber(day.getDayNumber())
+                        .serviceTypeName(service.getServiceType() != null ? service.getServiceType().getName() : "N/A")
+                        .partnerName(service.getPartner() != null ? service.getPartner().getName() : "N/A")
+                        .partnerAddress(service.getPartner() != null && service.getPartner().getLocation() != null ? service.getPartner().getLocation().getName() : "N/A")
+                        .nettPrice(service.getNettPrice())
+                        .sellingPrice(service.getSellingPrice())
+                        .costType(service.getCostType()) // Cập nhật trường mới
+                        .build());
+            }
+        }
+        return GeneralResponse.of(results);
+    }
+
+    @Override
+    public GeneralResponse<TourCostSummaryDTO> getTourCostSummary(Long tourId) {
+        getTourOrThrow(tourId);
+        List<TourDay> days = tourDayRepository.findByTourIdWithServices(tourId);
+
+        double fixedCost = 0d;
+        double perPersonCost = 0d;
+
+        for (TourDay day : days) {
+            for (PartnerService service : day.getServices()) {
+                if (Boolean.TRUE.equals(service.getDeleted())) continue;
+                if (service.getCostType() == CostType.FIXED) {
+                    fixedCost += service.getNettPrice();
+                } else if (service.getCostType() == CostType.PER_PERSON) {
+                    perPersonCost += service.getNettPrice();
+                }
+            }
+        }
+        TourCostSummaryDTO summary = new TourCostSummaryDTO(fixedCost, perPersonCost);
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Cost summary loaded", summary);
+    }
+
     private TourPaxFullDTO toDTO(TourPax pax) {
         return TourPaxFullDTO.builder()
                 .id(pax.getId())
@@ -234,53 +272,26 @@ public class TourPaxServiceImpl implements TourPaxService {
                 .minQuantity(pax.getMinQuantity())
                 .maxQuantity(pax.getMaxQuantity())
                 .fixedPrice(pax.getFixedPrice())
-                .extraHotelCost(pax.getExtraHotelCost())
                 .sellingPrice(pax.getSellingPrice())
+                .manualPrice(pax.isManualPrice()) // Cập nhật trường mới
                 .isDeleted(Boolean.TRUE.equals(pax.getDeleted()))
                 .build();
     }
 
-    @Override
-    public GeneralResponse<List<ServiceBreakdownDTO>> getServiceBreakdown(Long tourId) {
-        tourRepository.findById(tourId)
-                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
-
-        List<TourDay> days = tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId);
-
-        // Sử dụng vòng lặp for-each thay vì stream để dễ dàng kiểm tra null và gỡ lỗi
-        List<ServiceBreakdownDTO> results = new java.util.ArrayList<>();
-        for (TourDay day : days) {
-            for (com.fpt.capstone.tourism.model.partner.PartnerService service : day.getServices()) {
-
-                // Bắt đầu kiểm tra null để đảm bảo an toàn
-                String serviceTypeName = "N/A";
-                if (service.getServiceType() != null) {
-                    serviceTypeName = service.getServiceType().getName();
-                }
-
-                String partnerName = "N/A";
-                String partnerAddress = "N/A";
-                if (service.getPartner() != null) {
-                    partnerName = service.getPartner().getName();
-                    if (service.getPartner().getLocation() != null) {
-                        partnerAddress = service.getPartner().getLocation().getName();
-                    }
-                }
-                // Kết thúc kiểm tra null
-
-                results.add(ServiceBreakdownDTO.builder()
-                        .dayId(day.getId())
-                        .serviceId(service.getId())
-                        .dayNumber(day.getDayNumber())
-                        .serviceTypeName(serviceTypeName)
-                        .partnerName(partnerName)
-                        .partnerAddress(partnerAddress)
-                        .nettPrice(service.getNettPrice())
-                        .sellingPrice(service.getSellingPrice())
-                        .build());
+    private void validatePaxRange(Long tourId, Long currentPaxId, int minQty, int maxQty) {
+        List<TourPax> existingPaxes = tourPaxRepository.findByTourIdAndDeletedIsFalse(tourId);
+        for (TourPax pax : existingPaxes) {
+            // Bỏ qua chính nó khi đang cập nhật
+            if (pax.getId().equals(currentPaxId)) {
+                continue;
+            }
+            // Kiểm tra sự chồng chéo
+            boolean isOverlapping = (minQty >= pax.getMinQuantity() && minQty <= pax.getMaxQuantity()) ||
+                    (maxQty >= pax.getMinQuantity() && maxQty <= pax.getMaxQuantity()) ||
+                    (minQty < pax.getMinQuantity() && maxQty > pax.getMaxQuantity());
+            if (isOverlapping) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Khoảng khách bị trùng với một khoảng đã có.");
             }
         }
-
-        return GeneralResponse.of(results);
     }
 }
