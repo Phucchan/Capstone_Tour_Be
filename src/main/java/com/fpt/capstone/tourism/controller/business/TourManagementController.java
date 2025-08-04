@@ -6,6 +6,7 @@ import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 
+import com.fpt.capstone.tourism.dto.request.RequestBookingDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourCreateManagerRequestDTO;
 import com.fpt.capstone.tourism.dto.response.RequestBookingNotificationDTO;
 import com.fpt.capstone.tourism.dto.response.ServiceInfoDTO;
@@ -57,11 +58,21 @@ public class TourManagementController {
     public ResponseEntity<GeneralResponse<TourDetailManagerDTO>> createTour(@RequestBody TourCreateManagerRequestDTO requestDTO) {
         return ResponseEntity.ok(tourManagementService.createTour(requestDTO));
     }
-    @GetMapping
-    public ResponseEntity<GeneralResponse<PagingDTO<RequestBookingNotificationDTO>>> getRequests(
+    @GetMapping("/request-bookings")
+    public ResponseEntity<GeneralResponse<PagingDTO<RequestBookingNotificationDTO>>> getListRequests(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(requestBookingService.getRequests(page, size));
+    }
+    @GetMapping("/request-bookings/{id}")
+    public ResponseEntity<GeneralResponse<RequestBookingDTO>> getDetailRequest(@PathVariable Long id) {
+        return ResponseEntity.ok(requestBookingService.getRequest(id));
+    }
+
+    @PatchMapping("/request-bookings/{id}/status")
+    public ResponseEntity<GeneralResponse<RequestBookingDTO>> updateRequestStatus(@PathVariable Long id,
+                                                                                  @RequestBody ChangeStatusDTO changeStatusDTO) {
+        return ResponseEntity.ok(requestBookingService.updateStatus(id, changeStatusDTO));
     }
 
     @GetMapping("/tours/options")

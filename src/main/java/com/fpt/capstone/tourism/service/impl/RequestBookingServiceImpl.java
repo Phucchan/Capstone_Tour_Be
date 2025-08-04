@@ -2,9 +2,11 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.RequestBookingDTO;
 import com.fpt.capstone.tourism.dto.response.RequestBookingNotificationDTO;
 import com.fpt.capstone.tourism.model.RequestBooking;
+import com.fpt.capstone.tourism.model.enums.RequestBookingStatus;
 import com.fpt.capstone.tourism.repository.LocationRepository;
 import com.fpt.capstone.tourism.repository.RequestBookingRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
@@ -46,11 +48,34 @@ public class RequestBookingServiceImpl implements RequestBookingService {
         if (requestBookingDTO.getDepartureLocationId() != null) {
             requestBooking.setDepartureLocation(locationRepository.findById(requestBookingDTO.getDepartureLocationId()).orElse(null));
         }
+        if (requestBookingDTO.getDestinationLocationIds() != null) {
+            requestBooking.setDestinationLocations(locationRepository.findAllById(requestBookingDTO.getDestinationLocationIds()));
+        }
+        requestBooking.setStatus(RequestBookingStatus.PENDING);
         RequestBooking saved = requestBookingRepository.save(requestBooking);
         notifyNewRequestBooking(saved);
         RequestBookingDTO savedDto = requestBookingMapper.toDTO(saved);
         return new GeneralResponse<>(HttpStatus.OK.value(), "Request saved", savedDto);
     }
+
+    @Override
+    public GeneralResponse<RequestBookingDTO> updateStatus(Long id, ChangeStatusDTO changeStatusDTO) {
+        RequestBooking booking = requestBookingRepository.findById(id).orElse(null);
+        if (booking == null) {
+            return new GeneralResponse<>(HttpStatus.NOT_FOUND.value(), "Request not found", null);
+        }
+        RequestBookingStatus newStatus;
+        try {
+            newStatus = RequestBookingStatus.valueOf(changeStatusDTO.getNewStatus());
+        } catch (IllegalArgumentException e) {
+            return new GeneralResponse<>(HttpStatus.BAD_REQUEST.value(), "Invalid status", null);
+        }
+        booking.setStatus(newStatus);
+        RequestBooking saved = requestBookingRepository.save(booking);
+        RequestBookingDTO dto = requestBookingMapper.toDTO(saved);
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Status updated", dto);
+    }
+
     @Override
     public GeneralResponse<RequestBookingDTO> getRequest(Long id) {
         RequestBooking booking = requestBookingRepository.findById(id).orElse(null);
@@ -60,6 +85,7 @@ public class RequestBookingServiceImpl implements RequestBookingService {
         RequestBookingDTO dto = requestBookingMapper.toDTO(booking);
         return new GeneralResponse<>(HttpStatus.OK.value(), HttpStatus.OK.getReasonPhrase(), dto);
     }
+
     @Override
     public GeneralResponse<PagingDTO<RequestBookingNotificationDTO>> getRequests(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
@@ -90,9 +116,10 @@ public class RequestBookingServiceImpl implements RequestBookingService {
                 .customerName(requestBooking.getCustomerName())
                 .customerPhone(requestBooking.getCustomerPhone())
                 .customerEmail(requestBooking.getCustomerEmail())
-                .destination(requestBooking.getDestination())
+                .destinations(requestBooking.getDestinationLocations() != null ? requestBooking.getDestinationLocations().stream().map(loc -> loc.getName()).collect(Collectors.toList()) : null)
                 .startDate(requestBooking.getStartDate())
                 .endDate(requestBooking.getEndDate())
+                .status(requestBooking.getStatus())
                 .createdAt(requestBooking.getCreatedAt())
                 .detailUrl(frontendBaseUrl + "/request-bookings/" + requestBooking.getId())
                 .build();

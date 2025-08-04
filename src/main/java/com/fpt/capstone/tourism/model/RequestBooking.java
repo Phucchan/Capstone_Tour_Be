@@ -1,13 +1,13 @@
 package com.fpt.capstone.tourism.model;
 
-import com.fpt.capstone.tourism.model.BaseEntity;
-import com.fpt.capstone.tourism.model.Location;
+import com.fpt.capstone.tourism.model.enums.RequestBookingStatus;
 import com.fpt.capstone.tourism.model.enums.RoomCategory;
 import com.fpt.capstone.tourism.model.enums.TourTransport;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "request_booking")
@@ -41,8 +41,15 @@ public class RequestBooking extends BaseEntity {
     @Column(name = "price_max")
     private Double priceMax;
 
-    @Column(name = "location", columnDefinition = "text")
-    private String destination;
+    @ManyToMany
+    @JoinTable(
+            name = "request_booking_destination_locations",
+            joinColumns = @JoinColumn(name = "request_booking_id"),
+            inverseJoinColumns = @JoinColumn(name = "location_id")
+    )
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private List<Location> destinationLocations;
 
     @Column(name = "location_detail", columnDefinition = "text")
     private String destinationDetail;
@@ -77,4 +84,8 @@ public class RequestBooking extends BaseEntity {
 
     @Column(name = "customer_phone")
     private String customerPhone;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private RequestBookingStatus status;
 }
