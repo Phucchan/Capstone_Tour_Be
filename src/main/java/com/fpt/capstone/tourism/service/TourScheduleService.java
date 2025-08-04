@@ -7,7 +7,7 @@ import com.fpt.capstone.tourism.dto.response.tourManager.TourScheduleOptionsDTO;
 import java.util.List;
 
 public interface TourScheduleService {
-    GeneralResponse<TourScheduleManagerDTO> createTourSchedule(Long tourId, TourScheduleCreateRequestDTO requestDTO);
+    GeneralResponse<List<TourScheduleManagerDTO>> createTourSchedule(Long tourId, TourScheduleCreateRequestDTO requestDTO);
 
     GeneralResponse<TourScheduleOptionsDTO> getScheduleOptions(Long tourId);
 

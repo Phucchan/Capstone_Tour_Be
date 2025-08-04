@@ -10,6 +10,7 @@ import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourThemeOptionDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.UserMapper;
+import com.fpt.capstone.tourism.model.enums.ScheduleRepeatType;
 import com.fpt.capstone.tourism.model.tour.Tour;
 import com.fpt.capstone.tourism.model.tour.TourPax;
 import com.fpt.capstone.tourism.model.tour.TourSchedule;
@@ -24,6 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,7 +40,7 @@ public class TourScheduleServiceImpl implements TourScheduleService {
     private final UserMapper userMapper;
 
     @Override
-    public GeneralResponse<TourScheduleManagerDTO> createTourSchedule(Long tourId, TourScheduleCreateRequestDTO requestDTO) {
+    public GeneralResponse<List<TourScheduleManagerDTO>> createTourSchedule(Long tourId, TourScheduleCreateRequestDTO requestDTO) {
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
         if (tour.getTourStatus() != TourStatus.PUBLISHED) {
@@ -54,38 +56,54 @@ public class TourScheduleServiceImpl implements TourScheduleService {
         var coordinator = userRepository.findById(requestDTO.getCoordinatorId())
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.UserExceptionInformation.USER_NOT_FOUND_MESSAGE));
 
-        TourSchedule schedule = new TourSchedule();
-        schedule.setTour(tour);
-        schedule.setCoordinator(coordinator);
-        schedule.setTourPax(tourPax);
+        ScheduleRepeatType repeatType = requestDTO.getRepeatType() != null ? requestDTO.getRepeatType() : ScheduleRepeatType.NONE;
+        int repeatCount = requestDTO.getRepeatCount() != null ? Math.max(0, requestDTO.getRepeatCount()) : 0;
 
-        // Lấy giá và phụ phí từ TourPax và gán vào TourSchedule
-        schedule.setPrice(tourPax.getSellingPrice());
-        schedule.setExtraHotelCost(tourPax.getExtraHotelCost());
-        // Tính toán số ghế trống ban đầu
-        schedule.setAvailableSeats(tourPax.getMaxQuantity());
-        // ================================================================
+        List<TourScheduleManagerDTO> result = new ArrayList<>();
 
+        for (int i = 0; i <= repeatCount; i++) {
+            LocalDateTime departureDate = requestDTO.getDepartureDate();
+            if (i > 0) {
+                switch (repeatType) {
+                    case WEEKLY:
+                        departureDate = departureDate.plusWeeks(i);
+                        break;
+                    case MONTHLY:
+                        departureDate = departureDate.plusMonths(i);
+                        break;
+                    case YEARLY:
+                        departureDate = departureDate.plusYears(i);
+                        break;
+                    default:
+                        break;
+                }
+            }
 
-        LocalDateTime departureDate = requestDTO.getDepartureDate();
-        // SỬA LỖI: Tính toán ngày kết thúc phải dựa trên durationDays của Tour
-        LocalDateTime endDate = departureDate.plusDays(tour.getDurationDays() - 1L);
+            LocalDateTime endDate = departureDate.plusDays(tour.getDurationDays() - 1L);
 
-        schedule.setDepartureDate(departureDate);
-        schedule.setEndDate(endDate); // Gán ngày kết thúc đã được tính toán
-        schedule.setPublished(false);
+            TourSchedule schedule = new TourSchedule();
+            schedule.setTour(tour);
+            schedule.setCoordinator(coordinator);
+            schedule.setTourPax(tourPax);
+            schedule.setPrice(tourPax.getSellingPrice());
+            schedule.setExtraHotelCost(tourPax.getExtraHotelCost());
+            schedule.setAvailableSeats(tourPax.getMaxQuantity());
+            schedule.setDepartureDate(departureDate);
+            schedule.setEndDate(endDate);
+            schedule.setPublished(false);
 
-        TourSchedule saved = tourScheduleRepository.save(schedule);
+            TourSchedule saved = tourScheduleRepository.save(schedule);
 
-        TourScheduleManagerDTO dto = TourScheduleManagerDTO.builder()
-                .id(saved.getId())
-                .coordinatorId(saved.getCoordinator().getId())
-                .tourPaxId(saved.getTourPax().getId())
-                .departureDate(saved.getDepartureDate())
-                .endDate(saved.getEndDate())
-                .build();
+            result.add(TourScheduleManagerDTO.builder()
+                    .id(saved.getId())
+                    .coordinatorId(saved.getCoordinator().getId())
+                    .tourPaxId(saved.getTourPax().getId())
+                    .departureDate(saved.getDepartureDate())
+                    .endDate(saved.getEndDate())
+                    .build());
+        }
 
-        return GeneralResponse.of(dto, Constants.Message.SCHEDULE_CREATED_SUCCESS);
+        return GeneralResponse.of(result, Constants.Message.SCHEDULE_CREATED_SUCCESS);
     }
 
     @Override

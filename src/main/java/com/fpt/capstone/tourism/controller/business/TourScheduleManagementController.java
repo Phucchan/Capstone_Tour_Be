@@ -22,7 +22,7 @@ public class TourScheduleManagementController {
 
     @PostMapping("/tours/{tourId}/schedules")
     //postman http://localhost:8080/v1/business/tours/1/schedules
-    public ResponseEntity<GeneralResponse<TourScheduleManagerDTO>> createSchedule(
+    public ResponseEntity<GeneralResponse<List<TourScheduleManagerDTO>>> createSchedule(
             @PathVariable Long tourId,
             @RequestBody TourScheduleCreateRequestDTO requestDTO) {
         return ResponseEntity.ok(tourScheduleService.createTourSchedule(tourId, requestDTO));
