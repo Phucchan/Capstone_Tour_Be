@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.RequestBookingDTO;
 import com.fpt.capstone.tourism.dto.response.RequestBookingNotificationDTO;
 import com.fpt.capstone.tourism.model.RequestBooking;
@@ -11,9 +12,16 @@ import com.fpt.capstone.tourism.service.RequestBookingService;
 import com.fpt.capstone.tourism.mapper.booking.RequestBookingMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -52,9 +60,32 @@ public class RequestBookingServiceImpl implements RequestBookingService {
         RequestBookingDTO dto = requestBookingMapper.toDTO(booking);
         return new GeneralResponse<>(HttpStatus.OK.value(), HttpStatus.OK.getReasonPhrase(), dto);
     }
+    @Override
+    public GeneralResponse<PagingDTO<RequestBookingNotificationDTO>> getRequests(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Page<RequestBooking> requests = requestBookingRepository.findAll(pageable);
+
+        List<RequestBookingNotificationDTO> items = requests.getContent().stream()
+                .map(this::toNotificationDTO)
+                .collect(Collectors.toList());
+
+        PagingDTO<RequestBookingNotificationDTO> pagingDTO = PagingDTO.<RequestBookingNotificationDTO>builder()
+                .page(requests.getNumber())
+                .size(requests.getSize())
+                .total(requests.getTotalElements())
+                .items(items)
+                .build();
+
+        return GeneralResponse.of(pagingDTO);
+    }
 
     private void notifyNewRequestBooking(RequestBooking requestBooking) {
-        RequestBookingNotificationDTO dto = RequestBookingNotificationDTO.builder()
+        RequestBookingNotificationDTO dto = toNotificationDTO(requestBooking);
+        messagingTemplate.convertAndSend("/topic/request-bookings", dto);
+    }
+
+    private RequestBookingNotificationDTO toNotificationDTO(RequestBooking requestBooking) {
+        return RequestBookingNotificationDTO.builder()
                 .id(requestBooking.getId())
                 .customerName(requestBooking.getCustomerName())
                 .customerPhone(requestBooking.getCustomerPhone())
@@ -65,6 +96,5 @@ public class RequestBookingServiceImpl implements RequestBookingService {
                 .createdAt(requestBooking.getCreatedAt())
                 .detailUrl(frontendBaseUrl + "/request-bookings/" + requestBooking.getId())
                 .build();
-        messagingTemplate.convertAndSend("/topic/request-bookings", dto);
     }
 }

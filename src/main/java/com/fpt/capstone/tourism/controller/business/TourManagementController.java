@@ -7,11 +7,13 @@ import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 
 import com.fpt.capstone.tourism.dto.request.tourManager.TourCreateManagerRequestDTO;
+import com.fpt.capstone.tourism.dto.response.RequestBookingNotificationDTO;
 import com.fpt.capstone.tourism.dto.response.ServiceInfoDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourOptionsDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.*;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
+import com.fpt.capstone.tourism.service.RequestBookingService;
 import com.fpt.capstone.tourism.service.TourManagementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,7 @@ public class TourManagementController {
 
     @Autowired
     private final TourManagementService tourManagementService;
+    private final RequestBookingService requestBookingService;
 
     // danh sách tour
     // postman http://localhost:8080/v1/business/tours?page=1&size=6
@@ -53,6 +56,12 @@ public class TourManagementController {
     // postman http://localhost:8080/v1/business/tours
     public ResponseEntity<GeneralResponse<TourDetailManagerDTO>> createTour(@RequestBody TourCreateManagerRequestDTO requestDTO) {
         return ResponseEntity.ok(tourManagementService.createTour(requestDTO));
+    }
+    @GetMapping
+    public ResponseEntity<GeneralResponse<PagingDTO<RequestBookingNotificationDTO>>> getRequests(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(requestBookingService.getRequests(page, size));
     }
 
     @GetMapping("/tours/options")
