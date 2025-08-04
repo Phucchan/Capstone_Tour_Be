@@ -23,6 +23,8 @@ public interface TourManagementService {
 
     GeneralResponse<TourDetailManagerDTO> createTour(TourCreateManagerRequestDTO requestDTO);
 
+    GeneralResponse<TourDetailManagerDTO> createTourFromRequest(Long requestId);
+
     GeneralResponse<Object> changeStatus(Long id, ChangeStatusDTO changeStatusDTO);
 
     GeneralResponse<TourDetailOptionsDTO> getTourDetail(Long id);

@@ -20,12 +20,14 @@ import com.fpt.capstone.tourism.mapper.UserMapper;
 import com.fpt.capstone.tourism.mapper.tourManager.TourDayManagerMapper;
 import com.fpt.capstone.tourism.mapper.tourManager.TourManagementMapper;
 import com.fpt.capstone.tourism.model.Location;
+import com.fpt.capstone.tourism.model.RequestBooking;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.model.partner.PartnerService;
 import com.fpt.capstone.tourism.model.tour.*;
 import com.fpt.capstone.tourism.repository.LocationRepository;
+import com.fpt.capstone.tourism.repository.RequestBookingRepository;
 import com.fpt.capstone.tourism.repository.TourManagementRepository;
 import com.fpt.capstone.tourism.repository.partner.PartnerServiceRepository;
 import com.fpt.capstone.tourism.repository.partner.ServiceTypeRepository;
@@ -65,9 +67,8 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     private final TourDayManagerMapper tourDayManagerMapper;
     private final PartnerServiceRepository partnerServiceRepository;
     private final ServiceTypeRepository serviceTypeRepository;
-    private final UserMapper userMapper;
-    private final UserRepository userRepository;
     private final TourHelper tourHelper;
+    private final RequestBookingRepository requestBookingRepository;
 
     @Override
     public GeneralResponse<PagingDTO<TourResponseManagerDTO>> getListTours(int page, int size, String keyword,
@@ -138,6 +139,46 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
 
         return GeneralResponse.of(buildDetailDTO(savedTour.getId()), "Tour created successfully");
     }
+    @Override
+    public GeneralResponse<TourDetailManagerDTO> createTourFromRequest(Long requestId) {
+        RequestBooking request = requestBookingRepository.findById(requestId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Request booking not found"));
+
+        TourCreateManagerRequestDTO dto = new TourCreateManagerRequestDTO();
+        if (request.getDepartureLocation() != null) {
+            dto.setDepartLocationId(request.getDepartureLocation().getId());
+        }
+        if (request.getStartDate() != null && request.getEndDate() != null) {
+            dto.setDurationDays((int) java.time.temporal.ChronoUnit.DAYS
+                    .between(request.getStartDate(), request.getEndDate()) + 1);
+        }
+        dto.setDescription(request.getDestinationDetail());
+        dto.setTourType(TourType.CUSTOM);
+
+        String rawDestinations = null;
+        try {
+            rawDestinations = (String) RequestBooking.class.getMethod("getDestination").invoke(request);
+        } catch (Exception ignored) {
+            try {
+                rawDestinations = (String) RequestBooking.class.getMethod("getLocation").invoke(request);
+            } catch (Exception ignored2) {
+                // no destination information available
+            }
+        }
+
+        if (rawDestinations != null && !rawDestinations.isBlank()) {
+            List<Long> destIds = Arrays.stream(rawDestinations.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .map(Long::valueOf)
+                    .collect(Collectors.toList());
+            dto.setDestinationLocationIds(destIds);
+        }
+
+        return createTour(dto);
+    }
+
+
 
 
     @Override
