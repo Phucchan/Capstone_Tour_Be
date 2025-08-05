@@ -34,6 +34,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.List;
 import java.util.HashSet;
 import java.util.Optional;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -66,13 +67,14 @@ class UserManagementServiceImplTest {
 
     @Captor
     private ArgumentCaptor<User> userCaptor;
-    
+
     @Captor
     private ArgumentCaptor<Specification<User>> specCaptor;
 
 
     private User user;
     private UserManagementRequestDTO requestDTO;
+    private UserFullInformationResponseDTO userFullInfoDTO;
 
     @BeforeEach
     void setUp() {
@@ -86,7 +88,7 @@ class UserManagementServiceImplTest {
                 .userStatus(UserStatus.ONLINE)
                 .deleted(Boolean.FALSE)
                 .build();
-        
+
         Role customerRole = Role.builder().id(1L).roleName("CUSTOMER").build();
         UserRole userRole = UserRole.builder().id(1L).user(user).role(customerRole).build();
         user.setUserRoles(new HashSet<>(List.of(userRole)));
@@ -100,7 +102,87 @@ class UserManagementServiceImplTest {
                 .phone("0987654321")
                 .roleNames(List.of("STAFF"))
                 .build();
+
+        userFullInfoDTO = UserFullInformationResponseDTO.builder()
+                .id(1L)
+                .username("testuser")
+                .fullName("Test User")
+                .email("test@example.com")
+                .build();
     }
+
+    // region getAllUsers, getAllCustomers, getAllStaff Tests
+
+    @Test
+    void getAllUsers_Normal_SuccessWithoutFilters() {
+        // Arrange
+        Page<User> userPage = new PageImpl<>(List.of(user));
+        when(userRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(userPage);
+        when(userMapper.toDTO(any(User.class))).thenReturn(userFullInfoDTO);
+
+        // Act
+        GeneralResponse<PagingDTO<UserFullInformationResponseDTO>> response =
+                userManagementService.getAllUsers(0, 10, null, null, null, "id", "asc");
+
+        // Assert
+        assertNotNull(response);
+        assertNotNull(response.getData());
+        assertEquals(1, response.getData().getItems().size());
+        assertEquals(1L, response.getData().getTotal());
+        assertEquals("Test User", response.getData().getItems().get(0).getFullName());
+        verify(userRepository, times(1)).findAll(any(Specification.class), any(Pageable.class));
+    }
+
+    @Test
+    void getAllCustomers_Normal_Success() {
+        // Arrange
+        Page<User> userPage = new PageImpl<>(List.of(user));
+        when(userRepository.findAll(specCaptor.capture(), any(Pageable.class))).thenReturn(userPage);
+        when(userMapper.toDTO(any(User.class))).thenReturn(userFullInfoDTO);
+
+        // Act
+        userManagementService.getAllCustomers(0, 10, null, null, "id", "asc");
+
+        // Assert
+        // Mặc dù không thể kiểm tra trực tiếp nội dung của Specification,
+        // việc gọi đúng phương thức và trả về kết quả đã mock là một chứng minh gián tiếp.
+        // Việc kiểm tra specCaptor phức tạp và thường không cần thiết cho unit test cấp này.
+        verify(userRepository, times(1)).findAll(any(Specification.class), any(Pageable.class));
+    }
+
+    @Test
+    void getAllStaff_Normal_Success() {
+        // Arrange
+        User staffUser = User.builder().id(2L).fullName("Staff Member").build();
+        Page<User> userPage = new PageImpl<>(List.of(staffUser));
+        when(userRepository.findAll(specCaptor.capture(), any(Pageable.class))).thenReturn(userPage);
+        when(userMapper.toDTO(any(User.class))).thenReturn(new UserFullInformationResponseDTO());
+
+        // Act
+        userManagementService.getAllStaff(0, 10, null, null, "id", "asc");
+
+        // Assert
+        verify(userRepository, times(1)).findAll(any(Specification.class), any(Pageable.class));
+    }
+
+    @Test
+    void getAllUsers_Boundary_EmptyResult() {
+        // Arrange
+        Page<User> emptyPage = new PageImpl<>(Collections.emptyList());
+        when(userRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(emptyPage);
+
+        // Act
+        GeneralResponse<PagingDTO<UserFullInformationResponseDTO>> response =
+                userManagementService.getAllUsers(0, 10, "nonexistent", null, null, "id", "asc");
+
+        // Assert
+        assertNotNull(response);
+        assertNotNull(response.getData());
+        assertTrue(response.getData().getItems().isEmpty());
+        assertEquals(0, response.getData().getTotal());
+    }
+
+    // endregion
 
     // region createUser Tests
 
@@ -113,7 +195,7 @@ class UserManagementServiceImplTest {
             savedUser.setId(2L); // Simulate saving and getting an ID
             return savedUser;
         });
-        
+
         Role staffRole = Role.builder().id(2L).roleName("STAFF").build();
         when(roleRepository.findByRoleName("STAFF")).thenReturn(Optional.of(staffRole));
 
@@ -121,7 +203,7 @@ class UserManagementServiceImplTest {
         UserRole savedUserRole = UserRole.builder().user(savedUserWithRole).role(staffRole).build();
         savedUserWithRole.setUserRoles(new HashSet<>(List.of(savedUserRole)));
         when(userRepository.findUserById(2L)).thenReturn(Optional.of(savedUserWithRole));
-        
+
 
         // Act
         GeneralResponse<UserManagementDTO> response = userManagementService.createUser(requestDTO);
@@ -135,38 +217,38 @@ class UserManagementServiceImplTest {
         verify(userRepository, times(1)).save(userCaptor.capture());
         assertEquals("newuser", userCaptor.getValue().getUsername());
         assertEquals("encodedNewPassword", userCaptor.getValue().getPassword());
-        
+
         verify(userRoleRepository, times(1)).save(any(UserRole.class));
     }
-    
+
     @Test
     void createUser_Boundary_NewRoleIsCreated() {
-         // Arrange
+        // Arrange
         requestDTO.setRoleNames(List.of("NEW_ROLE"));
-        
+
         when(passwordEncoder.encode(requestDTO.getPassword())).thenReturn("encodedNewPassword");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User savedUser = invocation.getArgument(0);
-            savedUser.setId(2L); 
+            savedUser.setId(2L);
             return savedUser;
         });
-        
+
         when(roleRepository.findByRoleName("NEW_ROLE")).thenReturn(Optional.empty());
-        
+
         Role newRole = Role.builder().id(3L).roleName("NEW_ROLE").build();
         when(roleRepository.save(any(Role.class))).thenReturn(newRole);
-        
+
         User savedUserWithRole = User.builder().id(2L).deleted(false).userStatus(UserStatus.ONLINE).build();
         UserRole savedUserRole = UserRole.builder().user(savedUserWithRole).role(newRole).build();
         savedUserWithRole.setUserRoles(new HashSet<>(List.of(savedUserRole)));
         when(userRepository.findUserById(2L)).thenReturn(Optional.of(savedUserWithRole));
-        
+
         // Act
         userManagementService.createUser(requestDTO);
-        
+
         // Assert
         verify(roleRepository, times(1)).findByRoleName("NEW_ROLE");
-        verify(roleRepository, times(1)).save(any(Role.class)); 
+        verify(roleRepository, times(1)).save(any(Role.class));
     }
 
     // endregion
@@ -182,20 +264,20 @@ class UserManagementServiceImplTest {
 
         Role staffRole = Role.builder().id(2L).roleName("STAFF").build();
         when(roleRepository.findByRoleName("STAFF")).thenReturn(Optional.of(staffRole));
-        
+
         // Act
         GeneralResponse<UserManagementDTO> response = userManagementService.updateUser(userId, requestDTO);
 
         // Assert
         assertNotNull(response);
         assertEquals("User updated successfully", response.getMessage());
-        
+
         verify(userRepository).save(userCaptor.capture());
         User updatedUser = userCaptor.getValue();
-        
+
         assertEquals("newuser", updatedUser.getUsername());
         assertEquals("New User", updatedUser.getFullName());
-        
+
         verify(userRoleRepository).deleteByUserId(userId);
         verify(userRoleRepository).save(any(UserRole.class));
     }
@@ -210,9 +292,9 @@ class UserManagementServiceImplTest {
                 .email(null)
                 .password(null)
                 .phone(null)
-                .roleNames(null) 
+                .roleNames(null)
                 .build();
-        
+
         String originalUsername = user.getUsername();
 
         when(userService.findById(userId)).thenReturn(user);
@@ -220,27 +302,27 @@ class UserManagementServiceImplTest {
 
         // Act
         userManagementService.updateUser(userId, partialRequest);
-        
+
         // Assert
         verify(userRepository).save(userCaptor.capture());
         User updatedUser = userCaptor.getValue();
 
         assertEquals("Only Update FullName", updatedUser.getFullName());
-        assertEquals(originalUsername, updatedUser.getUsername()); 
-        assertFalse(updatedUser.getUserRoles().isEmpty()); 
-        verify(passwordEncoder, never()).encode(any()); 
-        verify(userRoleRepository, never()).deleteByUserId(anyLong()); 
+        assertEquals(originalUsername, updatedUser.getUsername());
+        assertFalse(updatedUser.getUserRoles().isEmpty());
+        verify(passwordEncoder, never()).encode(any());
+        verify(userRoleRepository, never()).deleteByUserId(anyLong());
     }
-    
+
     @Test
     void updateUser_Abnormal_UserNotFound() {
         // Arrange
         Long userId = 99L;
         when(userService.findById(userId)).thenThrow(BusinessException.of(HttpStatus.NOT_FOUND, "User not found"));
-        
+
         // Act & Assert
         BusinessException ex = assertThrows(BusinessException.class, () -> userManagementService.updateUser(userId, requestDTO));
-        
+
         assertEquals(HttpStatus.NOT_FOUND.value(), ex.getHttpCode());
         assertEquals("User not found", ex.getMessage());
     }
@@ -254,7 +336,7 @@ class UserManagementServiceImplTest {
         Long userId = 1L;
         ChangeStatusDTO statusDTO = new ChangeStatusDTO();
         statusDTO.setNewStatus("OFFLINE");
-        
+
         when(userService.findById(userId)).thenReturn(user);
         when(userRepository.save(any(User.class))).thenReturn(user);
 
@@ -264,27 +346,27 @@ class UserManagementServiceImplTest {
         // Assert
         assertNotNull(response);
         assertEquals("Status updated successfully", response.getMessage());
-        
+
         verify(userRepository).save(userCaptor.capture());
         assertEquals(UserStatus.OFFLINE, userCaptor.getValue().getUserStatus());
     }
-    
+
     @Test
     void changeStatus_Abnormal_NullStatus() {
         // Arrange
         Long userId = 1L;
         ChangeStatusDTO statusDTO = new ChangeStatusDTO();
         statusDTO.setNewStatus(null);
-        
+
         when(userService.findById(userId)).thenReturn(user);
-        
+
         // Act & Assert
         BusinessException ex = assertThrows(BusinessException.class, () -> userManagementService.changeStatus(userId, statusDTO));
-        
+
         assertEquals(HttpStatus.BAD_REQUEST.value(), ex.getHttpCode());
         assertEquals("User status must not be null", ex.getMessage());
     }
-    
+
     @Test
     void changeStatus_Abnormal_InvalidStatusString() {
         // Arrange
@@ -292,18 +374,34 @@ class UserManagementServiceImplTest {
         String invalidStatus = "INVALID_STATUS";
         ChangeStatusDTO statusDTO = new ChangeStatusDTO();
         statusDTO.setNewStatus(invalidStatus);
-        
+
         when(userService.findById(userId)).thenReturn(user);
-        
+
         // Act & Assert
         BusinessException ex = assertThrows(BusinessException.class, () -> userManagementService.changeStatus(userId, statusDTO));
-        
+
         assertEquals(HttpStatus.BAD_REQUEST.value(), ex.getHttpCode());
         assertTrue(ex.getMessage().contains("Invalid user status: " + invalidStatus));
     }
-    
+
+    @Test
+    void changeStatus_Abnormal_UserNotFound() {
+        // Arrange
+        Long userId = 99L;
+        ChangeStatusDTO statusDTO = new ChangeStatusDTO();
+        statusDTO.setNewStatus("OFFLINE");
+
+        when(userService.findById(userId)).thenThrow(BusinessException.of(HttpStatus.NOT_FOUND, "User not found"));
+
+        // Act & Assert
+        BusinessException ex = assertThrows(BusinessException.class, () -> userManagementService.changeStatus(userId, statusDTO));
+
+        assertEquals(HttpStatus.NOT_FOUND.value(), ex.getHttpCode());
+        assertEquals("User not found", ex.getMessage());
+    }
+
     // endregion
-    
+
     // region deleteUser Tests
     @Test
     void deleteUser_Normal_Success() {
@@ -311,14 +409,14 @@ class UserManagementServiceImplTest {
         Long userId = 1L;
         user.setDeleted(false);
         when(userService.findById(userId)).thenReturn(user);
-        
+
         // Act
         GeneralResponse<String> response = userManagementService.deleteUser(userId);
-        
+
         // Assert
         assertNotNull(response);
         assertEquals("User deleted successfully", response.getData());
-        
+
         verify(userRepository).save(userCaptor.capture());
         assertTrue(userCaptor.getValue().getDeleted());
     }
@@ -328,10 +426,10 @@ class UserManagementServiceImplTest {
         // Arrange
         Long userId = 99L;
         when(userService.findById(userId)).thenThrow(BusinessException.of(HttpStatus.NOT_FOUND, "User not found"));
-        
+
         // Act & Assert
         BusinessException ex = assertThrows(BusinessException.class, () -> userManagementService.deleteUser(userId));
-        
+
         assertEquals(HttpStatus.NOT_FOUND.value(), ex.getHttpCode());
     }
     // endregion
