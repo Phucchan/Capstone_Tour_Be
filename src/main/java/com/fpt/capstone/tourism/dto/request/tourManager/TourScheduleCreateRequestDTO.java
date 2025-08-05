@@ -4,12 +4,13 @@ import com.fpt.capstone.tourism.model.enums.ScheduleRepeatType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+import lombok.Builder;
 import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class TourScheduleCreateRequestDTO {
     private Long coordinatorId;
     private Long tourPaxId;
