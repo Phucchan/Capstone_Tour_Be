@@ -65,11 +65,11 @@ public class RequestBooking extends BaseEntity {
 
     private int adults;
 
-    private int children;
+    private Integer children;
 
-    private int infants;
+    private Integer infants;
 
-    private int toddlers;
+    private Integer toddlers;
 
     @Column(name = "hotel_rooms")
     private int hotelRooms;
