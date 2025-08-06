@@ -223,64 +223,81 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
 
         // 1. Cập nhật thông tin cơ bản của tour
-        tour.setName(requestDTO.getName());
-        tour.setDescription(requestDTO.getDescription());
-        tour.setTourStatus(TourStatus.valueOf(requestDTO.getTourStatus()));
+        if (requestDTO.getName() != null && !requestDTO.getName().trim().isEmpty()) {
+            tour.setName(requestDTO.getName().trim());
+        }
+        if (requestDTO.getDescription() != null) {
+            tour.setDescription(requestDTO.getDescription().trim());
+        }
 
+        // ✅ Cho phép tourStatus null hoặc rỗng => không cập nhật
+        String statusStr = requestDTO.getTourStatus();
+        if (statusStr != null && !statusStr.trim().isEmpty()) {
+            try {
+                TourStatus status = TourStatus.valueOf(statusStr.trim().toUpperCase());
+                tour.setTourStatus(status);
+            } catch (IllegalArgumentException ex) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Invalid tour status: " + statusStr);
+            }
+        }
+
+        // ✅ Cập nhật thumbnail nếu có file mới
         if (file != null && !file.isEmpty()) {
             String key = s3Service.uploadFile(file, "tours");
             tour.setThumbnailUrl(bucketUrl + "/" + key);
         }
 
+        // ✅ Cập nhật điểm khởi hành nếu có
         if (requestDTO.getDepartLocationId() != null) {
             Location depart = locationRepository.findById(requestDTO.getDepartLocationId())
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found"));
             tour.setDepartLocation(depart);
         }
 
+        // ✅ Cập nhật chủ đề tour nếu có
         if (requestDTO.getTourThemeIds() != null) {
             List<TourTheme> newThemes = tourThemeRepository.findAllById(requestDTO.getTourThemeIds());
             tour.getThemes().clear();
             tour.getThemes().addAll(newThemes);
         }
 
-        // 2. LOGIC MỚI: Đối chiếu và cập nhật danh sách ngày một cách an toàn
+        // 2. LOGIC cập nhật danh sách ngày đi (TourDays)
         if (requestDTO.getDestinationLocationIds() != null) {
             List<Long> newDestinationIds = requestDTO.getDestinationLocationIds();
             List<TourDay> existingDays = tour.getTourDays();
 
-            // Tìm những ngày cần xóa (có trong danh sách cũ nhưng không có trong danh sách mới)
+            // Tìm những ngày cần xóa
             List<TourDay> daysToRemove = existingDays.stream()
                     .filter(day -> day.getLocation() != null && !newDestinationIds.contains(day.getLocation().getId()))
                     .collect(Collectors.toList());
 
-            // Tìm những ID điểm đến đã tồn tại
+            // ID điểm đến đã tồn tại
             List<Long> existingDestinationIds = existingDays.stream()
                     .map(day -> day.getLocation() != null ? day.getLocation().getId() : null)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
 
-            // Tìm những ID điểm đến mới cần thêm
+            // ID điểm đến mới cần thêm
             List<Long> idsToAdd = newDestinationIds.stream()
                     .filter(destId -> !existingDestinationIds.contains(destId))
                     .collect(Collectors.toList());
 
-            // Thực hiện xóa
+            // Xóa ngày không còn dùng
             existingDays.removeAll(daysToRemove);
             tourDayRepository.deleteAll(daysToRemove);
 
-            // Thực hiện thêm mới
+            // Thêm mới ngày
             for (Long destId : idsToAdd) {
                 Location dest = locationRepository.findById(destId)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found for new day"));
                 TourDay day = new TourDay();
                 day.setTour(tour);
                 day.setLocation(dest);
-                day.setTitle("Ngày mới: Tham quan " + dest.getName()); // Tiêu đề mặc định
+                day.setTitle("Ngày mới: Tham quan " + dest.getName());
                 existingDays.add(day);
             }
 
-            // SỬA LỖI: Sử dụng vòng lặp for-i để tránh lỗi "effectively final"
+            // Sắp xếp lại thứ tự ngày đi
             List<TourDay> finalDayList = new ArrayList<>();
             Map<Long, TourDay> existingDaysByLocationId = existingDays.stream()
                     .filter(d -> d.getLocation() != null)
@@ -303,6 +320,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         Tour savedTour = tourRepository.save(tour);
         return GeneralResponse.of(buildDetailDTO(savedTour.getId()), "Tour updated successfully");
     }
+
 
 
     @Override
