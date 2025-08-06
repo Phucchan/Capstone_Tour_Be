@@ -12,6 +12,7 @@ import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.UserMapper;
 import com.fpt.capstone.tourism.model.User;
+import com.fpt.capstone.tourism.model.enums.BookingStatus;
 import com.fpt.capstone.tourism.model.tour.Booking;
 import com.fpt.capstone.tourism.repository.user.UserPointRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
@@ -25,6 +26,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -196,5 +198,25 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.GET_BOOKING_LIST_SUCCESS, pagingDTO);
+    }
+    @Override
+    @Transactional
+    public GeneralResponse<String> requestBookingCancellation(Long userId, Long bookingId) {
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                .orElseThrow(() -> BusinessException.of(Constants.Message.BOOKING_NOT_FOUND));
+
+        if (booking.getUser() == null || !booking.getUser().getId().equals(userId)) {
+            throw BusinessException.of(Constants.Message.BOOKING_NOT_FOUND);
+        }
+
+        if (booking.getBookingStatus() != BookingStatus.PENDING &&
+                booking.getBookingStatus() != BookingStatus.CONFIRMED) {
+            throw BusinessException.of("Chỉ có thể yêu cầu hủy cho đặt tour đang chờ xác nhận hoặc đã xác nhận");
+        }
+
+        booking.setBookingStatus(BookingStatus.CANCEL_REQUESTED);
+        bookingRepository.save(booking);
+
+        return GeneralResponse.of("Yêu cầu hủy đặt tour thành công");
     }
 }

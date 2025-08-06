@@ -55,4 +55,10 @@ public class ProfileController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
         return ResponseEntity.ok(userService.getBookingHistory(userId, pageable));
     }
+    @PutMapping("/bookings/{bookingId}/cancel-request")
+    public ResponseEntity<GeneralResponse<String>> requestBookingCancellation(
+            @RequestParam Long userId,
+            @PathVariable Long bookingId) {
+        return ResponseEntity.ok(userService.requestBookingCancellation(userId, bookingId));
+    }
 }
