@@ -37,10 +37,11 @@ public class TourDetailManagementController {
 
     // cập nhật chi tiết tour
     // postman http://localhost:8080/v1/business/tours/1
-    @PutMapping(value = "/tours/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<GeneralResponse<TourDetailManagerDTO>> updateTour(@PathVariable Long id,
-                                                                            @RequestParam(value = "file", required = false) MultipartFile file,
-                                                                            @ModelAttribute TourUpdateManagerRequestDTO requestDTO) {
+    @PutMapping(value = "/tours/{id}", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public ResponseEntity<GeneralResponse<TourDetailManagerDTO>> updateTour(
+            @PathVariable Long id,
+            @RequestPart("tourData") TourUpdateManagerRequestDTO requestDTO,
+            @RequestPart(value = "thumbnailFile", required = false) MultipartFile file) {
         return ResponseEntity.ok(tourManagementService.updateTour(id, requestDTO, file));
     }
 

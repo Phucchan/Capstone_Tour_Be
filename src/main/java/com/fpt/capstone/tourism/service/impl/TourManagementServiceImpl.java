@@ -17,6 +17,7 @@ import com.fpt.capstone.tourism.dto.response.tourManager.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.TourHelper;
 import com.fpt.capstone.tourism.mapper.UserMapper;
+import com.fpt.capstone.tourism.mapper.partner.ServiceInfoMapper;
 import com.fpt.capstone.tourism.mapper.tourManager.TourDayManagerMapper;
 import com.fpt.capstone.tourism.mapper.tourManager.TourManagementMapper;
 import com.fpt.capstone.tourism.model.Location;
@@ -73,6 +74,8 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     private final TourHelper tourHelper;
     private final RequestBookingRepository requestBookingRepository;
     private final S3Service s3Service;
+    private final ServiceInfoMapper serviceInfoMapper;
+
 
     @Value("${aws.s3.bucket-url}")
     private String bucketUrl;
@@ -336,8 +339,23 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
 
         List<TourDay> days = tourDayRepository.findByTourIdAndDeletedIsFalseOrderByDayNumberAsc(tourId);
 
+        // Map thủ công để đảm bảo dữ liệu services được load
         List<TourDayManagerDTO> dtos = days.stream()
-                .map(tourDayManagerMapper::toDTO)
+                .map(day -> {
+                    // Dùng mapper có sẵn để map các trường cơ bản
+                    TourDayManagerDTO dto = tourDayManagerMapper.toDTO(day);
+
+                    // Lấy và map danh sách services một cách tường minh
+                    if (day.getServices() != null) {
+                        List<ServiceInfoDTO> serviceInfos = day.getServices().stream()
+                                .map(serviceInfoMapper::toDto) // Giả sử bạn có một mapper cho ServiceInfo
+                                .collect(Collectors.toList());
+                        dto.setServices(serviceInfos);
+                    } else {
+                        dto.setServices(new ArrayList<>()); // Trả về mảng rỗng thay vì null
+                    }
+                    return dto;
+                })
                 .collect(Collectors.toList());
 
         return GeneralResponse.of(dtos);
@@ -605,4 +623,25 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         }
     }
 
+    @Override
+    public GeneralResponse<List<PartnerServiceShortDTO>> getPartnerServices(Long serviceTypeId) {
+        List<PartnerService> services;
+        if (serviceTypeId != null) {
+            services = partnerServiceRepository.findByServiceTypeId(serviceTypeId);
+        } else {
+            services = partnerServiceRepository.findAll();
+        }
+
+        // SỬA LẠI DÒNG NÀY: Thêm s.getServiceType().getName() vào constructor
+        List<PartnerServiceShortDTO> dtos = services.stream()
+                .map(s -> new PartnerServiceShortDTO(
+                        s.getId(),
+                        s.getName(),
+                        s.getPartner().getName(),
+                        s.getServiceType().getName() // <-- Thêm tham số thứ 4
+                ))
+                .collect(Collectors.toList());
+
+        return GeneralResponse.of(dtos);
+    }
 }

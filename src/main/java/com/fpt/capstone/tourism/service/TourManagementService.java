@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.service;
 
+import com.fpt.capstone.tourism.dto.common.PartnerServiceShortDTO;
 import com.fpt.capstone.tourism.dto.common.ServiceTypeShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
@@ -51,6 +52,6 @@ public interface TourManagementService {
 
     GeneralResponse<List<ServiceTypeShortDTO>> getServiceTypes();
 
-
+    GeneralResponse<List<PartnerServiceShortDTO>> getPartnerServices(Long serviceTypeId);
 }
 

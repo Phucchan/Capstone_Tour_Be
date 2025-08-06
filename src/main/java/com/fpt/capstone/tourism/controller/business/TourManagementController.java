@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.controller.business;
 
+import com.fpt.capstone.tourism.dto.common.PartnerServiceShortDTO;
 import com.fpt.capstone.tourism.dto.common.ServiceTypeShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 
@@ -94,6 +95,12 @@ public class TourManagementController {
     public ResponseEntity<GeneralResponse<TourOptionsDTO>> getTourOptions() {
         return ResponseEntity.ok(tourManagementService.getTourOptions());
     }
-
+    @GetMapping("/partner-services")
+    public ResponseEntity<GeneralResponse<List<PartnerServiceShortDTO>>> getPartnerServices(
+            // Thêm @RequestParam để nhận ID loại dịch vụ
+            @RequestParam(value = "serviceTypeId", required = false) Long serviceTypeId
+    ) {
+        return ResponseEntity.ok(tourManagementService.getPartnerServices(serviceTypeId));
+    }
 
 }
