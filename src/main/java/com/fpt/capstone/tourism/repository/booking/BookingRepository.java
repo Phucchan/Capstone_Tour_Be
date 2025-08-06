@@ -120,7 +120,26 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Long countReturningCustomers(@Param("startDate") LocalDateTime startDate,
                                  @Param("endDate") LocalDateTime endDate);
 
-
+    @Query(value = "SELECT t.code AS tour_code, t.name AS tour_name, t.tour_type AS tour_type, " +
+            "ts.departure_date AS start_date, b.booking_status AS status, u.full_name AS customer_name " +
+            "FROM bookings b " +
+            "JOIN tour_schedules ts ON b.tour_schedule_id = ts.schedule_id " +
+            "JOIN tours t ON ts.tour_id = t.tour_id " +
+            "JOIN users u ON b.user_id = u.id " +
+            "WHERE b.booking_status = 'CANCEL_REQUESTED' " +
+            "AND (:search IS NULL OR LOWER(t.code) LIKE LOWER(CONCAT('%', :search, '%')) " +
+            "OR LOWER(t.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
+            "OR LOWER(u.full_name) LIKE LOWER(CONCAT('%', :search, '%'))) ",
+            countQuery = "SELECT COUNT(*) FROM bookings b " +
+                    "JOIN tour_schedules ts ON b.tour_schedule_id = ts.schedule_id " +
+                    "JOIN tours t ON ts.tour_id = t.tour_id " +
+                    "JOIN users u ON b.user_id = u.id " +
+                    "WHERE b.booking_status = 'CANCEL_REQUESTED' " +
+                    "AND (:search IS NULL OR LOWER(t.code) LIKE LOWER(CONCAT('%', :search, '%')) " +
+                    "OR LOWER(t.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
+                    "OR LOWER(u.full_name) LIKE LOWER(CONCAT('%', :search, '%'))) ",
+            nativeQuery = true)
+    Page<Object[]> findRefundRequests(@Param("search") String search, Pageable pageable);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select b from Booking b where b.id = :id")
