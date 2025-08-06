@@ -6,7 +6,7 @@ import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPriceCalculateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxFullDTO;
-import com.fpt.capstone.tourism.service.PartnerServiceService;
+//import com.fpt.capstone.tourism.service.PartnerServiceService;
 import com.fpt.capstone.tourism.service.TourPaxService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +20,7 @@ import com.fpt.capstone.tourism.dto.response.tourManager.TourCostSummaryDTO;
 @RequestMapping("/business")
 public class TourPaxController {
     private final TourPaxService tourPaxService;
-    private final PartnerServiceService partnerServiceService;
+//    private final PartnerServiceService partnerServiceService;
 
 
 
@@ -67,11 +67,11 @@ public class TourPaxController {
             @RequestBody TourPriceCalculateRequestDTO request) {
         return ResponseEntity.ok(tourPaxService.calculatePrices(tourId, request));
     }
-    @GetMapping("/partner-services")
-    // Example: http://localhost:8080/v1/business/partner-services
-    public ResponseEntity<GeneralResponse<List<PartnerServiceShortDTO>>> getPartnerServices() {
-        return ResponseEntity.ok(partnerServiceService.getPartnerServices());
-    }
+//    @GetMapping("/partner-services")
+//    // Example: http://localhost:8080/v1/business/partner-services
+//    public ResponseEntity<GeneralResponse<List<PartnerServiceShortDTO>>> getPartnerServices() {
+//        return ResponseEntity.ok(partnerServiceService.getPartnerServices());
+//    }
 
     /**
      * API để lấy danh sách chi tiết các dịch vụ đã được thêm vào tour,
