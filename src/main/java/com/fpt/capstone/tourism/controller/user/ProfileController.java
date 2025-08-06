@@ -56,6 +56,7 @@ public class ProfileController {
         return ResponseEntity.ok(userService.getBookingHistory(userId, pageable));
     }
     @PutMapping("/bookings/{bookingId}/cancel-request")
+    // postman http://localhost:8080/v1/users/bookings/1/cancel-request?userId=1
     public ResponseEntity<GeneralResponse<String>> requestBookingCancellation(
             @RequestParam Long userId,
             @PathVariable Long bookingId) {
