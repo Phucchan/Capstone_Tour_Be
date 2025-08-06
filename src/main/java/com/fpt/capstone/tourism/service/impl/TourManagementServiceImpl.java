@@ -351,7 +351,9 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found with id: " + tourId));
 
-        List<TourThemeOptionDTO> themes = tour.getThemes().stream()
+        List<TourThemeOptionDTO> themes = Optional.ofNullable(tour.getThemes())
+                .orElse(Collections.emptyList())
+                .stream()
                 .map(theme -> new TourThemeOptionDTO(theme.getId(), theme.getName()))
                 .collect(Collectors.toList());
 
@@ -365,6 +367,11 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
+        Location depart = tour.getDepartLocation();
+        LocationShortDTO departDto = (depart != null)
+                ? new LocationShortDTO(depart.getId(), depart.getName())
+                : null;
+
         return TourDetailManagerDTO.builder()
                 .id(tour.getId())
                 .code(tour.getCode())
@@ -374,9 +381,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .tourType(tour.getTourType() != null ? tour.getTourType().name() : null)
                 .tourStatus(tour.getTourStatus() != null ? tour.getTourStatus().name() : null)
                 .durationDays(tour.getDurationDays())
-                .departLocation(new LocationShortDTO(tour.getDepartLocation().getId(),
-                        tour.getDepartLocation().getName()
-                        ))
+                .departLocation(departDto)
                 .destinations(destinations)
                 .themes(themes)
                 .build();
