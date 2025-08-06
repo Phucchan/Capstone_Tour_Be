@@ -48,11 +48,8 @@ public class ProfileController {
     public ResponseEntity<GeneralResponse<PagingDTO<BookingSummaryDTO>>> getBookingHistory(
             @RequestParam Long userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "bookingStatus") String sortField,
-            @RequestParam(defaultValue = "asc") String sortDirection) {
-        Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         return ResponseEntity.ok(userService.getBookingHistory(userId, pageable));
     }
     @PutMapping("/bookings/{bookingId}/cancel-request")
