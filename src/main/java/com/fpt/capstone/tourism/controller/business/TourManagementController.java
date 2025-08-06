@@ -59,10 +59,15 @@ public class TourManagementController {
     // postman http://localhost:8080/v1/business/tours
     // body: form-data
     public ResponseEntity<GeneralResponse<TourDetailManagerDTO>> createTour(
-            @RequestParam(value = "file", required = false) MultipartFile file,
-            @ModelAttribute TourCreateManagerRequestDTO requestDTO) {
+            // Dùng @RequestPart để đọc phần dữ liệu JSON có tên là "tourData"
+            @RequestPart("tourData") TourCreateManagerRequestDTO requestDTO,
+            // Dùng @RequestPart để đọc file có tên là "thumbnailFile"
+            @RequestPart(value = "thumbnailFile", required = false) MultipartFile file
+    ) {
+        // Gọi service, không cần thay đổi gì ở đây
         return ResponseEntity.ok(tourManagementService.createTour(requestDTO, file));
     }
+
     @GetMapping("/request-bookings")
     public ResponseEntity<GeneralResponse<PagingDTO<RequestBookingNotificationDTO>>> getListRequests(
             @RequestParam(defaultValue = "0") int page,
