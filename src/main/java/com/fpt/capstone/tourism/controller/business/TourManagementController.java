@@ -58,7 +58,7 @@ public class TourManagementController {
     @PostMapping(value = "/tours", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     // postman http://localhost:8080/v1/business/tours
     public ResponseEntity<GeneralResponse<TourDetailManagerDTO>> createTour(
-            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "file", required = false) MultipartFile file,
             @ModelAttribute TourCreateManagerRequestDTO requestDTO) {
         return ResponseEntity.ok(tourManagementService.createTour(requestDTO, file));
     }

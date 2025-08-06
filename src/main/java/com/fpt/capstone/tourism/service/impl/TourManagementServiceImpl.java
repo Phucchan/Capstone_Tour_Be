@@ -109,7 +109,11 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     public GeneralResponse<TourDetailManagerDTO> createTour(TourCreateManagerRequestDTO requestDTO, MultipartFile file) {
         Tour tour = new Tour();
         tour.setCode(tourHelper.generateTourCode());
-        tour.setName(requestDTO.getName());
+        String name = requestDTO.getName();
+        if (name == null || name.trim().isEmpty()) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Tour name is required");
+        }
+        tour.setName(name.trim());
         if (file != null && !file.isEmpty()) {
             String key = s3Service.uploadFile(file, "tours");
             tour.setThumbnailUrl(bucketUrl + "/" + key);
@@ -118,9 +122,11 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         tour.setTourType(requestDTO.getTourType() != null ? requestDTO.getTourType() : TourType.FIXED);
         tour.setTourStatus(TourStatus.DRAFT);
 
-        Location depart = locationRepository.findById(requestDTO.getDepartLocationId())
-                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Depart location not found"));
-        tour.setDepartLocation(depart);
+        if (requestDTO.getDepartLocationId() != null) {
+            Location depart = locationRepository.findById(requestDTO.getDepartLocationId())
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Depart location not found"));
+            tour.setDepartLocation(depart);
+        }
 
 
         if (requestDTO.getTourThemeIds() != null) {
