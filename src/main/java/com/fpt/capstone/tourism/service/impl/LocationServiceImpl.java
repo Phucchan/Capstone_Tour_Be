@@ -11,8 +11,10 @@ import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.repository.LocationRepository;
 import com.fpt.capstone.tourism.repository.tour.TourRepository;
 import com.fpt.capstone.tourism.service.LocationService;
+import com.fpt.capstone.tourism.service.S3Service;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +22,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -34,6 +37,10 @@ public class LocationServiceImpl implements LocationService {
     private final LocationRepository locationRepository;
     private final LocationMapper locationMapper;
     private final TourRepository tourRepository;
+    private final S3Service s3Service;
+
+    @Value("${aws.s3.bucket-url}")
+    private String bucketUrl;
 
     @Override
     public List<LocationDTO> getAllDepartures() {
@@ -67,11 +74,13 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public GeneralResponse<LocationDTO> saveLocation(LocationRequestDTO locationRequestDTO) {
+    public GeneralResponse<LocationDTO> saveLocation(LocationRequestDTO locationRequestDTO, MultipartFile file) {
         try {
             //Validate input data
             Validator.validateLocation(locationRequestDTO);
-
+            if (file == null || file.isEmpty()) {
+                throw BusinessException.of(EMPTY_LOCATION_IMAGE);
+            }
             //Check duplicate location
             if (locationRepository.findByName(locationRequestDTO.getName()) != null) {
                 throw BusinessException.of(EXISTED_LOCATION);
@@ -79,6 +88,8 @@ public class LocationServiceImpl implements LocationService {
 
             //Save date to database
             Location location = locationMapper.toEntity(locationRequestDTO);
+            String key = s3Service.uploadFile(file, "locations");
+            location.setImage(bucketUrl + "/" + key);
             location.setCreatedAt(LocalDateTime.now());
             location.setDeleted(false);
             locationRepository.save(location);
@@ -147,13 +158,16 @@ public class LocationServiceImpl implements LocationService {
 
 
     @Override
-    public GeneralResponse<LocationDTO> updateLocation(Long id, LocationRequestDTO locationRequestDTO) {
+    public GeneralResponse<LocationDTO> updateLocation(Long id, LocationRequestDTO locationRequestDTO, MultipartFile file) {
         try {
             Validator.validateLocation(locationRequestDTO);
             Location location = locationRepository.findById(id).orElseThrow();
             location.setName(locationRequestDTO.getName());
             location.setDescription(locationRequestDTO.getDescription());
-            location.setImage(locationRequestDTO.getImage());
+            if (file != null && !file.isEmpty()) {
+                String key = s3Service.uploadFile(file, "locations");
+                location.setImage(bucketUrl + "/" + key);
+            }
             location.setUpdatedAt(LocalDateTime.now());
             locationRepository.save(location);
             LocationDTO locationDTO = locationMapper.toDTO(location);

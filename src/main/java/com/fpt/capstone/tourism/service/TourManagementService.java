@@ -30,7 +30,7 @@ public interface TourManagementService {
 
     GeneralResponse<TourDetailOptionsDTO> getTourDetail(Long id);
 
-    GeneralResponse<TourDetailManagerDTO> updateTour(Long id, TourUpdateManagerRequestDTO requestDTO);
+    GeneralResponse<TourDetailManagerDTO> updateTour(Long id, TourUpdateManagerRequestDTO requestDTO, MultipartFile file);
 
     GeneralResponse<List<TourDayManagerDTO>> getTourDays(Long tourId);
 

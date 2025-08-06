@@ -10,5 +10,4 @@ import lombok.NoArgsConstructor;
 public class LocationRequestDTO {
     private String name;
     private String description;
-    private String image;
 }

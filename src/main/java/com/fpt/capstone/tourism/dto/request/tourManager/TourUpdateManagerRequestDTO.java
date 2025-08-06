@@ -11,7 +11,6 @@ import java.util.List;
 @AllArgsConstructor
 public class TourUpdateManagerRequestDTO {
     private String name;
-    private String thumbnailUrl;
     private String description;
     private String tourStatus; // <-- THÊM TRƯỜNG NÀY VÀO
     private Long departLocationId;

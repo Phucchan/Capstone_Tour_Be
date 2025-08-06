@@ -218,15 +218,19 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
 
     @Override
     @Transactional
-    public GeneralResponse<TourDetailManagerDTO> updateTour(Long id, TourUpdateManagerRequestDTO requestDTO) {
+    public GeneralResponse<TourDetailManagerDTO> updateTour(Long id, TourUpdateManagerRequestDTO requestDTO, MultipartFile file) {
         Tour tour = tourRepository.findById(id)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
 
         // 1. Cập nhật thông tin cơ bản của tour
         tour.setName(requestDTO.getName());
-        tour.setThumbnailUrl(requestDTO.getThumbnailUrl());
         tour.setDescription(requestDTO.getDescription());
         tour.setTourStatus(TourStatus.valueOf(requestDTO.getTourStatus()));
+
+        if (file != null && !file.isEmpty()) {
+            String key = s3Service.uploadFile(file, "tours");
+            tour.setThumbnailUrl(bucketUrl + "/" + key);
+        }
 
         if (requestDTO.getDepartLocationId() != null) {
             Location depart = locationRepository.findById(requestDTO.getDepartLocationId())

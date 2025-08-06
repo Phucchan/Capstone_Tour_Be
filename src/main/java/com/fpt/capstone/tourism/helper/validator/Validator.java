@@ -60,7 +60,6 @@ public class Validator {
     public static void validateLocation(LocationRequestDTO locationRequestDTO){
         isNullOrEmpty(locationRequestDTO.getName(), EMPTY_LOCATION_NAME);
         isNullOrEmpty(locationRequestDTO.getDescription(), EMPTY_LOCATION_DESCRIPTION);
-        isNullOrEmpty(locationRequestDTO.getImage(), EMPTY_LOCATION_IMAGE);
     }
 
 

@@ -13,8 +13,10 @@ import com.fpt.capstone.tourism.dto.response.tourManager.*;
 import com.fpt.capstone.tourism.service.TourManagementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -35,10 +37,11 @@ public class TourDetailManagementController {
 
     // cập nhật chi tiết tour
     // postman http://localhost:8080/v1/business/tours/1
-    @PutMapping("/tours/{id}")
+    @PutMapping(value = "/tours/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<GeneralResponse<TourDetailManagerDTO>> updateTour(@PathVariable Long id,
-                                                                            @RequestBody TourUpdateManagerRequestDTO requestDTO) {
-        return ResponseEntity.ok(tourManagementService.updateTour(id, requestDTO));
+                                                                            @RequestParam(value = "file", required = false) MultipartFile file,
+                                                                            @ModelAttribute TourUpdateManagerRequestDTO requestDTO) {
+        return ResponseEntity.ok(tourManagementService.updateTour(id, requestDTO, file));
     }
 
     // Lấy danh sách các ngày trong tour
