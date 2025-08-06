@@ -125,4 +125,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select b from Booking b where b.id = :id")
     Optional<Booking> findByIdForUpdate(@Param("id") Long id);
+
+    List<Booking> findByUser_IdAndBookingStatus(Long userId, com.fpt.capstone.tourism.model.enums.BookingStatus status);
 }

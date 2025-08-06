@@ -408,6 +408,7 @@ public class Constants {
         public static final String WISHLIST_LOAD_FAIL = "Lấy danh sách yêu thích thất bại";
         public static final String WISHLIST_NOT_FOUND = "Không tìm thấy danh sách yêu thích";
         public static final String NO_PERMISSION_TO_DELETE = "Bạn không có quyền xóa dữ liệu này";
+        public static final String NO_PERMISSION_TO_ACCESS = "Bạn không có quyền truy cập dữ liệu này";
         public static final String DELETE_WISHLIST_SUCCESS = "Xóa wishlist thành công";
         public static final String DELETE_WISHLIST_FAIL = "Xóa wishlist thất bại";
 
@@ -460,6 +461,15 @@ public class Constants {
         public static final String PREVIEW_MAIL_FAIL = "Xem trước email thất bại";
         public static final String BOOKING_SERVICE_NOT_FOUND = "Không tìm thấy dịch vụ đặt tour";
         public static final String SERVICE_STATUS_CANNOT_SEND_EMAIL = "Trạng thái dịch vụ không thể gửi email";
+
+        public static final String GET_TOUR_PHOTOS_SUCCESS = "Lấy danh sách ảnh tour thành công";
+        public static final String GET_TOUR_PHOTOS_FAIL = "Lấy danh sách ảnh tour thất bại";
+        public static final String ADD_TOUR_PHOTO_SUCCESS = "Thêm ảnh tour thành công";
+        public static final String ADD_TOUR_PHOTO_FAIL = "Thêm ảnh tour thất bại";
+        public static final String DELETE_TOUR_PHOTO_SUCCESS = "Xóa ảnh tour thành công";
+        public static final String DELETE_TOUR_PHOTO_FAIL = "Xóa ảnh tour thất bại";
+        public static final String TOUR_PHOTO_NOT_FOUND = "Không tìm thấy ảnh tour";
+
         public static final String GET_BOOKING_LIST_SUCCESS = "Lấy danh sách đặt tour thành công";
         public static final String GET_BOOKING_LIST_FAIL = "Lấy danh sách đặt tour thất bại";
         public static final String CANCEL_SERVICE_SUCCESS = "Hủy dịch vụ thành công";
