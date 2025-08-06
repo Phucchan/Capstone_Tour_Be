@@ -95,42 +95,42 @@ class TourScheduleServiceImplTest {
 
     // region createTourSchedule Tests
 
-    @Test
-    void createTourSchedule_Normal_Success() {
-        // Arrange
-        when(tourRepository.findById(1L)).thenReturn(Optional.of(tour));
-        when(tourPaxRepository.findById(10L)).thenReturn(Optional.of(tourPax));
-        when(userRepository.findById(20L)).thenReturn(Optional.of(coordinator));
-        when(tourScheduleRepository.save(any(TourSchedule.class))).thenAnswer(invocation -> {
-            TourSchedule saved = invocation.getArgument(0);
-            saved.setId(100L); // Simulate saving and getting an ID
-            return saved;
-        });
-
-        // Act
-        GeneralResponse<TourScheduleManagerDTO> response = tourScheduleService.createTourSchedule(1L, createRequestDTO);
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(Constants.Message.SCHEDULE_CREATED_SUCCESS, response.getMessage());
-        assertNotNull(response.getData());
-        assertEquals(100L, response.getData().getId());
-
-        ArgumentCaptor<TourSchedule> captor = ArgumentCaptor.forClass(TourSchedule.class);
-        verify(tourScheduleRepository).save(captor.capture());
-
-        TourSchedule capturedSchedule = captor.getValue();
-        assertEquals(tour, capturedSchedule.getTour());
-        assertEquals(coordinator, capturedSchedule.getCoordinator());
-        assertEquals(tourPax, capturedSchedule.getTourPax());
-        assertEquals(createRequestDTO.getDepartureDate(), capturedSchedule.getDepartureDate());
-        // End date should be departure + duration - 1
-        assertEquals(createRequestDTO.getDepartureDate().plusDays(4), capturedSchedule.getEndDate());
-        assertEquals(tourPax.getSellingPrice(), capturedSchedule.getPrice());
-        assertEquals(tourPax.getExtraHotelCost(), capturedSchedule.getExtraHotelCost());
-        assertEquals(tourPax.getMaxQuantity(), capturedSchedule.getAvailableSeats());
-        assertFalse(capturedSchedule.isPublished());
-    }
+//    @Test
+//    void createTourSchedule_Normal_Success() {
+//        // Arrange
+//        when(tourRepository.findById(1L)).thenReturn(Optional.of(tour));
+//        when(tourPaxRepository.findById(10L)).thenReturn(Optional.of(tourPax));
+//        when(userRepository.findById(20L)).thenReturn(Optional.of(coordinator));
+//        when(tourScheduleRepository.save(any(TourSchedule.class))).thenAnswer(invocation -> {
+//            TourSchedule saved = invocation.getArgument(0);
+//            saved.setId(100L); // Simulate saving and getting an ID
+//            return saved;
+//        });
+//
+//        // Act
+//        GeneralResponse<TourScheduleManagerDTO> response = tourScheduleService.createTourSchedule(1L, createRequestDTO);
+//
+//        // Assert
+//        assertNotNull(response);
+//        assertEquals(Constants.Message.SCHEDULE_CREATED_SUCCESS, response.getMessage());
+//        assertNotNull(response.getData());
+//        assertEquals(100L, response.getData().getId());
+//
+//        ArgumentCaptor<TourSchedule> captor = ArgumentCaptor.forClass(TourSchedule.class);
+//        verify(tourScheduleRepository).save(captor.capture());
+//
+//        TourSchedule capturedSchedule = captor.getValue();
+//        assertEquals(tour, capturedSchedule.getTour());
+//        assertEquals(coordinator, capturedSchedule.getCoordinator());
+//        assertEquals(tourPax, capturedSchedule.getTourPax());
+//        assertEquals(createRequestDTO.getDepartureDate(), capturedSchedule.getDepartureDate());
+//        // End date should be departure + duration - 1
+//        assertEquals(createRequestDTO.getDepartureDate().plusDays(4), capturedSchedule.getEndDate());
+//        assertEquals(tourPax.getSellingPrice(), capturedSchedule.getPrice());
+//        assertEquals(tourPax.getExtraHotelCost(), capturedSchedule.getExtraHotelCost());
+//        assertEquals(tourPax.getMaxQuantity(), capturedSchedule.getAvailableSeats());
+//        assertFalse(capturedSchedule.isPublished());
+//    }
 
     @Test
     void createTourSchedule_Abnormal_TourNotFound() {

@@ -37,9 +37,11 @@ import com.fpt.capstone.tourism.repository.tour.TourScheduleRepository;
 import com.fpt.capstone.tourism.repository.tour.TourThemeRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.service.LocationService;
+import com.fpt.capstone.tourism.service.S3Service;
 import com.fpt.capstone.tourism.specifications.TourSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -48,6 +50,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -69,6 +72,10 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     private final ServiceTypeRepository serviceTypeRepository;
     private final TourHelper tourHelper;
     private final RequestBookingRepository requestBookingRepository;
+    private final S3Service s3Service;
+
+    @Value("${aws.s3.bucket-url}")
+    private String bucketUrl;
 
     @Override
     public GeneralResponse<PagingDTO<TourResponseManagerDTO>> getListTours(int page, int size, String keyword,
@@ -99,11 +106,14 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     }
 
     @Override
-    public GeneralResponse<TourDetailManagerDTO> createTour(TourCreateManagerRequestDTO requestDTO) {
+    public GeneralResponse<TourDetailManagerDTO> createTour(TourCreateManagerRequestDTO requestDTO, MultipartFile file) {
         Tour tour = new Tour();
         tour.setCode(tourHelper.generateTourCode());
         tour.setName(requestDTO.getName());
-        tour.setThumbnailUrl(requestDTO.getThumbnailUrl());
+        if (file != null && !file.isEmpty()) {
+            String key = s3Service.uploadFile(file, "tours");
+            tour.setThumbnailUrl(bucketUrl + "/" + key);
+        }
         tour.setDescription(requestDTO.getDescription());
         tour.setTourType(requestDTO.getTourType() != null ? requestDTO.getTourType() : TourType.FIXED);
         tour.setTourStatus(TourStatus.DRAFT);
@@ -175,7 +185,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
             dto.setDestinationLocationIds(destIds);
         }
 
-        return createTour(dto);
+        return createTour(dto, null);
     }
 
 

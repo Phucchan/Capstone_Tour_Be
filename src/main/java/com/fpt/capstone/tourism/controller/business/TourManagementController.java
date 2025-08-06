@@ -18,8 +18,10 @@ import com.fpt.capstone.tourism.service.RequestBookingService;
 import com.fpt.capstone.tourism.service.TourManagementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -53,10 +55,12 @@ public class TourManagementController {
         return ResponseEntity.ok(tourManagementService.changeStatus(id, changeStatusDTO));
     }
 
-    @PostMapping("/tours")
+    @PostMapping(value = "/tours", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     // postman http://localhost:8080/v1/business/tours
-    public ResponseEntity<GeneralResponse<TourDetailManagerDTO>> createTour(@RequestBody TourCreateManagerRequestDTO requestDTO) {
-        return ResponseEntity.ok(tourManagementService.createTour(requestDTO));
+    public ResponseEntity<GeneralResponse<TourDetailManagerDTO>> createTour(
+            @RequestParam("file") MultipartFile file,
+            @ModelAttribute TourCreateManagerRequestDTO requestDTO) {
+        return ResponseEntity.ok(tourManagementService.createTour(requestDTO, file));
     }
     @GetMapping("/request-bookings")
     public ResponseEntity<GeneralResponse<PagingDTO<RequestBookingNotificationDTO>>> getListRequests(

@@ -12,6 +12,7 @@ import com.fpt.capstone.tourism.dto.response.tourManager.*;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -21,7 +22,7 @@ public interface TourManagementService {
     GeneralResponse<PagingDTO<TourResponseManagerDTO>> getListTours(int page, int size, String keyword,
                                                                     TourType tourType, TourStatus tourStatus);
 
-    GeneralResponse<TourDetailManagerDTO> createTour(TourCreateManagerRequestDTO requestDTO);
+    GeneralResponse<TourDetailManagerDTO> createTour(TourCreateManagerRequestDTO requestDTO, MultipartFile file);
 
     GeneralResponse<TourDetailManagerDTO> createTourFromRequest(Long requestId);
 

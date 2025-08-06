@@ -12,7 +12,6 @@ import java.util.List;
 @AllArgsConstructor
 public class TourCreateManagerRequestDTO {
     private String name;
-    private String thumbnailUrl;
     private List<Long> tourThemeIds;
     private Long departLocationId;
     private List<Long> destinationLocationIds;
