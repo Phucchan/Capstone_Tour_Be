@@ -11,8 +11,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode(callSuper = true, exclude = {"booking", "location"})
-@ToString(callSuper = true, exclude = {"booking", "location"})
+@EqualsAndHashCode(callSuper = true, exclude = {"booking"})
+@ToString(callSuper = true, exclude = {"booking"})
 public class CheckIn extends BaseEntity {
 
     @Id
@@ -24,13 +24,13 @@ public class CheckIn extends BaseEntity {
     @JoinColumn(name = "booking_id", nullable = false)
     private Booking booking;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "location_id", nullable = false)
-    private Location location;
 
     @Column(name = "check_in_type", length = 50)
     private String checkInType = "photo_upload";
 
     private Integer pointsEarned;
+
+    @Column(name = "image_url", columnDefinition = "text")
+    private String imageUrl;
 
 }

@@ -462,13 +462,13 @@ public class Constants {
         public static final String BOOKING_SERVICE_NOT_FOUND = "Không tìm thấy dịch vụ đặt tour";
         public static final String SERVICE_STATUS_CANNOT_SEND_EMAIL = "Trạng thái dịch vụ không thể gửi email";
 
-        public static final String GET_TOUR_PHOTOS_SUCCESS = "Lấy danh sách ảnh tour thành công";
-        public static final String GET_TOUR_PHOTOS_FAIL = "Lấy danh sách ảnh tour thất bại";
-        public static final String ADD_TOUR_PHOTO_SUCCESS = "Thêm ảnh tour thành công";
-        public static final String ADD_TOUR_PHOTO_FAIL = "Thêm ảnh tour thất bại";
-        public static final String DELETE_TOUR_PHOTO_SUCCESS = "Xóa ảnh tour thành công";
-        public static final String DELETE_TOUR_PHOTO_FAIL = "Xóa ảnh tour thất bại";
-        public static final String TOUR_PHOTO_NOT_FOUND = "Không tìm thấy ảnh tour";
+        public static final String GET_CHECKINS_SUCCESS = "Lấy danh sách check-in thành công";
+        public static final String GET_CHECKINS_FAIL = "Lấy danh sách check-in thất bại";
+        public static final String ADD_CHECKIN_SUCCESS = "Thêm check-in thành công";
+        public static final String ADD_CHECKIN_FAIL = "Thêm check-in thất bại";
+        public static final String DELETE_CHECKIN_SUCCESS = "Xóa check-in thành công";
+        public static final String DELETE_CHECKIN_FAIL = "Xóa check-in thất bại";
+        public static final String CHECKIN_NOT_FOUND = "Không tìm thấy check-in";
 
         public static final String GET_BOOKING_LIST_SUCCESS = "Lấy danh sách đặt tour thành công";
         public static final String GET_BOOKING_LIST_FAIL = "Lấy danh sách đặt tour thất bại";

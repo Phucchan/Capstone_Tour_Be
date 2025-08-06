@@ -2,8 +2,8 @@ package com.fpt.capstone.tourism.controller.user;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.response.BookingSummaryDTO;
-import com.fpt.capstone.tourism.dto.response.TourPhotoDTO;
-import com.fpt.capstone.tourism.service.TourAlbumService;
+import com.fpt.capstone.tourism.dto.response.tour.CheckInDTO;
+import com.fpt.capstone.tourism.service.CheckInService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.MediaType;
@@ -17,29 +17,28 @@ import java.util.List;
 @RequestMapping("/public/users/{userId}/checkin")
 public class CheckinController {
 
-    private final TourAlbumService tourAlbumService;
+    private final CheckInService checkInService;
 
     @GetMapping
     public ResponseEntity<GeneralResponse<List<BookingSummaryDTO>>> getCompletedTours(@PathVariable Long userId) {
-        return ResponseEntity.ok(tourAlbumService.getCompletedTours(userId));
+        return ResponseEntity.ok(checkInService.getCompletedTours(userId));
     }
 
     @GetMapping("/{bookingId}/photos")
-    public ResponseEntity<GeneralResponse<List<TourPhotoDTO>>> getPhotos(@PathVariable Long userId,
+    public ResponseEntity<GeneralResponse<List<CheckInDTO>>> getCheckIns(@PathVariable Long userId,
                                                                          @PathVariable Long bookingId) {
-        return ResponseEntity.ok(tourAlbumService.getPhotos(userId, bookingId));
+        return ResponseEntity.ok(checkInService.getCheckIns(userId, bookingId));
     }
 
     @PostMapping(value = "/{bookingId}/photos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<GeneralResponse<TourPhotoDTO>> addPhoto(@PathVariable Long userId,
+    public ResponseEntity<GeneralResponse<CheckInDTO>> addCheckIn(@PathVariable Long userId,
                                                                   @PathVariable Long bookingId,
                                                                   @RequestParam("file") MultipartFile file) {
-        return ResponseEntity.ok(tourAlbumService.addPhoto(userId, bookingId, file));
+        return ResponseEntity.ok(checkInService.addCheckIn(userId, bookingId, file));
     }
-
-    @DeleteMapping("/photos/{photoId}")
-    public ResponseEntity<GeneralResponse<String>> deletePhoto(@PathVariable Long userId,
-                                                               @PathVariable Long photoId) {
-        return ResponseEntity.ok(tourAlbumService.deletePhoto(userId, photoId));
+    @DeleteMapping("/photos/{checkInId}")
+    public ResponseEntity<GeneralResponse<String>> deleteCheckIn(@PathVariable Long userId,
+                                                                 @PathVariable Long checkInId) {
+        return ResponseEntity.ok(checkInService.deleteCheckIn(userId, checkInId));
+        }
     }
-}

@@ -1,4 +1,4 @@
-package com.fpt.capstone.tourism.dto.response;
+package com.fpt.capstone.tourism.dto.response.tour;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TourPhotoDTO {
+public class CheckInDTO {
     private Long id;
     private String imageUrl;
     private LocalDateTime createdAt;
