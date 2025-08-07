@@ -120,7 +120,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Long countReturningCustomers(@Param("startDate") LocalDateTime startDate,
                                  @Param("endDate") LocalDateTime endDate);
 
-    @Query(value = "SELECT t.code AS tour_code, t.name AS tour_name, t.tour_type AS tour_type, " +
+    @Query(value = "SELECT b.booking_id AS booking_id, t.code AS tour_code, t.name AS tour_name, t.tour_type AS tour_type, " +
             "ts.departure_date AS start_date, b.booking_status AS status, u.full_name AS customer_name " +
             "FROM bookings b " +
             "LEFT JOIN tour_schedules ts ON b.tour_schedule_id = ts.schedule_id " +

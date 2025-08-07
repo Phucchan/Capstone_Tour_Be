@@ -37,9 +37,6 @@ public class Refund extends BaseEntity {
     @Column(name = "bank_name", length = 100)
     private String bankName;
 
-    @Column(name = "bank_branch", length = 100)
-    private String bankBranch;
-
     @Column(name = "refund_amount", precision = 15, scale = 2)
     private BigDecimal refundAmount;
 }
