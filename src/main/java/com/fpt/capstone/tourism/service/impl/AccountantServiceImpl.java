@@ -3,10 +3,7 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.accountatn.RefundBillRequestDTO;
-import com.fpt.capstone.tourism.dto.response.accountant.BookingRefundDTO;
-import com.fpt.capstone.tourism.dto.response.accountant.BookingRefundDetailDTO;
-import com.fpt.capstone.tourism.dto.response.accountant.RefundBillDTO;
-import com.fpt.capstone.tourism.dto.response.accountant.RefundBillItemDTO;
+import com.fpt.capstone.tourism.dto.response.accountant.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.enums.BookingStatus;
@@ -26,12 +23,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @RequiredArgsConstructor
@@ -225,5 +224,36 @@ public class AccountantServiceImpl implements AccountantService {
                 .status(status)
                 .customerName(customerName)
                 .build();
+    }
+    @Override
+    public GeneralResponse<PagingDTO<BookingListDTO>> getBookings(String search, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<Booking> bookingPage = StringUtils.hasText(search)
+                ? bookingRepository.findByTourSchedule_Tour_NameContainingIgnoreCase(search, pageable)
+                : bookingRepository.findAll(pageable);
+
+        AtomicInteger counter = new AtomicInteger(1);
+        List<BookingListDTO> items = bookingPage.getContent().stream()
+                .map(b -> BookingListDTO.builder()
+                        .stt(counter.getAndIncrement())
+                        .bookingId(b.getId())
+                        .tourName(b.getTourSchedule().getTour().getName())
+                        .startDate(b.getTourSchedule().getDepartureDate())
+                        .endDate(b.getTourSchedule().getEndDate())
+                        .tourType(b.getTourSchedule().getTour().getTourType().name())
+                        .duration(b.getTourSchedule().getTour().getDurationDays())
+                        .status(b.getBookingStatus() != null ? b.getBookingStatus().name() : null)
+                        .build())
+                .toList();
+
+        PagingDTO<BookingListDTO> paging = PagingDTO.<BookingListDTO>builder()
+                .page(bookingPage.getNumber())
+                .size(bookingPage.getSize())
+                .total(bookingPage.getTotalElements())
+                .items(items)
+                .build();
+
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Success", paging);
     }
 }

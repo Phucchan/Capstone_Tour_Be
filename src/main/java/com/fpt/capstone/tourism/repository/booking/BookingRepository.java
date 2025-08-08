@@ -73,7 +73,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     Page<Booking> findByUser_Id(Long userId, Pageable pageable);
 
-
+    Page<Booking> findByTourSchedule_Tour_NameContainingIgnoreCase(String name, Pageable pageable);
 
     Page<Booking> findBySellerIsNullOrderByCreatedAtAsc(Pageable pageable);
 
