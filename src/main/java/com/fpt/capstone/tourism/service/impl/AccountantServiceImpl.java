@@ -10,7 +10,9 @@ import com.fpt.capstone.tourism.model.enums.BookingStatus;
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.payment.*;
 import com.fpt.capstone.tourism.model.tour.Booking;
+import com.fpt.capstone.tourism.model.tour.BookingService;
 import com.fpt.capstone.tourism.repository.RefundRepository;
+import com.fpt.capstone.tourism.repository.booking.BookingServiceRepository;
 import com.fpt.capstone.tourism.service.AccountantService;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
 import com.fpt.capstone.tourism.service.payment.PaymentBillItemRepository;
@@ -40,6 +42,7 @@ public class AccountantServiceImpl implements AccountantService {
     private final RefundRepository refundRepository;
     private final PaymentBillRepository paymentBillRepository;
     private final PaymentBillItemRepository paymentBillItemRepository;
+    private final BookingServiceRepository bookingServiceRepository;
 
     @Override
     public GeneralResponse<PagingDTO<BookingRefundDTO>> getRefundRequests(String search, int page, int size) {
@@ -255,5 +258,72 @@ public class AccountantServiceImpl implements AccountantService {
                 .build();
 
         return new GeneralResponse<>(HttpStatus.OK.value(), "Success", paging);
+    }
+    @Override
+    public GeneralResponse<BookingSettlementDTO> getBookingSettlement(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        List<BookingService> services = bookingServiceRepository.findWithServiceByBookingId(bookingId);
+
+        List<BookingServiceSettlementDTO> serviceDtos = services.stream()
+                .map(bs -> BookingServiceSettlementDTO.builder()
+                        .serviceName(bs.getService().getName())
+                        .dayNumber(bs.getDayNumber())
+                        .pax(bs.getQuantity())
+                        .costPerPax(bs.getService().getNettPrice())
+                        .sellingPrice(bs.getService().getSellingPrice())
+                        .build())
+                .toList();
+
+        List<PaymentBill> bills = paymentBillRepository.findPaymentBillsByBookingCode(booking.getBookingCode());
+
+        List<PaymentBillListDTO> receiptBills = bills.stream()
+                .filter(pb -> pb.getPaymentType() == PaymentType.RECEIPT)
+                .map(this::toPaymentBillListDTO)
+                .toList();
+
+        List<PaymentBillListDTO> paymentBills = bills.stream()
+                .filter(pb -> pb.getPaymentType() == PaymentType.PAYMENT)
+                .map(this::toPaymentBillListDTO)
+                .toList();
+
+        List<PaymentBillListDTO> refundBills = bills.stream()
+                .filter(pb -> pb.getPaymentType() == PaymentType.REFUND)
+                .map(this::toPaymentBillListDTO)
+                .toList();
+
+        var schedule = booking.getTourSchedule();
+
+        BookingSettlementDTO dto = BookingSettlementDTO.builder()
+                .bookingId(booking.getId())
+                .bookingCode(booking.getBookingCode())
+                .tourName(schedule.getTour().getName())
+                .startDate(schedule.getDepartureDate())
+                .endDate(schedule.getEndDate())
+                .tourType(schedule.getTour().getTourType().name())
+                .duration(schedule.getTour().getDurationDays())
+                .status(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
+                .services(serviceDtos)
+                .receiptBills(receiptBills)
+                .paymentBills(paymentBills)
+                .refundBills(refundBills)
+                .build();
+
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Success", dto);
+    }
+
+    private PaymentBillListDTO toPaymentBillListDTO(PaymentBill pb) {
+        return PaymentBillListDTO.builder()
+                .billId(pb.getId())
+                .billNumber(pb.getBillNumber())
+                .bookingCode(pb.getBookingCode())
+                .payTo(pb.getPayTo())
+                .paidBy(pb.getPaidBy())
+                .createdDate(pb.getCreatedAt())
+                .paymentType(pb.getPaymentType())
+                .paymentMethod(pb.getPaymentMethod())
+                .totalAmount(pb.getTotalAmount())
+                .build();
     }
 }
