@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.controller.accountant;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.request.accountatn.RefundBillRequestDTO;
 import com.fpt.capstone.tourism.dto.response.accountant.BookingRefundDTO;
 import com.fpt.capstone.tourism.dto.response.accountant.BookingRefundDetailDTO;
 import com.fpt.capstone.tourism.service.AccountantService;
@@ -35,6 +36,13 @@ public class AccountantRefundController {
     public ResponseEntity<GeneralResponse<BookingRefundDetailDTO>> cancelRefundRequest(
             @PathVariable Long bookingId) {
         return ResponseEntity.ok(accountantService.cancelRefundRequest(bookingId));
+    }
+    @PostMapping("/{bookingId}/bill")
+    //postman http://localhost:8080/v1/accountant/refunds/1/bill
+    public ResponseEntity<GeneralResponse<BookingRefundDetailDTO>> createRefundBill(
+            @PathVariable Long bookingId,
+            @RequestBody RefundBillRequestDTO request) {
+        return ResponseEntity.ok(accountantService.createRefundBill(bookingId, request));
     }
 }
 

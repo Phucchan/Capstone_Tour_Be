@@ -2,16 +2,21 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.request.accountatn.RefundBillRequestDTO;
 import com.fpt.capstone.tourism.dto.response.accountant.BookingRefundDTO;
 import com.fpt.capstone.tourism.dto.response.accountant.BookingRefundDetailDTO;
+import com.fpt.capstone.tourism.dto.response.accountant.RefundBillDTO;
+import com.fpt.capstone.tourism.dto.response.accountant.RefundBillItemDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.enums.BookingStatus;
-import com.fpt.capstone.tourism.model.payment.PaymentBill;
-import com.fpt.capstone.tourism.model.payment.Refund;
+import com.fpt.capstone.tourism.model.enums.PaymentMethod;
+import com.fpt.capstone.tourism.model.payment.*;
 import com.fpt.capstone.tourism.model.tour.Booking;
 import com.fpt.capstone.tourism.repository.RefundRepository;
 import com.fpt.capstone.tourism.service.AccountantService;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
+import com.fpt.capstone.tourism.service.payment.PaymentBillItemRepository;
 import com.fpt.capstone.tourism.service.payment.PaymentBillRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,6 +40,7 @@ public class AccountantServiceImpl implements AccountantService {
     private final BookingRepository bookingRepository;
     private final RefundRepository refundRepository;
     private final PaymentBillRepository paymentBillRepository;
+    private final PaymentBillItemRepository paymentBillItemRepository;
 
     @Override
     public GeneralResponse<PagingDTO<BookingRefundDTO>> getRefundRequests(String search, int page, int size) {
@@ -69,6 +75,39 @@ public class AccountantServiceImpl implements AccountantService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal remainingAmount = totalAmount.subtract(paidAmount);
 
+        PaymentBill refundBill = payments.stream()
+                .filter(pb -> pb.getPaymentType() == PaymentType.REFUND)
+                .findFirst()
+                .orElse(null);
+
+        RefundBillDTO refundBillDTO = null;
+        if (refundBill != null) {
+            List<RefundBillItemDTO> itemDTOs = paymentBillItemRepository
+                    .findAllByPaymentBill_Id(refundBill.getId())
+                    .stream()
+                    .map(i -> RefundBillItemDTO.builder()
+                            .content(i.getContent())
+                            .unitPrice(i.getUnitPrice())
+                            .quantity(i.getQuantity())
+                            .discount(i.getDiscount())
+                            .amount(i.getAmount())
+                            .status(i.getPaymentBillItemStatus())
+                            .build())
+                    .toList();
+
+            refundBillDTO = RefundBillDTO.builder()
+                    .bookingCode(refundBill.getBookingCode())
+                    .payTo(refundBill.getPayTo())
+                    .paidBy(refundBill.getPaidBy())
+                    .createdDate(refundBill.getCreatedAt())
+                    .paymentType(refundBill.getPaymentType())
+                    .paymentMethod(refundBill.getPaymentMethod())
+                    .note(refundBill.getNote())
+                    .totalAmount(refundBill.getTotalAmount())
+                    .items(itemDTOs)
+                    .build();
+        }
+
         var schedule = booking.getTourSchedule();
         var tour = schedule.getTour();
         var user = booking.getUser();
@@ -89,6 +128,7 @@ public class AccountantServiceImpl implements AccountantService {
                 .bankAccountNumber(refund != null ? refund.getBankAccountNumber() : null)
                 .bankAccountHolder(refund != null ? refund.getBankAccountHolder() : null)
                 .bankName(refund != null ? refund.getBankName() : null)
+                .refundBill(refundBillDTO)
                 .build();
 
         return new GeneralResponse<>(HttpStatus.OK.value(), "Success", dto);
@@ -109,6 +149,61 @@ public class AccountantServiceImpl implements AccountantService {
         BookingRefundDetailDTO dto = getRefundRequestDetail(bookingId).getData();
         return new GeneralResponse<>(HttpStatus.OK.value(), "Cancelled", dto);
     }
+    @Override
+    @Transactional
+    public GeneralResponse<BookingRefundDetailDTO> createRefundBill(Long bookingId, RefundBillRequestDTO request) {
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        if (booking.getBookingStatus() != BookingStatus.CANCELLED) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Booking is not in cancelled status");
+        }
+
+        // Ensure refund information exists for booking
+        refundRepository.findByBooking_Id(bookingId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.BAD_REQUEST, "Refund info not found"));
+
+        String bookingCode = getRefundRequestDetail(bookingId).getData().getBookingCode();
+
+        PaymentBill bill = PaymentBill.builder()
+                .billNumber("PB-" + java.util.UUID.randomUUID().toString().substring(0, 8))
+                .paymentForType(PaymentForType.CUSTOMER)
+                .bookingCode(bookingCode)
+                .paidBy(request.getPaidBy())
+                .creator(User.builder().id(booking.getUser().getId()).build())
+                .receiverAddress(booking.getUser().getAddress())
+                .payTo(request.getPayTo())
+                .paymentType(request.getPaymentType())
+                .paymentMethod(request.getPaymentMethod())
+                .totalAmount(request.getAmount())
+                .note(request.getNote())
+                .build();
+        bill.setCreatedAt(request.getCreatedDate());
+        bill.setUpdatedAt(request.getCreatedDate());
+
+        PaymentBill savedBill = paymentBillRepository.save(bill);
+
+        PaymentBillItem item = PaymentBillItem.builder()
+                .paymentBill(savedBill)
+                .content(request.getContent())
+                .quantity(request.getQuantity())
+                .unitPrice(request.getUnitPrice())
+                .discount(request.getDiscount())
+                .amount(request.getAmount())
+                .paymentBillItemStatus(request.getStatus())
+                .build();
+
+        paymentBillItemRepository.save(item);
+        savedBill.setItems(List.of(item));
+
+        booking.setBookingStatus(BookingStatus.REFUNDED);
+        bookingRepository.save(booking);
+
+        BookingRefundDetailDTO dto = getRefundRequestDetail(bookingId).getData();
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Refund bill created", dto);
+    }
+
+
 
 
 

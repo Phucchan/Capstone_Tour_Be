@@ -28,4 +28,5 @@ public class BookingRefundDetailDTO {
     private String bankAccountNumber;
     private String bankAccountHolder;
     private String bankName;
+    private RefundBillDTO refundBill;
 }

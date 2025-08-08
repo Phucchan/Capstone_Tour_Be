@@ -32,9 +32,15 @@ public class BaseEntity {
     @PrePersist
     protected void onCreate() {
         ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
-        createdAt = LocalDateTime.now(vietnamZone);
-        updatedAt = LocalDateTime.now(vietnamZone);
-        deleted = false;
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now(vietnamZone);
+        }
+        if (updatedAt == null) {
+            updatedAt = LocalDateTime.now(vietnamZone);
+        }
+        if (deleted == null) {
+            deleted = false;
+        }
         beforePersist();
     }
 
