@@ -55,7 +55,7 @@ public class TourPaxServiceImpl implements TourPaxService {
     public GeneralResponse<List<TourPaxFullDTO>> getTourPaxConfigurations(Long tourId) {
         try {
             getTourOrThrow(tourId);
-            List<TourPaxFullDTO> dtos = tourPaxRepository.findByTourId(tourId)
+            List<TourPaxFullDTO> dtos = tourPaxRepository.findByTourIdAndDeletedIsFalse(tourId)
                     .stream()
                     .map(this::toDTO)
                     .collect(Collectors.toList());
@@ -93,7 +93,12 @@ public class TourPaxServiceImpl implements TourPaxService {
             }
             // Thêm validation chống trùng lặp
             validatePaxRange(tourId, null, request.getMinQuantity(), request.getMaxQuantity());
-
+            // --- THÊM VALIDATE GIÁ  ---
+            if (request.isManualPrice() && request.getFixedPrice() != null && request.getSellingPrice() != null) {
+                if (request.getFixedPrice() > request.getSellingPrice()) {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST, "Giá bán không được nhỏ hơn giá vốn.");
+                }
+            }
             TourPax pax = TourPax.builder()
                     .tour(tour)
                     .minQuantity(request.getMinQuantity())
@@ -128,7 +133,16 @@ public class TourPaxServiceImpl implements TourPaxService {
             }
             // Thêm validation chống trùng lặp
             validatePaxRange(tourId, paxId, minQty, maxQty);
+            // --- THÊM VALIDATE GIÁ ---
+            Double fixedPrice = request.getFixedPrice() != null ? request.getFixedPrice() : pax.getFixedPrice();
+            Double sellingPrice = request.getSellingPrice() != null ? request.getSellingPrice() : pax.getSellingPrice();
+            Boolean isManual = request.getManualPrice() != null ? request.getManualPrice() : pax.isManualPrice();
 
+            if (isManual && fixedPrice != null && sellingPrice != null) {
+                if (fixedPrice > sellingPrice) {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST, "Giá bán không được nhỏ hơn giá vốn.");
+                }
+            }
             pax.setMinQuantity(minQty);
             pax.setMaxQuantity(maxQty);
             if (request.getFixedPrice() != null) pax.setFixedPrice(request.getFixedPrice());

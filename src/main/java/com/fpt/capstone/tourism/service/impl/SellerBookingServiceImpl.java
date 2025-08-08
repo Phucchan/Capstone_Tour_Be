@@ -393,6 +393,7 @@ public class SellerBookingServiceImpl implements SellerBookingService {
 
         List<SellerBookingCustomerDTO> customerDTOs = bookingCustomerRepository.findByBooking_Id(booking.getId()).stream()
                 .filter(c -> !c.isBookedPerson())
+                .filter(c -> c.getDeleted() == null || !c.getDeleted())
                 .map(c -> SellerBookingCustomerDTO.builder()
                         .id(c.getId())
                         .fullName(c.getFullName())
@@ -403,6 +404,7 @@ public class SellerBookingServiceImpl implements SellerBookingService {
                         .pickUpAddress(c.getPickUpAddress())
                         .singleRoom(c.isSingleRoom())
                         .note(c.getNote())
+                        // Dòng status này bây giờ không còn quá cần thiết cho logic chính, nhưng vẫn có thể giữ lại
                         .status(c.getDeleted() != null && c.getDeleted() ? "DELETED" : "ACTIVE")
                         .build())
                 .toList();
