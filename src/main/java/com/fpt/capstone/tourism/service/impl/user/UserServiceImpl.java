@@ -187,6 +187,7 @@ public class UserServiceImpl implements UserService {
         List<BookingSummaryDTO> dtos = bookings.getContent().stream()
                 .map(b -> BookingSummaryDTO.builder()
                         .id(b.getId())
+                        .tourId(b.getTourSchedule().getTour().getId())
                         .bookingCode(b.getBookingCode())
                         .tourName(b.getTourSchedule().getTour().getName())
                         .status(b.getBookingStatus() != null ? b.getBookingStatus().name() : null)
