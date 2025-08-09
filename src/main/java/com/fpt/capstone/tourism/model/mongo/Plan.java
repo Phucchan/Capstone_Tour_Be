@@ -1,5 +1,7 @@
 package com.fpt.capstone.tourism.model.mongo;
 
+import com.fpt.capstone.tourism.model.domain.CarRental;
+import com.fpt.capstone.tourism.model.domain.Flight;
 import com.fpt.capstone.tourism.model.domain.PlanDay;
 import com.fpt.capstone.tourism.model.enums.PlanStatus;
 import lombok.Builder;
@@ -27,4 +29,6 @@ public class Plan {
     private int creatorId;
     private LocalDateTime createdAt;
     private PlanStatus planStatus;
+    private List<Flight> flights;
+    private List<CarRental> carRentals;
 }
