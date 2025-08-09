@@ -120,7 +120,7 @@ public class TourBookingServiceImpl implements TourBookingService {
 
             saveTourBookingService(result, allCustomers.size());
             createReceiptBookingBill(result, bookingRequestDTO.getTotal(), bookingRequestDTO.getFullName(), bookingRequestDTO.getPaymentMethod());
-            notifyNewBooking(result, bookingRequestDTO.getTourName());
+            notifyNewBooking(result, bookingRequestDTO.getTourName(), bookingRequestDTO.getTourId());
             return bookingCode;
 
         } catch (Exception ex) {
@@ -325,10 +325,10 @@ public class TourBookingServiceImpl implements TourBookingService {
         messagingTemplate.convertAndSend("/topic/bookings", dto);
     }
 
-    private void notifyNewBooking(Booking booking, String tourName) {
+    private void notifyNewBooking(Booking booking, String tourName, Long tourId) {
         BookingSummaryDTO dto = BookingSummaryDTO.builder()
                 .id(booking.getId())
-                .tourId(booking.getTourSchedule().getTour().getId())
+                .tourId(tourId)
                 .bookingCode(booking.getBookingCode())
                 .tourName(tourName)
                 .status(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
