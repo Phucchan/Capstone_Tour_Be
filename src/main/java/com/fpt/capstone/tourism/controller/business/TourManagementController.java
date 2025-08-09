@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.controller.business;
 
+import com.fpt.capstone.tourism.dto.common.PartnerServiceShortDTO;
 import com.fpt.capstone.tourism.dto.common.ServiceTypeShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 
@@ -59,10 +60,15 @@ public class TourManagementController {
     // postman http://localhost:8080/v1/business/tours
     // body: form-data
     public ResponseEntity<GeneralResponse<TourDetailManagerDTO>> createTour(
-            @RequestParam(value = "file", required = false) MultipartFile file,
-            @ModelAttribute TourCreateManagerRequestDTO requestDTO) {
+            // Dùng @RequestPart để đọc phần dữ liệu JSON có tên là "tourData"
+            @RequestPart("tourData") TourCreateManagerRequestDTO requestDTO,
+            // Dùng @RequestPart để đọc file có tên là "thumbnailFile"
+            @RequestPart(value = "thumbnailFile", required = false) MultipartFile file
+    ) {
+        // Gọi service, không cần thay đổi gì ở đây
         return ResponseEntity.ok(tourManagementService.createTour(requestDTO, file));
     }
+
     @GetMapping("/request-bookings")
     public ResponseEntity<GeneralResponse<PagingDTO<RequestBookingNotificationDTO>>> getListRequests(
             @RequestParam(defaultValue = "0") int page,
@@ -89,6 +95,12 @@ public class TourManagementController {
     public ResponseEntity<GeneralResponse<TourOptionsDTO>> getTourOptions() {
         return ResponseEntity.ok(tourManagementService.getTourOptions());
     }
-
+    @GetMapping("/partner-services")
+    public ResponseEntity<GeneralResponse<List<PartnerServiceShortDTO>>> getPartnerServices(
+            // Thêm @RequestParam để nhận ID loại dịch vụ
+            @RequestParam(value = "serviceTypeId", required = false) Long serviceTypeId
+    ) {
+        return ResponseEntity.ok(tourManagementService.getPartnerServices(serviceTypeId));
+    }
 
 }

@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangePasswordRequestDTO;
+import com.fpt.capstone.tourism.dto.request.RefundRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateProfileRequestDTO;
 import com.fpt.capstone.tourism.dto.response.BookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
@@ -12,7 +13,10 @@ import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.UserMapper;
 import com.fpt.capstone.tourism.model.User;
+import com.fpt.capstone.tourism.model.enums.BookingStatus;
+import com.fpt.capstone.tourism.model.payment.Refund;
 import com.fpt.capstone.tourism.model.tour.Booking;
+import com.fpt.capstone.tourism.repository.RefundRepository;
 import com.fpt.capstone.tourism.repository.user.UserPointRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
@@ -25,7 +29,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,6 +51,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final BookingRepository bookingRepository;
     private final UserPointRepository userPointRepository;
+    private final RefundRepository refundRepository;
 
 
     @Override
@@ -180,6 +187,7 @@ public class UserServiceImpl implements UserService {
         List<BookingSummaryDTO> dtos = bookings.getContent().stream()
                 .map(b -> BookingSummaryDTO.builder()
                         .id(b.getId())
+                        .tourId(b.getTourSchedule().getTour().getId())
                         .bookingCode(b.getBookingCode())
                         .tourName(b.getTourSchedule().getTour().getName())
                         .status(b.getBookingStatus() != null ? b.getBookingStatus().name() : null)
@@ -196,5 +204,55 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.GET_BOOKING_LIST_SUCCESS, pagingDTO);
+    }
+    @Override
+    @Transactional
+    public GeneralResponse<String> requestBookingCancellation(Long userId, Long bookingId) {
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                .orElseThrow(() -> BusinessException.of(Constants.Message.BOOKING_NOT_FOUND));
+
+        if (booking.getUser() == null || !booking.getUser().getId().equals(userId)) {
+            throw BusinessException.of(Constants.Message.BOOKING_NOT_FOUND);
+        }
+
+        if (booking.getBookingStatus() != BookingStatus.PENDING &&
+                booking.getBookingStatus() != BookingStatus.CONFIRMED) {
+            throw BusinessException.of("Chỉ có thể yêu cầu hủy cho đặt tour đang chờ xác nhận hoặc đã xác nhận");
+        }
+
+        booking.setBookingStatus(BookingStatus.CANCEL_REQUESTED);
+        bookingRepository.save(booking);
+
+        return GeneralResponse.of("Yêu cầu hủy đặt tour thành công");
+    }
+    @Override
+    @Transactional
+    public GeneralResponse<String> submitRefundInfo(Long userId, Long bookingId, RefundRequestDTO requestDTO) {
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                .orElseThrow(() -> BusinessException.of(Constants.Message.BOOKING_NOT_FOUND));
+
+        if (booking.getUser() == null || !booking.getUser().getId().equals(userId)) {
+            throw BusinessException.of(Constants.Message.BOOKING_NOT_FOUND);
+        }
+
+        if (booking.getBookingStatus() != BookingStatus.CANCEL_REQUESTED) {
+            throw BusinessException.of("Chỉ có thể gửi thông tin hoàn tiền cho đặt tour đã yêu cầu hủy");
+        }
+
+        Refund refund = refundRepository.findByBooking_Id(bookingId).orElse(null);
+        if (refund == null) {
+            refund = Refund.builder()
+                    .booking(booking)
+                    .build();
+        }
+
+        refund.setBankAccountNumber(requestDTO.getBankAccountNumber());
+        refund.setBankAccountHolder(requestDTO.getBankAccountHolder());
+        refund.setBankName(requestDTO.getBankName());
+        refund.setRefundAmount(BigDecimal.valueOf(booking.getTotalAmount()));
+
+        refundRepository.save(refund);
+
+        return GeneralResponse.of("Cập nhật thông tin hoàn tiền thành công");
     }
 }

@@ -315,6 +315,7 @@ public class TourBookingServiceImpl implements TourBookingService {
     private void notifyNewBooking(Booking booking) {
         BookingSummaryDTO dto = BookingSummaryDTO.builder()
                 .id(booking.getId())
+                .tourId(booking.getTourSchedule().getTour().getId())
                 .bookingCode(booking.getBookingCode())
                 .tourName(booking.getTourSchedule().getTour().getName())
                 .status(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
@@ -327,6 +328,7 @@ public class TourBookingServiceImpl implements TourBookingService {
     private void notifyNewBooking(Booking booking, String tourName) {
         BookingSummaryDTO dto = BookingSummaryDTO.builder()
                 .id(booking.getId())
+                .tourId(booking.getTourSchedule().getTour().getId())
                 .bookingCode(booking.getBookingCode())
                 .tourName(tourName)
                 .status(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)

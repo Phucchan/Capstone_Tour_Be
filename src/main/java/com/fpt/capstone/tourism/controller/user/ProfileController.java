@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.controller.user;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangePasswordRequestDTO;
+import com.fpt.capstone.tourism.dto.request.RefundRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateProfileRequestDTO;
 import com.fpt.capstone.tourism.dto.response.BookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.UserProfileResponseDTO;
@@ -48,11 +49,23 @@ public class ProfileController {
     public ResponseEntity<GeneralResponse<PagingDTO<BookingSummaryDTO>>> getBookingHistory(
             @RequestParam Long userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "bookingStatus") String sortField,
-            @RequestParam(defaultValue = "asc") String sortDirection) {
-        Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         return ResponseEntity.ok(userService.getBookingHistory(userId, pageable));
+    }
+    @PutMapping("/bookings/{bookingId}/cancel-request")
+    // postman http://localhost:8080/v1/users/bookings/1/cancel-request?userId=1
+    public ResponseEntity<GeneralResponse<String>> requestBookingCancellation(
+            @RequestParam Long userId,
+            @PathVariable Long bookingId) {
+        return ResponseEntity.ok(userService.requestBookingCancellation(userId, bookingId));
+    }
+    @PostMapping("/bookings/{bookingId}/refund-info")
+    // postman http://localhost:8080/v1/users/bookings/1/refund-info?userId=1
+    public ResponseEntity<GeneralResponse<String>> submitRefundInfo(
+            @RequestParam Long userId,
+            @PathVariable Long bookingId,
+            @RequestBody RefundRequestDTO requestDTO) {
+        return ResponseEntity.ok(userService.submitRefundInfo(userId, bookingId, requestDTO));
     }
 }

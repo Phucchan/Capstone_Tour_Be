@@ -24,6 +24,9 @@ public class PartnerService extends BaseEntity {
     @Column(name = "service_id")
     private Long id;
 
+    @Column(name = "name", nullable = false) // <-- THÊM TRƯỜNG NÀY
+    private String name;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_type_id", nullable = false)
     private ServiceType serviceType;

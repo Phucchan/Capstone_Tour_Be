@@ -1,4 +1,4 @@
-package com.fpt.capstone.tourism.dto.response;
+package com.fpt.capstone.tourism.dto.response.accountant;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,12 +11,12 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookingSummaryDTO {
-    private Long id;
-    private Long tourId;
-    private String bookingCode;
+public class BookingRefundDTO {
+    private Long bookingId;
+    private String tourCode;
     private String tourName;
+    private String tourType;
+    private LocalDateTime startDate;
     private String status;
-    private double totalAmount;
-    private LocalDateTime createdAt;
+    private String customerName;
 }

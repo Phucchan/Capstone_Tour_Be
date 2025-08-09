@@ -27,5 +27,7 @@ public interface PartnerServiceRepository extends JpaRepository<PartnerService, 
     @Query("SELECT ps FROM PartnerService ps WHERE ps.deleted = FALSE")
     List<PartnerService> findByDeletedFalse();
 
+        // Tìm tất cả dịch vụ theo ID của loại dịch vụ
+        List<PartnerService> findByServiceTypeId(Long serviceTypeId);
 
 }
