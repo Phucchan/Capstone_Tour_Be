@@ -5,12 +5,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.common.partner.PartnerShortDTO;
+import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.plan.PlanDayDTO;
 import com.fpt.capstone.tourism.dto.request.plan.PlanGenerationRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PublicLocationDTO;
 import com.fpt.capstone.tourism.enrich.Enricher;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
-import com.fpt.capstone.tourism.helper.IHelper.AiPlanParserHelper;
 import com.fpt.capstone.tourism.mapper.LocationMapper;
 import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.model.domain.PlanDay;
@@ -23,7 +24,12 @@ import com.fpt.capstone.tourism.repository.partner.PartnerRepository;
 import com.fpt.capstone.tourism.service.GeminiApiService;
 import com.fpt.capstone.tourism.service.plan.PlanService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -41,9 +47,9 @@ public class PlanServiceImpl implements PlanService {
     private final LocationMapper locationMapper;
     private final GeminiApiService geminiApiService;
     private final PartnerRepository partnerRepository;
-    private final AiPlanParserHelper aiPlanParserHelper;
     private final Enricher enricher;
     private final PlanRepository planRepository;
+
 
     @Override
     public List<PublicLocationDTO> getLocations() {
@@ -135,7 +141,7 @@ public class PlanServiceImpl implements PlanService {
                     .days(planDays)
                     .planType(dto.getPlanType())
                     .createdAt(LocalDateTime.now())
-                    .planStatus(PlanStatus.CREATED)
+                    .planStatus(PlanStatus.PENDING)
                     .build();
 
             enricher.enrichPlanWithImage(plan, String.join(", ", locationNames));
@@ -250,4 +256,48 @@ public class PlanServiceImpl implements PlanService {
 
         return sb.toString();
     }
+
+
+    @Override
+    public GeneralResponse<PagingDTO<Plan>>  getPlans(int page, int size, String sortField, String sortDirection, Integer userId) {
+        try {
+            // chuẩn hoá & fallback
+            int safePage = Math.max(page, 0);                // Spring page 0-based
+            int safeSize = Math.max(size, 1);
+            String safeSortField = StringUtils.hasText(sortField) ? sortField : "createdAt";
+            Sort.Direction direction = "asc".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
+            Pageable pageable = PageRequest.of(safePage, safeSize, Sort.by(direction, safeSortField));
+
+            // query mongo
+            Page<Plan> result = (userId == null)
+                    ? planRepository.findAll(pageable)
+                    : planRepository.findByCreatorIdAndPlanStatus(userId, PlanStatus.CREATED, pageable);
+
+            // build paging dto
+            PagingDTO<Plan> paging = new PagingDTO<>();
+            paging.setItems(result.getContent());
+            paging.setPage(result.getNumber());
+            paging.setSize(result.getSize());
+            paging.setTotal(result.getTotalElements());
+
+            return GeneralResponse.of(paging);
+
+        } catch (IllegalArgumentException iae) {
+            // ví dụ khi sortField không hợp lệ hoặc sortDirection sai format
+            throw BusinessException.of("Tham số sắp xếp không hợp lệ", iae);
+        } catch (Exception ex) {
+            throw BusinessException.of("Lấy dữ liệu thất bại", ex);
+        }
+    }
+
+    @Override
+    public String savePlan(String id) {
+        try {
+            planRepository.updatePlanStatusById(id, PlanStatus.CREATED);
+            return id;
+        } catch (Exception e){
+            throw BusinessException.of("Lấy dữ liệu thất bại", e);
+        }
+    }
+
 }

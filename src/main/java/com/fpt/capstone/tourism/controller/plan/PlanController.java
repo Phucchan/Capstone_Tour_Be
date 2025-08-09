@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.controller.plan;
 
 import com.fpt.capstone.tourism.dto.common.PlanDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.plan.PlanGenerationRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PublicLocationDTO;
 import com.fpt.capstone.tourism.model.mongo.Plan;
@@ -32,15 +33,24 @@ public class PlanController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<GeneralResponse<PlanDTO>> savePlan(@RequestBody PlanDTO planDTO) {
-        // This method should handle the saving of the plan
-        // For now, we return a placeholder response
-        return ResponseEntity.ok(GeneralResponse.of(planDTO));
+    public ResponseEntity<GeneralResponse<String>> savePlan(@RequestBody String id) {
+
+        return ResponseEntity.ok(GeneralResponse.of(planService.savePlan(id)));
     }
 
     @GetMapping("/details/{planId}")
     public ResponseEntity<GeneralResponse<Plan>> getPlanDetails(@PathVariable String planId) {
         return ResponseEntity.ok(GeneralResponse.of(planService.getPlanById(planId)));
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<GeneralResponse<PagingDTO<Plan>>> getPlans(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "2") Integer userId,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "id") String sortField,
+            @RequestParam(defaultValue = "desc") String sortDirection) {
+        return ResponseEntity.ok(planService.getPlans(page, size, sortField, sortDirection, userId));
     }
 
 
