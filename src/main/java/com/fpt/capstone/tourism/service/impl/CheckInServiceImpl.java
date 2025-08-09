@@ -51,6 +51,7 @@ import java.util.stream.Collectors;
                                 .status(b.getBookingStatus() != null ? b.getBookingStatus().name() : null)
                                 .totalAmount(b.getTotalAmount())
                                 .createdAt(b.getCreatedAt())
+                                .departureDate(b.getTourSchedule().getDepartureDate())
                                 .build())
                         .collect(Collectors.toList());
 
