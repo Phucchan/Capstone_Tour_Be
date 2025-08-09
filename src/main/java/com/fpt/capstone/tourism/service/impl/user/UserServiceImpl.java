@@ -193,6 +193,7 @@ public class UserServiceImpl implements UserService {
                         .status(b.getBookingStatus() != null ? b.getBookingStatus().name() : null)
                         .totalAmount(b.getTotalAmount())
                         .createdAt(b.getCreatedAt())
+                        .hasRefundInfo(refundRepository.findByBooking_Id(b.getId()).isPresent())
                         .build())
                 .toList();
 

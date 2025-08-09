@@ -19,4 +19,5 @@ public class BookingSummaryDTO {
     private String status;
     private double totalAmount;
     private LocalDateTime createdAt;
+    private boolean hasRefundInfo;
 }
