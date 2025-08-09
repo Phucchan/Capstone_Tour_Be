@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 public class SellerBookingSummaryDTO {
     private Long id;
     private String tourName;
+    private LocalDateTime bookingDate;
     private LocalDateTime departureDate;
     private String bookingCode;
     private int seats;

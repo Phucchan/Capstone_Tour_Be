@@ -50,8 +50,8 @@ public class SellerBookingServiceImpl implements SellerBookingService {
 
     @Override
     public GeneralResponse<PagingDTO<SellerBookingSummaryDTO>> getAvailableBookings(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").ascending());
-        Page<Booking> bookingPage = bookingRepository.findBySellerIsNullOrderByCreatedAtAsc(pageable);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Booking> bookingPage = bookingRepository.findBySellerIsNull(pageable);
 
         List<SellerBookingSummaryDTO> dtos = bookingPage.getContent().stream()
                 .map(this::toSummaryDTO)
@@ -460,6 +460,7 @@ public class SellerBookingServiceImpl implements SellerBookingService {
     private SellerBookingSummaryDTO toSummaryDTO(Booking booking) {
         return SellerBookingSummaryDTO.builder()
                 .id(booking.getId())
+                .bookingDate(booking.getCreatedAt())
                 .tourName(booking.getTourSchedule().getTour().getName())
                 .departureDate(booking.getTourSchedule().getDepartureDate())
                 .bookingCode(booking.getBookingCode())

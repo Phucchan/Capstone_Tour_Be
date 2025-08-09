@@ -75,7 +75,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     Page<Booking> findByTourSchedule_Tour_NameContainingIgnoreCase(String name, Pageable pageable);
 
-    Page<Booking> findBySellerIsNullOrderByCreatedAtAsc(Pageable pageable);
+    Page<Booking> findBySellerIsNull(Pageable pageable);
 
 
     Page<Booking> findBySeller_UsernameOrderByUpdatedAtDesc(String username, Pageable pageable);

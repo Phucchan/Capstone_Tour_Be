@@ -24,6 +24,7 @@ public class SellerBookingController {
     private final TourBookingService tourBookingService;
 
     @GetMapping("/available")
+    //postman http://localhost:8080/v1/seller/bookings/available?page=0&size=10
     public ResponseEntity<GeneralResponse<PagingDTO<SellerBookingSummaryDTO>>> getAvailableBookings(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
