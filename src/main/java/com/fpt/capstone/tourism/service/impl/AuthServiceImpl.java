@@ -68,11 +68,15 @@ public class AuthServiceImpl implements AuthService {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, LOGIN_FAIL_MESSAGE);
             }
             String token = jwtHelper.generateToken(user);
+            boolean isAdmin = user.getAuthorities().stream()
+                    .anyMatch(auth -> "ADMIN".equals(auth.getAuthority()));
+            String redirectUrl = isAdmin ? "/admin/list-customer" : "/";
 
             TokenDTO tokenDTO = TokenDTO.builder()
                     .user(userMapper.toUserBasicDTO(user))
                     .token(token)
                     .expirationTime("24h")
+                    .redirectUrl(redirectUrl)
                     .build();
             return new GeneralResponse<>(HttpStatus.OK.value(), LOGIN_SUCCESS_MESSAGE, tokenDTO);
         } catch (BusinessException be) {

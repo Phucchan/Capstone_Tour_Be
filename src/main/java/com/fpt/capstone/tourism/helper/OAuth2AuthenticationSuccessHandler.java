@@ -40,7 +40,10 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         // Tạo JWT token
         String token = jwtHelper.generateToken(user);
 
-        String redirectUrl = frontendBaseUrl + "/login?token=" + token + "&email=" + email;
+        boolean isAdmin = user.getAuthorities().stream()
+                .anyMatch(auth -> "ADMIN".equals(auth.getAuthority()));
+        String path = isAdmin ? "/admin/list-customer" : "/login";
+        String redirectUrl = frontendBaseUrl + path + "?token=" + token + "&email=" + email;
         response.sendRedirect(redirectUrl);
     }
 }

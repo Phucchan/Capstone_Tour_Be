@@ -11,4 +11,5 @@ public class TokenDTO {
     private UserBasicDTO user;
     private String token;
     private String expirationTime;
+    private String redirectUrl;
 }

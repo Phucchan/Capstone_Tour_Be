@@ -335,6 +335,7 @@ public class TourBookingServiceImpl implements TourBookingService {
                 .status(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
                 .totalAmount(booking.getTotalAmount())
                 .createdAt(booking.getCreatedAt())
+                .departureDate(booking.getTourSchedule().getDepartureDate())
                 .build();
         messagingTemplate.convertAndSend("/topic/bookings", dto);
     }
