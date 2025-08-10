@@ -209,6 +209,7 @@ public class Constants {
         public static final String TOUR_DETAIL_LOAD_SUCCESS = "Tải chi tiết tour thành công";
         public static final String TOUR_DETAIL_LOAD_FAIL = "Tải chi tiết tour thất bại";
         public static final String GET_TOUR_DETAILS_FOR_SALE_FAIL = "Lấy chi tiết tour để bán thất bại";
+        public static final String GET_TOUR_PRIVATE_LIST_SUCCESS = "Lấy danh sách tour riêng tư thành công";
         public static final String GET_TOUR_PRIVATE_LIST_FAIL = "Không thể lấy danh sách tour riêng tư";
         public static final String UPDATE_TOUR_PRIVATE_FAIL = "Không thể cập nhật tour riêng tư";
         public static final String UPDATE_TOUR_STATUS_FAIL = "Không thể cập nhật trạng thái tour";
@@ -472,6 +473,7 @@ public class Constants {
 
         public static final String GET_BOOKING_LIST_SUCCESS = "Lấy danh sách đặt tour thành công";
         public static final String GET_BOOKING_LIST_FAIL = "Lấy danh sách đặt tour thất bại";
+        public static final String GET_PRIVATE_BOOKING_LIST_SUCCESS = "Lấy danh sách đặt tour riêng tư thành công";
         public static final String CANCEL_SERVICE_SUCCESS = "Hủy dịch vụ thành công";
         public static final String CANCEL_SERVICE_FAIL = "Hủy dịch vụ thất bại";
         public static final String INVALID_SERVICE_QUANTITY = "Số lượng dịch vụ không hợp lệ";

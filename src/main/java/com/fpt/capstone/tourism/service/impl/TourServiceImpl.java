@@ -7,6 +7,7 @@ import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourScheduleDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourMarkupResponseDTO;
 import com.fpt.capstone.tourism.mapper.TourMapper;
+import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.model.tour.*;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
 import com.fpt.capstone.tourism.repository.tour.*;
@@ -157,6 +158,16 @@ public class TourServiceImpl implements TourService {
         return tourDetailDTO;
     }
 
+    @Override
+    public PagingDTO<TourSummaryDTO> getCustomToursByUser(Long userId, String search, Pageable pageable) {
+        Page<Tour> tourPage;
+        if (search != null && !search.isBlank()) {
+            tourPage = tourRepository.searchCustomToursByUser(userId, TourType.CUSTOM, search.trim().toLowerCase(), pageable);
+        } else {
+            tourPage = tourRepository.findByRequestBooking_User_IdAndTourType(userId, TourType.CUSTOM, pageable);
+        }
+        return mapTourPageToPagingDTO(tourPage);
+    }
 
     // Phương thức helper để map danh sách tour tóm tắt
     private PagingDTO<TourSummaryDTO> mapTourPageToPagingDTO(Page<Tour> tourPage) {

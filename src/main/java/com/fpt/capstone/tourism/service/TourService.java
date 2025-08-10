@@ -15,4 +15,6 @@ public interface TourService {
     PagingDTO<TourSummaryDTO> filterTours(Double priceMin, Double priceMax, Long departId, Long destId, LocalDate date, Pageable pageable);
 
     PagingDTO<SaleTourDTO> getDiscountTours(Pageable pageable);
+
+    PagingDTO<TourSummaryDTO> getCustomToursByUser(Long userId, String search, Pageable pageable);
 }

@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.RequestBookingDTO;
+import com.fpt.capstone.tourism.dto.request.RequestBookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.RequestBookingNotificationDTO;
 import com.fpt.capstone.tourism.model.RequestBooking;
 import com.fpt.capstone.tourism.model.enums.RequestBookingStatus;
@@ -112,6 +113,36 @@ public class RequestBookingServiceImpl implements RequestBookingService {
         }
         RequestBookingDTO dto = requestBookingMapper.toDTO(booking);
         return new GeneralResponse<>(HttpStatus.OK.value(), HttpStatus.OK.getReasonPhrase(), dto);
+    }
+    @Override
+    public GeneralResponse<PagingDTO<RequestBookingSummaryDTO>> getRequestsByUser(Long userId, int page, int size, String search) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<RequestBooking> requestPage;
+        if (search != null && !search.isBlank()) {
+            requestPage = requestBookingRepository.searchByUserAndKeyword(userId, search.trim().toLowerCase(), pageable);
+        } else {
+            requestPage = requestBookingRepository.findByUser_Id(userId, pageable);
+        }
+
+        List<RequestBookingSummaryDTO> items = requestPage.getContent().stream()
+                .map(rb -> RequestBookingSummaryDTO.builder()
+                        .id(rb.getId())
+                        .tourTheme(rb.getTourTheme())
+                        .startDate(rb.getStartDate())
+                        .endDate(rb.getEndDate())
+                        .status(rb.getStatus())
+                        .createdAt(rb.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList());
+
+        PagingDTO<RequestBookingSummaryDTO> pagingDTO = PagingDTO.<RequestBookingSummaryDTO>builder()
+                .page(requestPage.getNumber())
+                .size(requestPage.getSize())
+                .total(requestPage.getTotalElements())
+                .items(items)
+                .build();
+
+        return GeneralResponse.of(pagingDTO);
     }
 
     @Override

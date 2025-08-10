@@ -7,11 +7,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import com.fpt.capstone.tourism.model.Location;
 import org.springframework.data.jpa.repository.Query;
-import java.util.List;
-
 import java.util.List;
 
 @Repository
@@ -37,5 +36,14 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
      */
     @Query("SELECT DISTINCT td.location FROM Tour t JOIN t.tourDays td WHERE t.tourStatus = 'PUBLISHED' AND t.deleted = false")
     List<Location> findDistinctDestinations();
+
+    Page<Tour> findByRequestBooking_User_IdAndTourType(Long userId, TourType tourType, Pageable pageable);
+
+    @Query("SELECT t FROM Tour t WHERE t.tourType = :tourType AND t.requestBooking.user.id = :userId " +
+            "AND LOWER(t.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    Page<Tour> searchCustomToursByUser(@Param("userId") Long userId,
+                                       @Param("tourType") TourType tourType,
+                                       @Param("keyword") String keyword,
+                                       Pageable pageable);
 
 }
