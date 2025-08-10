@@ -17,6 +17,7 @@ import com.fpt.capstone.tourism.dto.response.tourManager.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.TourHelper;
 import com.fpt.capstone.tourism.mapper.UserMapper;
+import com.fpt.capstone.tourism.mapper.booking.RequestBookingMapper;
 import com.fpt.capstone.tourism.mapper.partner.ServiceInfoMapper;
 import com.fpt.capstone.tourism.mapper.tourManager.TourDayManagerMapper;
 import com.fpt.capstone.tourism.mapper.tourManager.TourManagementMapper;
@@ -65,6 +66,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     private final TourManagementRepository tourRepository;
     private final TourManagementMapper tourMapper;
     private final LocationService locationService;
+    private final RequestBookingMapper requestBookingMapper;
     private final TourThemeRepository tourThemeRepository;
     private final LocationRepository locationRepository;
     private final TourDayRepository tourDayRepository;
@@ -416,6 +418,9 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .departLocation(departDto)
                 .destinations(destinations)
                 .themes(themes)
+                .requestBooking(tour.getRequestBooking() != null
+                        ? requestBookingMapper.toDTO(tour.getRequestBooking())
+                        : null)
                 .requestId(tour.getRequestBooking() != null ? tour.getRequestBooking().getId() : null)
                 .build();
     }

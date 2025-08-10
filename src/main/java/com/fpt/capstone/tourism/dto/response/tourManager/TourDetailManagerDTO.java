@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.dto.response.tourManager;
 
 import com.fpt.capstone.tourism.dto.common.location.LocationShortDTO;
+import com.fpt.capstone.tourism.dto.request.RequestBookingDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourThemeOptionDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,4 +27,5 @@ public class TourDetailManagerDTO {
     private LocationShortDTO departLocation;
     private List<LocationShortDTO> destinations;
     private List<TourThemeOptionDTO> themes;
+    private RequestBookingDTO requestBooking;
 }
