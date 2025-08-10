@@ -19,7 +19,7 @@ import java.security.Principal;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/users")
+@RequestMapping("/customer")
 public class ProfileController {
 
     private final UserService userService;

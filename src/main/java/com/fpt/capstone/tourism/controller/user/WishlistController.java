@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/public/users/{userId}/wishlists")
+@RequestMapping("/public/customer/{userId}/wishlists")
 public class WishlistController {
 
     private final WishlistService wishlistService;

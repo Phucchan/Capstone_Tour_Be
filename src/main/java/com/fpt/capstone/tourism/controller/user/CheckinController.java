@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/users/{userId}/checkin")
+@RequestMapping("/customer/{userId}/checkin")
 public class CheckinController {
 
     private final CheckInService checkInService;
