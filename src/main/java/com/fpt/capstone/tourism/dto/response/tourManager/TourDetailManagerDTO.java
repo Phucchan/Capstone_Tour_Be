@@ -15,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 public class TourDetailManagerDTO {
     private Long id;
+    private Long requestId;
     private String code;
     private String name;
     private String thumbnailUrl;

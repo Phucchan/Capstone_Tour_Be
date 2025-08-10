@@ -182,8 +182,6 @@ public class SellerBookingServiceImpl implements SellerBookingService {
                 .findFirstByBooking_IdAndBookedPersonTrue(booking.getId());
         if (bookedPerson != null && bookedPerson.getEmail() != null) {
             double total = booking.getTotalAmount();
-            double deposit = total * 0.7;
-            double remaining = total - deposit;
 
             var tour = booking.getTourSchedule().getTour();
             var days = tourDayRepository.findByTourIdOrderByDayNumberAsc(tour.getId());
@@ -227,10 +225,8 @@ public class SellerBookingServiceImpl implements SellerBookingService {
 
             content.append("\nPayment details:\n")
                     .append(" - Total amount: ").append(String.format("%.2f", total)).append("\n")
-                    .append(" - Deposit (70%): ").append(String.format("%.2f", deposit)).append(" due by ")
-                    .append(booking.getExpiredAt()).append("\n")
-                    .append(" - Remaining (30%): ").append(String.format("%.2f", remaining))
-                    .append(" payable after the tour\n\n")
+                    .append(" - Amount due (100%): ").append(String.format("%.2f", total)).append(" by ")
+                    .append(booking.getExpiredAt()).append("\n\n")
                     .append("If you have any questions, please contact us.\n")
                     .append("Thank you for choosing our service.");
 
