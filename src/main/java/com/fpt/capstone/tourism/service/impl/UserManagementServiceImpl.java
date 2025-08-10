@@ -35,6 +35,7 @@ import org.springframework.data.domain.Sort;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class UserManagementServiceImpl implements UserManagementService {
@@ -139,6 +140,15 @@ public class UserManagementServiceImpl implements UserManagementService {
     @Override
     @Transactional
     public GeneralResponse<UserManagementDTO> createUser(UserManagementRequestDTO requestDTO) {
+        // 1. Kiểm tra username đã tồn tại chưa
+        if (userRepository.existsByUsername(requestDTO.getUsername())) {
+            throw BusinessException.of(HttpStatus.CONFLICT, "Username already exists");
+        }
+
+        // 2. Kiểm tra email đã tồn tại chưa
+        if (userRepository.existsByEmail(requestDTO.getEmail())) {
+            throw BusinessException.of(HttpStatus.CONFLICT, "Email already exists");
+        }
         User user = User.builder()
                 .username(requestDTO.getUsername())
                 .fullName(requestDTO.getFullName())
@@ -265,5 +275,22 @@ public class UserManagementServiceImpl implements UserManagementService {
         };
     }
 
-
+    /**
+     * Kiểm tra xem một giá trị (username hoặc email) đã được sử dụng hay chưa.
+     * @param type loại cần kiểm tra ('username' hoặc 'email')
+     * @param value giá trị cần kiểm tra
+     * @return Map chứa key "isTaken" với giá trị true/false
+     */
+    @Override
+    public Map<String, Boolean> checkUniqueness(String type, String value) {
+        boolean isTaken;
+        if ("username".equalsIgnoreCase(type)) {
+            isTaken = userRepository.existsByUsername(value);
+        } else if ("email".equalsIgnoreCase(type)) {
+            isTaken = userRepository.existsByEmail(value);
+        } else {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Invalid uniqueness check type");
+        }
+        return Map.of("isTaken", isTaken);
+    }
 }
