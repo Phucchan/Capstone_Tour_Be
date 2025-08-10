@@ -2,12 +2,11 @@ package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
-import com.fpt.capstone.tourism.dto.request.accountatn.RefundBillRequestDTO;
+import com.fpt.capstone.tourism.dto.request.accountatn.CreateBillRequestDTO;
 import com.fpt.capstone.tourism.dto.response.accountant.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.enums.BookingStatus;
-import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.payment.*;
 import com.fpt.capstone.tourism.model.tour.Booking;
 import com.fpt.capstone.tourism.model.tour.BookingService;
@@ -153,7 +152,7 @@ public class AccountantServiceImpl implements AccountantService {
     }
     @Override
     @Transactional
-    public GeneralResponse<BookingRefundDetailDTO> createRefundBill(Long bookingId, RefundBillRequestDTO request) {
+    public GeneralResponse<BookingRefundDetailDTO> createRefundBill(Long bookingId, CreateBillRequestDTO request) {
         Booking booking = bookingRepository.findByIdForUpdate(bookingId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
 
@@ -192,7 +191,7 @@ public class AccountantServiceImpl implements AccountantService {
                 .unitPrice(request.getUnitPrice())
                 .discount(request.getDiscount())
                 .amount(request.getAmount())
-                .paymentBillItemStatus(request.getStatus())
+                .paymentBillItemStatus(PaymentBillItemStatus.PENDING)
                 .build();
 
         paymentBillItemRepository.save(item);
@@ -312,6 +311,101 @@ public class AccountantServiceImpl implements AccountantService {
 
         return new GeneralResponse<>(HttpStatus.OK.value(), "Success", dto);
     }
+    @Override
+    @Transactional
+    public GeneralResponse<BookingSettlementDTO> createReceiptBill(Long bookingId, CreateBillRequestDTO request) {
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        PaymentBill bill = PaymentBill.builder()
+                .billNumber("RC-" + java.util.UUID.randomUUID().toString().substring(0, 8))
+                .paymentForType(PaymentForType.COMPANY)
+                .bookingCode(booking.getBookingCode())
+                .paidBy(request.getPaidBy())
+                .creator(User.builder().id(booking.getUser().getId()).build())
+                .receiverAddress(booking.getUser().getAddress())
+                .payTo(request.getPayTo())
+                .paymentType(request.getPaymentType())
+                .paymentMethod(request.getPaymentMethod())
+                .totalAmount(request.getAmount())
+                .note(request.getNote())
+                .build();
+        bill.setCreatedAt(request.getCreatedDate());
+        bill.setUpdatedAt(request.getCreatedDate());
+
+        PaymentBill savedBill = paymentBillRepository.save(bill);
+
+        PaymentBillItem item = PaymentBillItem.builder()
+                .paymentBill(savedBill)
+                .content(request.getContent())
+                .quantity(request.getQuantity())
+                .unitPrice(request.getUnitPrice())
+                .discount(request.getDiscount())
+                .amount(request.getAmount())
+                .paymentBillItemStatus(PaymentBillItemStatus.PENDING)
+                .build();
+
+        paymentBillItemRepository.save(item);
+        savedBill.setItems(List.of(item));
+
+        BookingSettlementDTO dto = getBookingSettlement(bookingId).getData();
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Receipt bill created", dto);
+    }
+
+    @Override
+    @Transactional
+    public GeneralResponse<BookingSettlementDTO> createPaymentBill(Long bookingId, CreateBillRequestDTO request) {
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        PaymentBill bill = PaymentBill.builder()
+                .billNumber("PM-" + java.util.UUID.randomUUID().toString().substring(0, 8))
+                .paymentForType(PaymentForType.PARTNER)
+                .bookingCode(booking.getBookingCode())
+                .paidBy(request.getPaidBy())
+                .creator(User.builder().id(booking.getUser().getId()).build())
+                .receiverAddress(booking.getUser().getAddress())
+                .payTo(request.getPayTo())
+                .paymentType(request.getPaymentType())
+                .paymentMethod(request.getPaymentMethod())
+                .totalAmount(request.getAmount())
+                .note(request.getNote())
+                .build();
+        bill.setCreatedAt(request.getCreatedDate());
+        bill.setUpdatedAt(request.getCreatedDate());
+
+        PaymentBill savedBill = paymentBillRepository.save(bill);
+
+        PaymentBillItem item = PaymentBillItem.builder()
+                .paymentBill(savedBill)
+                .content(request.getContent())
+                .quantity(request.getQuantity())
+                .unitPrice(request.getUnitPrice())
+                .discount(request.getDiscount())
+                .amount(request.getAmount())
+                .paymentBillItemStatus(PaymentBillItemStatus.PENDING)
+                .build();
+
+        paymentBillItemRepository.save(item);
+        savedBill.setItems(List.of(item));
+
+        BookingSettlementDTO dto = getBookingSettlement(bookingId).getData();
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Payment bill created", dto);
+    }
+    @Override
+    @Transactional
+    public GeneralResponse<String> markBillPaid(Long billId) {
+        PaymentBill bill = paymentBillRepository.findById(billId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Bill not found"));
+        List<PaymentBillItem> items = paymentBillItemRepository.findAllByPaymentBill_Id(billId);
+        if (items.stream().anyMatch(i -> i.getPaymentBillItemStatus() != PaymentBillItemStatus.PENDING)) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Bill is not in pending status");
+        }
+        items.forEach(i -> i.setPaymentBillItemStatus(PaymentBillItemStatus.PAID));
+        paymentBillItemRepository.saveAll(items);
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Bill marked as paid", null);
+    }
+
 
     private PaymentBillListDTO toPaymentBillListDTO(PaymentBill pb) {
         return PaymentBillListDTO.builder()

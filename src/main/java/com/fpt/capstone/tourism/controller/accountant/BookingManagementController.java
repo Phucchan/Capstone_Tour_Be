@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.controller.accountant;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.request.accountatn.CreateBillRequestDTO;
 import com.fpt.capstone.tourism.dto.response.accountant.BookingListDTO;
 import com.fpt.capstone.tourism.dto.response.accountant.BookingSettlementDTO;
 import com.fpt.capstone.tourism.service.AccountantService;
@@ -28,5 +29,22 @@ public class BookingManagementController {
     // Example request: http://localhost:8080/v1/accountant/bookings/123/settlement
     public ResponseEntity<GeneralResponse<BookingSettlementDTO>> getBookingSettlement(@PathVariable Long bookingId) {
         return ResponseEntity.ok(accountantService.getBookingSettlement(bookingId));
+    }
+    @PostMapping("/{bookingId}/receipt-bill")
+    public ResponseEntity<GeneralResponse<BookingSettlementDTO>> createReceiptBill(
+            @PathVariable Long bookingId,
+            @RequestBody CreateBillRequestDTO request) {
+        return ResponseEntity.ok(accountantService.createReceiptBill(bookingId, request));
+    }
+
+    @PostMapping("/{bookingId}/payment-bill")
+    public ResponseEntity<GeneralResponse<BookingSettlementDTO>> createPaymentBill(
+            @PathVariable Long bookingId,
+            @RequestBody CreateBillRequestDTO request) {
+        return ResponseEntity.ok(accountantService.createPaymentBill(bookingId, request));
+    }
+    @PatchMapping("/bills/{billId}/paid")
+    public ResponseEntity<GeneralResponse<String>> markBillPaid(@PathVariable Long billId) {
+        return ResponseEntity.ok(accountantService.markBillPaid(billId));
     }
 }

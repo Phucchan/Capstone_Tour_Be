@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RefundBillRequestDTO {
+public class CreateBillRequestDTO {
     // Fields for PaymentBill
     private String payTo;
     private String paidBy;
@@ -28,5 +28,4 @@ public class RefundBillRequestDTO {
     private Integer quantity;
     private double discount;
     private BigDecimal amount;
-    private PaymentBillItemStatus status;
 }
