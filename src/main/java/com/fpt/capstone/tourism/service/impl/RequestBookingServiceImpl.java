@@ -99,10 +99,29 @@ public class RequestBookingServiceImpl implements RequestBookingService {
         } catch (IllegalArgumentException e) {
             return new GeneralResponse<>(HttpStatus.BAD_REQUEST.value(), "Invalid status", null);
         }
+        if (newStatus != RequestBookingStatus.REJECTED) {
+            booking.setReason(null);
+        }
         booking.setStatus(newStatus);
         RequestBooking saved = requestBookingRepository.save(booking);
         RequestBookingDTO dto = requestBookingMapper.toDTO(saved);
         return new GeneralResponse<>(HttpStatus.OK.value(), "Status updated", dto);
+    }
+
+    @Override
+    public GeneralResponse<RequestBookingDTO> rejectRequest(Long id, String reason) {
+        RequestBooking booking = requestBookingRepository.findById(id).orElse(null);
+        if (booking == null) {
+            return new GeneralResponse<>(HttpStatus.NOT_FOUND.value(), "Request not found", null);
+        }
+        if (reason == null || reason.isBlank()) {
+            return new GeneralResponse<>(HttpStatus.BAD_REQUEST.value(), "Reason is required", null);
+        }
+        booking.setStatus(RequestBookingStatus.REJECTED);
+        booking.setReason(reason);
+        RequestBooking saved = requestBookingRepository.save(booking);
+        RequestBookingDTO dto = requestBookingMapper.toDTO(saved);
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Request rejected", dto);
     }
 
     @Override
@@ -132,6 +151,7 @@ public class RequestBookingServiceImpl implements RequestBookingService {
                         .endDate(rb.getEndDate())
                         .status(rb.getStatus())
                         .createdAt(rb.getCreatedAt())
+                        .reason(rb.getReason())
                         .build())
                 .collect(Collectors.toList());
 

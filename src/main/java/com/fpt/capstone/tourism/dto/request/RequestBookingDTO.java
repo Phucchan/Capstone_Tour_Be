@@ -56,4 +56,8 @@ public class RequestBookingDTO {
     private String customerEmail;
 
     private String customerPhone;
+
+    private RequestBookingStatus status;
+
+    private String reason;
 }

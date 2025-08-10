@@ -20,4 +20,6 @@ public interface RequestBookingService {
     GeneralResponse<RequestBookingDTO> updateStatus(Long id, ChangeStatusDTO changeStatusDTO);
 
     GeneralResponse<PagingDTO<RequestBookingSummaryDTO>> getRequestsByUser(Long userId, int page, int size, String search);
+
+    GeneralResponse<RequestBookingDTO> rejectRequest(Long id, String reason);
 }

@@ -18,6 +18,7 @@ public class RequestBookingSummaryDTO {
     private String tourTheme;
     private LocalDate startDate;
     private LocalDate endDate;
+    private String reason;
     private RequestBookingStatus status;
     private LocalDateTime createdAt;
 }

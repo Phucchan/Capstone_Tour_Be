@@ -96,6 +96,9 @@ public class RequestBooking extends BaseEntity {
     @Column(name = "customer_phone")
     private String customerPhone;
 
+    @Column(name = "reason")
+    private String reason;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private RequestBookingStatus status;

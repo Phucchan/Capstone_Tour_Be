@@ -24,6 +24,7 @@ import com.fpt.capstone.tourism.mapper.tourManager.TourManagementMapper;
 import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.model.RequestBooking;
 import com.fpt.capstone.tourism.model.User;
+import com.fpt.capstone.tourism.model.enums.RequestBookingStatus;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.model.partner.PartnerService;
@@ -134,6 +135,8 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
             RequestBooking request = requestBookingRepository.findById(requestDTO.getRequestBookingId())
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Request booking not found"));
             tour.setRequestBooking(request);
+            request.setStatus(RequestBookingStatus.ACCEPTED);
+            requestBookingRepository.save(request);
         } else {
             if (requestDTO.getRequestBookingId() != null) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, "Fixed tour cannot have requestBookingId");
