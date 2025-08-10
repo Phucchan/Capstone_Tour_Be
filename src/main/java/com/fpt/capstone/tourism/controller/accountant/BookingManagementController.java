@@ -47,4 +47,8 @@ public class BookingManagementController {
     public ResponseEntity<GeneralResponse<String>> markBillPaid(@PathVariable Long billId) {
         return ResponseEntity.ok(accountantService.markBillPaid(billId));
     }
+    @PatchMapping("/{bookingId}/complete")
+    public ResponseEntity<GeneralResponse<String>> markBookingCompleted(@PathVariable Long bookingId) {
+        return ResponseEntity.ok(accountantService.markBookingCompleted(bookingId));
+    }
 }

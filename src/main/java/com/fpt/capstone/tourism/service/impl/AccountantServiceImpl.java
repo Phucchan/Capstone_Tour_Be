@@ -405,6 +405,20 @@ public class AccountantServiceImpl implements AccountantService {
         paymentBillItemRepository.saveAll(items);
         return new GeneralResponse<>(HttpStatus.OK.value(), "Bill marked as paid", null);
     }
+    @Override
+    @Transactional
+    public GeneralResponse<String> markBookingCompleted(Long bookingId) {
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        if (booking.getBookingStatus() != BookingStatus.CONFIRMED) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Booking is not in confirmed status");
+        }
+
+        booking.setBookingStatus(BookingStatus.COMPLETED);
+        bookingRepository.save(booking);
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Booking marked as completed", null);
+    }
 
 
     private PaymentBillListDTO toPaymentBillListDTO(PaymentBill pb) {

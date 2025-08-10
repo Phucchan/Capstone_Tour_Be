@@ -18,4 +18,5 @@ public interface AccountantService {
     GeneralResponse<BookingSettlementDTO> createReceiptBill(Long bookingId, CreateBillRequestDTO request);
     GeneralResponse<BookingSettlementDTO> createPaymentBill(Long bookingId, CreateBillRequestDTO request);
     GeneralResponse<String> markBillPaid(Long billId);
+    GeneralResponse<String> markBookingCompleted(Long bookingId);
 }
