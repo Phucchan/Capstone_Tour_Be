@@ -41,6 +41,15 @@ public class RequestBooking extends BaseEntity {
     @Column(name = "price_max")
     private Double priceMax;
 
+    @Column(name = "tour_theme")
+    private String tourTheme;
+
+    @Column(name = "desired_departure_date")
+    private LocalDate desiredDepartureDate;
+
+    @Column(name = "desired_services", columnDefinition = "text")
+    private String desiredServices;
+
     @ManyToMany
     @JoinTable(
             name = "request_booking_destination_locations",

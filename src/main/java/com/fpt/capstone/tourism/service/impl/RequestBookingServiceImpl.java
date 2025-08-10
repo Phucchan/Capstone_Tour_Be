@@ -41,16 +41,44 @@ public class RequestBookingServiceImpl implements RequestBookingService {
 
     @Override
     public GeneralResponse<RequestBookingDTO> createRequest(RequestBookingDTO requestBookingDTO) {
+        if (requestBookingDTO.getUserId() == null) {
+            return new GeneralResponse<>(HttpStatus.BAD_REQUEST.value(), "User account is required", null);
+        }
+
+        if (requestBookingDTO.getDepartureLocationId() == null ||
+                requestBookingDTO.getDestinationLocationIds() == null ||
+                requestBookingDTO.getDestinationLocationIds().isEmpty() ||
+                requestBookingDTO.getTourTheme() == null || requestBookingDTO.getTourTheme().isBlank() ||
+                requestBookingDTO.getDesiredDepartureDate() == null ||
+                requestBookingDTO.getDesiredServices() == null || requestBookingDTO.getDesiredServices().isBlank() ||
+                requestBookingDTO.getStartDate() == null ||
+                requestBookingDTO.getEndDate() == null ||
+                requestBookingDTO.getTransport() == null ||
+                requestBookingDTO.getAdults() == null ||
+                requestBookingDTO.getChildren() == null ||
+                requestBookingDTO.getInfants() == null ||
+                requestBookingDTO.getToddlers() == null ||
+                requestBookingDTO.getHotelRooms() == null ||
+                requestBookingDTO.getRoomCategory() == null ||
+                requestBookingDTO.getCustomerName() == null || requestBookingDTO.getCustomerName().isBlank() ||
+                requestBookingDTO.getCustomerEmail() == null || requestBookingDTO.getCustomerEmail().isBlank() ||
+                requestBookingDTO.getCustomerPhone() == null || requestBookingDTO.getCustomerPhone().isBlank()) {
+            return new GeneralResponse<>(HttpStatus.BAD_REQUEST.value(), "Missing required fields", null);
+        }
+        var user = userRepository.findUserById(requestBookingDTO.getUserId()).orElse(null);
+        if (user == null) {
+            return new GeneralResponse<>(HttpStatus.BAD_REQUEST.value(), "User not found", null);
+        }
+        var depart = locationRepository.findById(requestBookingDTO.getDepartureLocationId()).orElse(null);
+        if (depart == null) {
+            return new GeneralResponse<>(HttpStatus.BAD_REQUEST.value(), "Departure location not found", null);
+        }
+        var destinations = locationRepository.findAllById(requestBookingDTO.getDestinationLocationIds());
+
         RequestBooking requestBooking = requestBookingMapper.toEntity(requestBookingDTO);
-        if (requestBookingDTO.getUserId() != null) {
-            requestBooking.setUser(userRepository.findUserById(requestBookingDTO.getUserId()).orElse(null));
-        }
-        if (requestBookingDTO.getDepartureLocationId() != null) {
-            requestBooking.setDepartureLocation(locationRepository.findById(requestBookingDTO.getDepartureLocationId()).orElse(null));
-        }
-        if (requestBookingDTO.getDestinationLocationIds() != null) {
-            requestBooking.setDestinationLocations(locationRepository.findAllById(requestBookingDTO.getDestinationLocationIds()));
-        }
+        requestBooking.setUser(user);
+        requestBooking.setDepartureLocation(depart);
+        requestBooking.setDestinationLocations(destinations);
         requestBooking.setStatus(RequestBookingStatus.PENDING);
         RequestBooking saved = requestBookingRepository.save(requestBooking);
         notifyNewRequestBooking(saved);
