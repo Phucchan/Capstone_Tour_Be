@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.model.tour;
 
 import com.fpt.capstone.tourism.model.BaseEntity;
 import com.fpt.capstone.tourism.model.Location;
+import com.fpt.capstone.tourism.model.RequestBooking;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.enums.Region;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
@@ -16,12 +17,13 @@ import java.util.List;
 
 @Entity
 @Table(name = "tours")
+@org.hibernate.annotations.Check(constraints = "((tour_type = 'CUSTOM' AND request_id IS NOT NULL) OR (tour_type = 'FIXED' AND request_id IS NULL))")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true, exclude = {"departLocation", "createdBy", "themes"})
-@ToString(exclude = {"departLocation", "createdBy", "themes"})
+@EqualsAndHashCode(callSuper = true, exclude = {"departLocation", "createdBy", "themes", "requestBooking"})
+@ToString(exclude = {"departLocation", "createdBy", "themes", "requestBooking"})
 public class Tour extends BaseEntity {
 
     @Id
@@ -64,6 +66,10 @@ public class Tour extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "tour_status", length = 50)
     private TourStatus tourStatus;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "request_id", unique = true)
+    private RequestBooking requestBooking;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 50)

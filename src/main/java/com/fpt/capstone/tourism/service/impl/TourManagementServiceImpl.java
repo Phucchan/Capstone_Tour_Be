@@ -125,6 +125,19 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         tour.setTourType(requestDTO.getTourType() != null ? requestDTO.getTourType() : TourType.FIXED);
         tour.setTourStatus(TourStatus.DRAFT);
 
+        if (tour.getTourType() == TourType.CUSTOM) {
+            if (requestDTO.getRequestId() == null) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Custom tour requires requestId");
+            }
+            RequestBooking request = requestBookingRepository.findById(requestDTO.getRequestId())
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Request booking not found"));
+            tour.setRequestBooking(request);
+        } else {
+            if (requestDTO.getRequestId() != null) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Fixed tour cannot have requestId");
+            }
+        }
+
         if (requestDTO.getDepartLocationId() != null) {
             Location depart = locationRepository.findById(requestDTO.getDepartLocationId())
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Depart location not found"));
@@ -173,6 +186,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         }
         dto.setDescription(request.getDestinationDetail());
         dto.setTourType(TourType.CUSTOM);
+        dto.setRequestId(requestId);
 
         String rawDestinations = null;
         try {
@@ -402,6 +416,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .departLocation(departDto)
                 .destinations(destinations)
                 .themes(themes)
+                .requestId(tour.getRequestBooking() != null ? tour.getRequestBooking().getId() : null)
                 .build();
     }
 

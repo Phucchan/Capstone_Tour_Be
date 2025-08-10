@@ -15,7 +15,11 @@ public class RequestBookingController {
     private final RequestBookingService requestBookingService;
 
     @PostMapping
-    public ResponseEntity<GeneralResponse<RequestBookingDTO>> createRequest(@RequestBody RequestBookingDTO requestBookingDTO) {
+    // Example request: POST http://localhost:8080/v1/request-bookings?userId=123
+    public ResponseEntity<GeneralResponse<RequestBookingDTO>> createRequest(
+            @RequestParam("userId") Long userId,
+            @RequestBody RequestBookingDTO requestBookingDTO) {
+        requestBookingDTO.setUserId(userId);
         return ResponseEntity.ok(requestBookingService.createRequest(requestBookingDTO));
     }
     @GetMapping("/notification/{id}")

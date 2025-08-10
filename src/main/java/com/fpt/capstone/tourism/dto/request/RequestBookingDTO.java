@@ -15,23 +15,45 @@ import java.util.List;
 @AllArgsConstructor
 public class RequestBookingDTO {
     private Long id;
+
     private Long userId;
+
     private Long departureLocationId;
+
     private Double priceMin;
     private Double priceMax;
+
     private List<Long> destinationLocationIds;
+
     private String destinationDetail;
+
     private LocalDate startDate;
+
     private LocalDate endDate;
+
     private TourTransport transport;
-    private int adults;
-    private int children;
-    private int infants;
-    private int toddlers;
-    private int hotelRooms;
+
+    private String tourTheme;
+
+    private String desiredServices;
+
+    private LocalDate desiredDepartureDate;
+
+    private Integer adults;
+
+    private Integer children;
+
+    private Integer infants;
+
+    private Integer toddlers;
+
+    private Integer hotelRooms;
+
     private RoomCategory roomCategory;
+
     private String customerName;
+
     private String customerEmail;
+
     private String customerPhone;
-    private RequestBookingStatus status;
 }
