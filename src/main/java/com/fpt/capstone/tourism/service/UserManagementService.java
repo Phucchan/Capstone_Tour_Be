@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public interface UserManagementService {
@@ -44,5 +45,7 @@ public interface UserManagementService {
     GeneralResponse<String> deleteUser(Long id);
 
     GeneralResponse<UserManagementDTO> changeStatus(Long id, ChangeStatusDTO changeStatusDTO);
+
+    Map<String, Boolean> checkUniqueness(String type, String value);
 }
 

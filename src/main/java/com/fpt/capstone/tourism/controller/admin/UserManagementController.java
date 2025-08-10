@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -73,4 +74,10 @@ public class UserManagementController {
         return ResponseEntity.ok(userManagementService.changeStatus(id, changeStatusDTO));
     }
 
+    @GetMapping("/users/check-uniqueness")
+    public ResponseEntity<Map<String, Boolean>> checkUniqueness(
+            @RequestParam String type,
+            @RequestParam String value) {
+        return ResponseEntity.ok(userManagementService.checkUniqueness(type, value));
+    }
 }
