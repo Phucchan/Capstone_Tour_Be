@@ -9,10 +9,17 @@ import com.fpt.capstone.tourism.dto.request.RegisterRequestDTO;
 import com.fpt.capstone.tourism.dto.response.UserInfoResponseDTO;
 import com.fpt.capstone.tourism.model.Role;
 import com.fpt.capstone.tourism.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
 import java.util.List;
 
@@ -29,6 +36,19 @@ public class AuthController {
         log.info("Login request received for user: {}", userDTO.getUsername());
         return ResponseEntity.ok(authService.login(userDTO));
     }
+    @PostMapping("/logout")
+    public ResponseEntity<GeneralResponse<String>> logout(HttpServletRequest request, HttpServletResponse response) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            new SecurityContextLogoutHandler().logout(request, response, authentication);
+        }
+        Cookie cookie = new Cookie("remember-me", null);
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        response.addCookie(cookie);
+        return ResponseEntity.ok(authService.logout());
+    }
+
 
     @GetMapping("/confirm-email")
     public ResponseEntity<GeneralResponse<String>> confirmEmail(@RequestParam String token) {

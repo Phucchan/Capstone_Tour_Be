@@ -31,7 +31,7 @@ public class Constants {
         public static final String LOGIN_SUCCESS_MESSAGE = "Đăng nhập thành công";
         public static final String LOGIN_FAIL_MESSAGE = "Đăng nhập thất bại! Tên đăng nhập hoặc mật khẩu không đúng";
         public static final String USER_NOT_AUTHENTICATED = "Người dùng chưa được xác thực";
-
+        public static final String LOGOUT_SUCCESS_MESSAGE = "Đăng xuất thành công";
         // Password related
         public static final String PASSWORDS_DO_NOT_MATCH_MESSAGE = "Mật khẩu và xác nhận mật khẩu không trùng khớp";
         public static final String INVALID_OLD_PASSWORD_MESSAGE = "Mật khẩu hiện tại không chính xác";

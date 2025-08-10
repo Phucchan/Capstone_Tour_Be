@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TourCreateManagerRequestDTO {
-    private Long requestId;
+    private Long requestBookingId;
     private String name;
     private List<Long> tourThemeIds;
     private Long departLocationId;

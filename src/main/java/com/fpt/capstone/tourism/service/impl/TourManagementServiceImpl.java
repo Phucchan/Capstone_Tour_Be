@@ -128,15 +128,15 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         tour.setTourStatus(TourStatus.DRAFT);
 
         if (tour.getTourType() == TourType.CUSTOM) {
-            if (requestDTO.getRequestId() == null) {
-                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Custom tour requires requestId");
+            if (requestDTO.getRequestBookingId() == null) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Custom tour requires requestBookingId");
             }
-            RequestBooking request = requestBookingRepository.findById(requestDTO.getRequestId())
+            RequestBooking request = requestBookingRepository.findById(requestDTO.getRequestBookingId())
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Request booking not found"));
             tour.setRequestBooking(request);
         } else {
-            if (requestDTO.getRequestId() != null) {
-                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Fixed tour cannot have requestId");
+            if (requestDTO.getRequestBookingId() != null) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Fixed tour cannot have requestBookingId");
             }
         }
 
@@ -174,8 +174,8 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         return GeneralResponse.of(buildDetailDTO(savedTour.getId()), "Tour created successfully");
     }
     @Override
-    public GeneralResponse<TourDetailManagerDTO> createTourFromRequest(Long requestId) {
-        RequestBooking request = requestBookingRepository.findById(requestId)
+    public GeneralResponse<TourDetailManagerDTO> createTourFromRequest(Long requestBookingId) {
+        RequestBooking request = requestBookingRepository.findById(requestBookingId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Request booking not found"));
 
         TourCreateManagerRequestDTO dto = new TourCreateManagerRequestDTO();
@@ -188,7 +188,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         }
         dto.setDescription(request.getDestinationDetail());
         dto.setTourType(TourType.CUSTOM);
-        dto.setRequestId(requestId);
+        dto.setRequestBookingId(requestBookingId);
 
         String rawDestinations = null;
         try {
@@ -421,7 +421,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .requestBooking(tour.getRequestBooking() != null
                         ? requestBookingMapper.toDTO(tour.getRequestBooking())
                         : null)
-                .requestId(tour.getRequestBooking() != null ? tour.getRequestBooking().getId() : null)
+                .requestBookingId(tour.getRequestBooking() != null ? tour.getRequestBooking().getId() : null)
                 .build();
     }
 

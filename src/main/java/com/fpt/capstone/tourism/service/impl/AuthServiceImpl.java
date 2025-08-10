@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -82,6 +83,11 @@ public class AuthServiceImpl implements AuthService {
         } catch (Exception ex) {
             throw BusinessException.of(HttpStatus.BAD_REQUEST,LOGIN_FAIL_MESSAGE, ex);
         }
+    }
+    @Override
+    public GeneralResponse<String> logout() {
+        SecurityContextHolder.clearContext();
+        return new GeneralResponse<>(HttpStatus.OK.value(), LOGOUT_SUCCESS_MESSAGE, null);
     }
     private String resolveRedirectPath(User user) {
         if (hasRole(user, RoleName.ADMIN)) {

@@ -13,6 +13,7 @@ import java.util.List;
 
 public interface AuthService {
     GeneralResponse<TokenDTO> login(UserDTO userDTO);
+    GeneralResponse<String> logout();
     GeneralResponse<UserInfoResponseDTO> register(RegisterRequestDTO registerRequestDTO) throws BusinessException;
     GeneralResponse<String> confirmEmail(String token);
     GeneralResponse<String> forgotPassword(String email, String username);
