@@ -19,17 +19,6 @@ public class VoucherManagementController {
 
     @PostMapping
     //postman http://localhost:8080/v1/marketing/vouchers
-    // body: {
-    //   "code": "DISCOUNT10",
-    //   "description": "sale 100.000k on your next purchase",
-    //   "discountAmount": 100000,
-    //   "pointsRequired": 100,
-    //   "minOrderValue": 50.0,
-    //   "validFrom": "2023-10-01T00:00:00",
-    //   "validTo": "2023-12-31T23:59:59",
-    //   "maxUsage": 100,
-    //   "createdBy": 1
-    // }
     public ResponseEntity<GeneralResponse<VoucherDTO>> createVoucher(@RequestBody VoucherRequestDTO requestDTO) {
         return ResponseEntity.ok(voucherService.createVoucher(requestDTO));
     }
