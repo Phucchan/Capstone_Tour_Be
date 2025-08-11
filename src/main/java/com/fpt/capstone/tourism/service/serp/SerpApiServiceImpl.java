@@ -36,6 +36,7 @@ public class SerpApiServiceImpl implements SerpApiService {
                 .addQueryParameter("q", keyword)
                 .addQueryParameter("tbm", "isch") // image search
                 .addQueryParameter("api_key", API_KEY)
+                .addQueryParameter("ijn", "0")
                 .build();
 
         Request request = new Request.Builder()

@@ -13,4 +13,5 @@ import lombok.NoArgsConstructor;
 public class PlanDetail {
     private String title;
     private String description;
+    private String transportationType; // e.g., "Flight", "Car Rental"
 }

@@ -142,6 +142,7 @@ public class PlanServiceImpl implements PlanService {
                     .planType(dto.getPlanType())
                     .createdAt(LocalDateTime.now())
                     .planStatus(PlanStatus.PENDING)
+                    .transportationType(planDetails.getTransportationType())
                     .build();
 
             enricher.enrichPlanWithImage(plan, String.join(", ", locationNames));
@@ -180,12 +181,14 @@ public class PlanServiceImpl implements PlanService {
                             Hãy tạo nội dung du lịch chi tiết cho cả kế hoach, bao gồm:
                             1. **title**: tiêu đề dễ hiểu, ngắn gọn, thể hiện nội dung chính chuyến đi.
                             2. **description**: mô tả toàn cảnh hoạt động của chuyến đi, ít nhất 100 từ, đầy đủ cảm xúc, mô tả chung một nội dung của kế hoạch.
+                            3. **transportationType**: Một hoặc 2 loại phương tiện di chuyển chính trong chuyến đi ("Flight, "Car").
 
                             **Kết quả trả về là một JSON object theo định dạng sau**:
                         
                             {
                                 title: "",
-                                description: ""
+                                description: "",
+                                transportationType: "Flight, Car"
                             }
                         """, totalDays, String.join(", ", locationNames), preferences);
     }
@@ -225,7 +228,7 @@ public class PlanServiceImpl implements PlanService {
                                 5. **totalSpend**: tổng chi phí dự kiến cho cả ngày, không vượt quá ngân sách %.0f VNĐ.
                                 6. **estimatedCost**: Với mỗi hoạt động, nhà hàng và khách sạn, hãy đánh giá chi phí phù hợp theo mặt bằng Việt Nam và ghi vào trường `estimatedCost` (đơn vị VNĐ). Nếu miễn phí, để giá trị là `0`.
                                     - Nếu một hoạt động là **miễn phí hoàn toàn** (ví dụ: đi bộ quanh hồ, tham quan đền chùa), hãy đặt `estimatedCost: 0`.
-                                    - Với các nhà hàng và khách sản hoặc hoạt động có trả phí (cáp treo, vé vào cổng, lớp học, tour, bữa ăn, lưu trú...), **không được để estimatedCost = 0**.
+                                    - Với các nhà hàng và khách sạn **không được để estimatedCost = 0**.
                                     - Ước tính theo mặt bằng giá thực tế – ví dụ: bữa ăn phổ thông 50.000–100.000 VNĐ, khách sạn bình dân 300.000–600.000 VNĐ/đêm...
                                 7. **title**: tiêu đề dễ hiểu, ngắn gọn, thể hiện nội dung chính của ngày hôm nay.
                                 

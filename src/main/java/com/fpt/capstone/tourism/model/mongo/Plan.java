@@ -29,6 +29,5 @@ public class Plan {
     private int creatorId;
     private LocalDateTime createdAt;
     private PlanStatus planStatus;
-    private List<Flight> flights;
-    private List<CarRental> carRentals;
+    private String transportationType;
 }
