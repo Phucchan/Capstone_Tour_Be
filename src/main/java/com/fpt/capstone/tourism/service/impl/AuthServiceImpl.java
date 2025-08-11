@@ -69,13 +69,11 @@ public class AuthServiceImpl implements AuthService {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, LOGIN_FAIL_MESSAGE);
             }
             String token = jwtHelper.generateToken(user);
-            String redirectUrl = resolveRedirectPath(user);
 
             TokenDTO tokenDTO = TokenDTO.builder()
                     .user(userMapper.toUserBasicDTO(user))
                     .token(token)
                     .expirationTime("24h")
-                    .redirectUrl(redirectUrl)
                     .build();
             return new GeneralResponse<>(HttpStatus.OK.value(), LOGIN_SUCCESS_MESSAGE, tokenDTO);
         } catch (BusinessException be) {
@@ -83,37 +81,6 @@ public class AuthServiceImpl implements AuthService {
         } catch (Exception ex) {
             throw BusinessException.of(HttpStatus.BAD_REQUEST,LOGIN_FAIL_MESSAGE, ex);
         }
-    }
-    @Override
-    public GeneralResponse<String> logout() {
-        SecurityContextHolder.clearContext();
-        return new GeneralResponse<>(HttpStatus.OK.value(), LOGOUT_SUCCESS_MESSAGE, null);
-    }
-    private String resolveRedirectPath(User user) {
-        if (hasRole(user, RoleName.ADMIN)) {
-            return "/admin";
-        }
-        if (hasRole(user, RoleName.SELLER)) {
-            return "/seller";
-        }
-        if (hasRole(user, RoleName.MARKETING_MANAGER)) {
-            return "/marketing";
-        }
-        if (hasRole(user, RoleName.BUSINESS_DEPARTMENT)) {
-            return "/business";
-        }
-        if (hasRole(user, RoleName.SERVICE_COORDINATOR)) {
-            return "/coordinator";
-        }
-        if (hasRole(user, RoleName.ACCOUNTANT)) {
-            return "/accountant";
-        }
-        return "/";
-    }
-
-    private boolean hasRole(User user, RoleName role) {
-        return user.getAuthorities().stream()
-                .anyMatch(auth -> role.name().equals(auth.getAuthority()));
     }
 
     @Override

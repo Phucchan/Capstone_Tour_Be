@@ -36,18 +36,6 @@ public class AuthController {
         log.info("Login request received for user: {}", userDTO.getUsername());
         return ResponseEntity.ok(authService.login(userDTO));
     }
-    @PostMapping("/logout")
-    public ResponseEntity<GeneralResponse<String>> logout(HttpServletRequest request, HttpServletResponse response) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null) {
-            new SecurityContextLogoutHandler().logout(request, response, authentication);
-        }
-        Cookie cookie = new Cookie("remember-me", null);
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
-        response.addCookie(cookie);
-        return ResponseEntity.ok(authService.logout());
-    }
 
 
     @GetMapping("/confirm-email")
