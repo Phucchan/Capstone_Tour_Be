@@ -12,4 +12,6 @@ public interface CheckInRepository extends JpaRepository<CheckIn, Long> {
     List<CheckIn> findByBooking_Id(Long bookingId);
 
     Optional<CheckIn> findByIdAndBooking_User_Id(Long id, Long userId);
+
+    long countByBooking_IdAndPointsEarnedGreaterThan(Long bookingId, int points);
 }

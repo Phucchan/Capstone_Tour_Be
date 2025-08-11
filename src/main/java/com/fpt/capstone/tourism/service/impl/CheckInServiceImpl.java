@@ -5,11 +5,13 @@ import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.response.BookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.tour.CheckInDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
+import com.fpt.capstone.tourism.model.UserPoint;
 import com.fpt.capstone.tourism.model.enums.BookingStatus;
 import com.fpt.capstone.tourism.model.tour.Booking;
 import com.fpt.capstone.tourism.model.tour.CheckIn;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
 import com.fpt.capstone.tourism.repository.tour.CheckInRepository;
+import com.fpt.capstone.tourism.repository.user.UserPointRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.service.CheckInService;
 import com.fpt.capstone.tourism.service.S3Service;
@@ -29,6 +31,7 @@ import java.util.stream.Collectors;
         private final BookingRepository bookingRepository;
         private final CheckInRepository checkInRepository;
         private final UserRepository userRepository;
+        private final UserPointRepository userPointRepository;
         private final S3Service s3Service;
 
         @Value("${aws.s3.bucket-url}")
@@ -78,6 +81,7 @@ import java.util.stream.Collectors;
                                     .id(c.getId())
                                     .imageUrl(c.getImageUrl())
                                     .createdAt(c.getCreatedAt())
+                                    .pointsEarned(c.getPointsEarned())
                                     .build())
                             .collect(Collectors.toList());
                     return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.GET_CHECKINS_SUCCESS, dtos);
@@ -103,15 +107,27 @@ import java.util.stream.Collectors;
 
                         String key = s3Service.uploadFile(file, "albums");
 
+                        long earned = checkInRepository.countByBooking_IdAndPointsEarnedGreaterThan(bookingId, 0);
+                        int pointsAwarded = earned < 10 ? 1 : 0;
+
                         CheckIn checkIn = CheckIn.builder()
                                 .booking(booking)
                                 .imageUrl(bucketUrl + "/" + key)
                                 .build();
                         CheckIn saved = checkInRepository.save(checkIn);
 
+                        if (pointsAwarded > 0) {
+                            UserPoint userPoint = UserPoint.builder()
+                                    .user(booking.getUser())
+                                    .points(pointsAwarded)
+                                    .build();
+                            userPointRepository.save(userPoint);
+                        }
+
                         CheckInDTO dto = CheckInDTO.builder()
                                 .id(saved.getId())
                                 .imageUrl(saved.getImageUrl())
+                                .pointsEarned(saved.getPointsEarned())
                                 .createdAt(saved.getCreatedAt())
                                 .build();
 

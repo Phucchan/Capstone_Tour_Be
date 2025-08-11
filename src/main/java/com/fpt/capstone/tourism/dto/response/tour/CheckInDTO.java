@@ -15,4 +15,5 @@ public class CheckInDTO {
     private Long id;
     private String imageUrl;
     private LocalDateTime createdAt;
+    private Integer pointsEarned;
 }
