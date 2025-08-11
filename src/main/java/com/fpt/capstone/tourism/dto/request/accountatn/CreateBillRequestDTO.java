@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.payment.PaymentBillItemStatus;
 import com.fpt.capstone.tourism.model.payment.PaymentType;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class CreateBillRequestDTO {
     // Fields for PaymentBill
     private String payTo;
