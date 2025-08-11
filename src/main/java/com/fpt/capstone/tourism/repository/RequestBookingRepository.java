@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.repository;
 
 import com.fpt.capstone.tourism.model.RequestBooking;
+import com.fpt.capstone.tourism.model.enums.RequestBookingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Page;
@@ -18,4 +19,13 @@ public interface RequestBookingRepository extends JpaRepository<RequestBooking, 
     Page<RequestBooking> searchByUserAndKeyword(@Param("userId") Long userId,
                                                 @Param("keyword") String keyword,
                                                 Pageable pageable);
+
+    Page<RequestBooking> findByStatus(RequestBookingStatus status, Pageable pageable);
+
+    @Query("SELECT r FROM RequestBooking r WHERE r.status = :status AND " +
+            "(LOWER(r.tourTheme) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(r.destinationDetail) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<RequestBooking> searchByStatusAndKeyword(@Param("status") RequestBookingStatus status,
+                                                  @Param("keyword") String keyword,
+                                                  Pageable pageable);
 }

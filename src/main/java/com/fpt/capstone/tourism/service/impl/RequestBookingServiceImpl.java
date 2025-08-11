@@ -50,7 +50,6 @@ public class RequestBookingServiceImpl implements RequestBookingService {
                 requestBookingDTO.getDestinationLocationIds() == null ||
                 requestBookingDTO.getDestinationLocationIds().isEmpty() ||
                 requestBookingDTO.getTourTheme() == null || requestBookingDTO.getTourTheme().isBlank() ||
-                requestBookingDTO.getDesiredDepartureDate() == null ||
                 requestBookingDTO.getDesiredServices() == null || requestBookingDTO.getDesiredServices().isBlank() ||
                 requestBookingDTO.getStartDate() == null ||
                 requestBookingDTO.getEndDate() == null ||
@@ -81,6 +80,7 @@ public class RequestBookingServiceImpl implements RequestBookingService {
         requestBooking.setDepartureLocation(depart);
         requestBooking.setDestinationLocations(destinations);
         requestBooking.setStatus(RequestBookingStatus.PENDING);
+        requestBooking.setReason(null);
         RequestBooking saved = requestBookingRepository.save(requestBooking);
         notifyNewRequestBooking(saved);
         RequestBookingDTO savedDto = requestBookingMapper.toDTO(saved);
@@ -168,7 +168,7 @@ public class RequestBookingServiceImpl implements RequestBookingService {
     @Override
     public GeneralResponse<PagingDTO<RequestBookingNotificationDTO>> getRequests(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
-        Page<RequestBooking> requests = requestBookingRepository.findAll(pageable);
+        Page<RequestBooking> requests = requestBookingRepository.findByStatus(RequestBookingStatus.ACCEPTED, pageable);
 
         List<RequestBookingNotificationDTO> items = requests.getContent().stream()
                 .map(this::toNotificationDTO)
@@ -178,6 +178,41 @@ public class RequestBookingServiceImpl implements RequestBookingService {
                 .page(requests.getNumber())
                 .size(requests.getSize())
                 .total(requests.getTotalElements())
+                .items(items)
+                .build();
+
+        return GeneralResponse.of(pagingDTO);
+    }
+    @Override
+    public GeneralResponse<PagingDTO<RequestBookingSummaryDTO>> getRequestsByStatus(RequestBookingStatus status,
+                                                                                    int page,
+                                                                                    int size,
+                                                                                    String search) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<RequestBooking> requestPage;
+        if (search != null && !search.isBlank()) {
+            requestPage = requestBookingRepository.searchByStatusAndKeyword(status,
+                    search.trim().toLowerCase(), pageable);
+        } else {
+            requestPage = requestBookingRepository.findByStatus(status, pageable);
+        }
+
+        List<RequestBookingSummaryDTO> items = requestPage.getContent().stream()
+                .map(rb -> RequestBookingSummaryDTO.builder()
+                        .id(rb.getId())
+                        .tourTheme(rb.getTourTheme())
+                        .startDate(rb.getStartDate())
+                        .endDate(rb.getEndDate())
+                        .status(rb.getStatus())
+                        .createdAt(rb.getCreatedAt())
+                        .reason(rb.getReason())
+                        .build())
+                .collect(Collectors.toList());
+
+        PagingDTO<RequestBookingSummaryDTO> pagingDTO = PagingDTO.<RequestBookingSummaryDTO>builder()
+                .page(requestPage.getNumber())
+                .size(requestPage.getSize())
+                .total(requestPage.getTotalElements())
                 .items(items)
                 .build();
 

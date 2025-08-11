@@ -25,7 +25,6 @@ public interface TourManagementService {
 
     GeneralResponse<TourDetailManagerDTO> createTour(TourCreateManagerRequestDTO requestDTO, MultipartFile file);
 
-    GeneralResponse<TourDetailManagerDTO> createTourFromRequest(Long requestBookingId);
 
     GeneralResponse<Object> changeStatus(Long id, ChangeStatusDTO changeStatusDTO);
 

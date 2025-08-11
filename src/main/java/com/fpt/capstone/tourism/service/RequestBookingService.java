@@ -7,6 +7,7 @@ import com.fpt.capstone.tourism.dto.request.RequestBookingDTO;
 import com.fpt.capstone.tourism.dto.request.RequestBookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.RequestBookingNotificationDTO;
 import com.fpt.capstone.tourism.model.RequestBooking;
+import com.fpt.capstone.tourism.model.enums.RequestBookingStatus;
 
 import java.util.List;
 
@@ -22,4 +23,9 @@ public interface RequestBookingService {
     GeneralResponse<PagingDTO<RequestBookingSummaryDTO>> getRequestsByUser(Long userId, int page, int size, String search);
 
     GeneralResponse<RequestBookingDTO> rejectRequest(Long id, String reason);
+
+    GeneralResponse<PagingDTO<RequestBookingSummaryDTO>> getRequestsByStatus(RequestBookingStatus status,
+                                                                             int page,
+                                                                             int size,
+                                                                             String search);
 }

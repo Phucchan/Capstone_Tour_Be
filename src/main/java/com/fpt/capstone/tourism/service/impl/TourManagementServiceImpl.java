@@ -135,7 +135,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
             RequestBooking request = requestBookingRepository.findById(requestDTO.getRequestBookingId())
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Request booking not found"));
             tour.setRequestBooking(request);
-            request.setStatus(RequestBookingStatus.ACCEPTED);
+            request.setStatus(RequestBookingStatus.COMPLETED);
             requestBookingRepository.save(request);
         } else {
             if (requestDTO.getRequestBookingId() != null) {
@@ -176,48 +176,6 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
 
         return GeneralResponse.of(buildDetailDTO(savedTour.getId()), "Tour created successfully");
     }
-    @Override
-    public GeneralResponse<TourDetailManagerDTO> createTourFromRequest(Long requestBookingId) {
-        RequestBooking request = requestBookingRepository.findById(requestBookingId)
-                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Request booking not found"));
-
-        TourCreateManagerRequestDTO dto = new TourCreateManagerRequestDTO();
-        if (request.getDepartureLocation() != null) {
-            dto.setDepartLocationId(request.getDepartureLocation().getId());
-        }
-        if (request.getStartDate() != null && request.getEndDate() != null) {
-            dto.setDurationDays((int) java.time.temporal.ChronoUnit.DAYS
-                    .between(request.getStartDate(), request.getEndDate()) + 1);
-        }
-        dto.setDescription(request.getDestinationDetail());
-        dto.setTourType(TourType.CUSTOM);
-        dto.setRequestBookingId(requestBookingId);
-
-        String rawDestinations = null;
-        try {
-            rawDestinations = (String) RequestBooking.class.getMethod("getDestination").invoke(request);
-        } catch (Exception ignored) {
-            try {
-                rawDestinations = (String) RequestBooking.class.getMethod("getLocation").invoke(request);
-            } catch (Exception ignored2) {
-                // no destination information available
-            }
-        }
-
-        if (rawDestinations != null && !rawDestinations.isBlank()) {
-            List<Long> destIds = Arrays.stream(rawDestinations.split(","))
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .map(Long::valueOf)
-                    .collect(Collectors.toList());
-            dto.setDestinationLocationIds(destIds);
-        }
-
-        return createTour(dto, null);
-    }
-
-
-
 
     @Override
     public GeneralResponse<Object> changeStatus(Long id, ChangeStatusDTO changeStatusDTO) {

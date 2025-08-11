@@ -91,10 +91,6 @@ public class TourManagementController {
                                                                                   @RequestBody ChangeStatusDTO changeStatusDTO) {
         return ResponseEntity.ok(requestBookingService.updateStatus(id, changeStatusDTO));
     }
-//    @PostMapping("/tour-manager/request-bookings/{id}/create-tour")
-//    public ResponseEntity<GeneralResponse<TourDetailManagerDTO>> createTourFromRequest(@PathVariable("id") Long id) {
-//        return ResponseEntity.ok(tourManagementService.createTourFromRequest(id));
-//    }
 
     @GetMapping("/tours/options")
     // postman http://localhost:8080/v1/business/tours/options
