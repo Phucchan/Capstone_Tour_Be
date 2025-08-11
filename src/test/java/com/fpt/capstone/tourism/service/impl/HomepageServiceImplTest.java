@@ -1,25 +1,23 @@
 package com.fpt.capstone.tourism.service.impl;
 
-import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.response.homepage.BlogSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.HomepageDataDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.PopularLocationDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.SaleTourDTO;
 import com.fpt.capstone.tourism.mapper.BlogMapper;
 import com.fpt.capstone.tourism.mapper.LocationMapper;
-import com.fpt.capstone.tourism.mapper.TourMapper;
 import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.model.blog.Blog;
+import com.fpt.capstone.tourism.model.enums.Region;
 import com.fpt.capstone.tourism.model.tour.Tour;
 import com.fpt.capstone.tourism.model.tour.TourDiscount;
 import com.fpt.capstone.tourism.model.tour.TourPax;
 import com.fpt.capstone.tourism.model.tour.TourSchedule;
-import com.fpt.capstone.tourism.repository.LocationRepository;
 import com.fpt.capstone.tourism.repository.blog.BlogRepository;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
+import com.fpt.capstone.tourism.repository.LocationRepository;
 import com.fpt.capstone.tourism.repository.tour.FeedbackRepository;
 import com.fpt.capstone.tourism.repository.tour.TourDiscountRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,25 +28,23 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit test cho class HomepageServiceImpl.
- */
 @ExtendWith(MockitoExtension.class)
 class HomepageServiceImplTest {
 
     @InjectMocks
     private HomepageServiceImpl homepageService;
 
-    // Mocks for repositories and mappers
+    // Mocks for all dependencies
     @Mock private FeedbackRepository feedbackRepository;
     @Mock private BlogRepository blogRepository;
     @Mock private LocationRepository locationRepository;
@@ -56,203 +52,165 @@ class HomepageServiceImplTest {
     @Mock private BookingRepository bookingRepository;
     @Mock private BlogMapper blogMapper;
     @Mock private LocationMapper locationMapper;
-    @Mock private TourMapper tourMapper;
 
-    // Test data objects (Entities)
-    private TourDiscount tourDiscount;
-    private TourSchedule tourSchedule;
-    private Tour tour;
-    private TourPax tourPax;
+    // --- Constants for hardcoded numbers in the service ---
+    private static final int NUM_LOCATIONS_REQUIRED = 8;
+    private static final Pageable SALE_TOUR_PAGEABLE = PageRequest.of(0, 5);
 
-    @BeforeEach
-    void setUp() {
-        // Khởi tạo các đối tượng Entity với dữ liệu giả chi tiết và được liên kết với nhau
-        // để tránh lỗi NullPointerException khi test
-        Location location = Location.builder().id(1L).name("Hà Nội").build();
-        tour = Tour.builder().id(1L).name("Tour Đà Nẵng").thumbnailUrl("url").departLocation(location).durationDays(3).code("DN01").build();
-        tourPax = TourPax.builder().id(1L).maxQuantity(20).sellingPrice(1000.00).build();
-        tourSchedule = TourSchedule.builder().id(1L).tour(tour).tourPax(tourPax).departureDate(LocalDateTime.now().plusDays(10)).build();
-        tourDiscount = TourDiscount.builder().id(1L).tourSchedule(tourSchedule).discountPercent(15).build();
+    @Test
+    @DisplayName("[getHomepageData] Normal Case: Trả về đầy đủ dữ liệu khi tất cả repository đều có kết quả")
+    void getHomepageData_whenAllDataExists_shouldReturnFullData() {
+        // Arrange
+        // 1. Mock data for Locations (giả sử tìm thấy đủ 8 địa điểm nổi bật)
+        List<Location> popularLocations = new ArrayList<>();
+        for (int i = 1; i <= NUM_LOCATIONS_REQUIRED; i++) {
+            popularLocations.add(Location.builder().id((long) i).name("Location " + i).build());
+        }
+        when(locationRepository.findLocationsWithMostTours(eq(NUM_LOCATIONS_REQUIRED))).thenReturn(popularLocations);
+        when(locationMapper.toPopularLocationDTO(any(Location.class))).thenAnswer(inv -> new PopularLocationDTO(inv.getArgument(0, Location.class).getId(), null, null));
+
+        // 2. Mock data for Recent Blogs (giả sử tìm thấy 1 blog)
+        Blog blog1 = Blog.builder().id(101L).title("Blog 1").blogTags(Collections.emptyList()).build();
+        List<Blog> recentBlogs = List.of(blog1);
+        when(blogRepository.findFirst5ByDeletedFalseOrderByCreatedAtDesc()).thenReturn(recentBlogs);
+        when(blogMapper.blogToBlogSummaryDTO(any(Blog.class))).thenReturn(new BlogSummaryDTO());
+
+        // 3. Mock data for Sale Tours (giả sử tìm thấy 1 tour giảm giá)
+        Location departLocation = Location.builder().id(1L).name("Hà Nội").build();
+        Tour tour = Tour.builder().id(201L).name("Tour Sale").region(Region.SOUTH).departLocation(departLocation).build();
+        TourPax tourPax = TourPax.builder().sellingPrice(1000.0).maxQuantity(20).build();
+        TourSchedule schedule = TourSchedule.builder().id(301L).tour(tour).tourPax(tourPax).departureDate(LocalDateTime.now().plusDays(1)).build();
+        TourDiscount discount = TourDiscount.builder().tourSchedule(schedule).discountPercent(10.0f).build();
+        when(tourDiscountRepository.findTopDiscountedTours(any(LocalDateTime.class), eq(SALE_TOUR_PAGEABLE))).thenReturn(List.of(discount));
+        when(bookingRepository.sumGuestsByTourScheduleId(anyLong())).thenReturn(5); // Giả sử đã có 5 người đặt
+
+        // Act
+        HomepageDataDTO result = homepageService.getHomepageData();
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(NUM_LOCATIONS_REQUIRED, result.getLocations().size());
+        assertEquals(1, result.getRecentBlogs().size());
+        assertEquals(1, result.getSaleTours().size());
+        assertEquals(15, result.getSaleTours().get(0).getAvailableSeats()); // 20 - 5 = 15
+
+        // Verify
+        verify(locationRepository, times(1)).findLocationsWithMostTours(eq(NUM_LOCATIONS_REQUIRED));
+        verify(locationRepository, never()).findRandomLocation(anyInt()); // Không cần gọi vì đã đủ 8
+        verify(blogRepository, times(1)).findFirst5ByDeletedFalseOrderByCreatedAtDesc();
+        verify(tourDiscountRepository, times(1)).findTopDiscountedTours(any(LocalDateTime.class), eq(SALE_TOUR_PAGEABLE));
     }
 
     @Test
-    @DisplayName("[Normal Case] Tải trang chủ thành công với số lượng dữ liệu mặc định")
-    void getHomepageData_DefaultSuccessScenario() {
-        // --- Mục đích: Kiểm tra luồng hoạt động thành công nhất, khi tất cả các repository
-        // --- đều trả về số lượng dữ liệu mặc định như mong đợi.
+    @DisplayName("[getHomepageData] Normal Case: Có ít hơn 8 địa điểm nổi bật, cần lấy thêm địa điểm ngẫu nhiên")
+    void getHomepageData_whenLessThanEightPopularLocations_shouldFetchRandomLocations() {
+        // Arrange
+        // 1. Mock popular locations (chỉ tìm thấy 5)
+        int numFound = 5;
+        int numNeeded = NUM_LOCATIONS_REQUIRED - numFound; // Cần thêm 3
+        List<Location> popularLocations = new ArrayList<>();
+        for (int i = 1; i <= numFound; i++) {
+            popularLocations.add(Location.builder().id((long) i).name("Popular " + i).build());
+        }
+        when(locationRepository.findLocationsWithMostTours(eq(NUM_LOCATIONS_REQUIRED))).thenReturn(popularLocations);
 
-        // Arrange: "Dạy" cho các repository giả lập (mock) phải trả về cái gì.
+        // 2. Mock random locations to fill the gap (tìm thấy 3)
+        List<Location> randomLocations = new ArrayList<>();
+        for (int i = 1; i <= numNeeded; i++) {
+            randomLocations.add(Location.builder().id((long) (i + 100)).name("Random " + i).build());
+        }
+        when(locationRepository.findRandomLocation(eq(numNeeded))).thenReturn(randomLocations);
+        when(locationMapper.toPopularLocationDTO(any(Location.class))).thenAnswer(inv -> new PopularLocationDTO(inv.getArgument(0, Location.class).getId(), null, null));
 
-        // 1. Giả lập cho `numberLocation` = 8
-        // Tạo ra một danh sách giả chứa 8 địa điểm.
-        List<Location> mockLocations = IntStream.range(0, 8)
-                .mapToObj(i -> Location.builder().id((long) i).name("Location " + i).build())
-                .collect(Collectors.toList());
-        when(locationRepository.findLocationsWithMostTours(8)).thenReturn(mockLocations);
+        // Mock other data to be empty for simplicity
+        when(blogRepository.findFirst5ByDeletedFalseOrderByCreatedAtDesc()).thenReturn(Collections.emptyList());
+        when(tourDiscountRepository.findTopDiscountedTours(any(LocalDateTime.class), eq(SALE_TOUR_PAGEABLE))).thenReturn(Collections.emptyList());
 
-        // 2. Giả lập cho `numberSaleTour` = 5
-        // Tạo ra một danh sách giả chứa 5 tour giảm giá.
-        List<TourDiscount> mockSaleTours = IntStream.range(0, 5)
-                .mapToObj(i -> TourDiscount.builder().id((long) i).tourSchedule(tourSchedule).discountPercent(10 + i).build())
-                .collect(Collectors.toList());
-        when(tourDiscountRepository.findTopDiscountedTours(any(LocalDateTime.class), any(Pageable.class)))
-                .thenReturn(mockSaleTours);
-
-        // 3. Giả lập cho `numberBlog` = 5
-        // Tạo ra một danh sách giả chứa 5 bài blog.
-        List<Blog> mockBlogs = IntStream.range(0, 5)
-                .mapToObj(i -> Blog.builder().id((long) i).title("Blog " + i).build())
-                .collect(Collectors.toList());
-        when(blogRepository.findFirst5ByDeletedFalseOrderByCreatedAtDesc()).thenReturn(mockBlogs);
-
-        // 4. Giả lập cho `numberBooking` (số ghế đã đặt) để tính toán
-        // Giả sử mỗi tour đều có 5 người đặt.
-        when(bookingRepository.sumGuestsByTourScheduleId(anyLong())).thenReturn(5);
-
-        // 5. Giả lập các mapper để đảm bảo việc chuyển đổi DTO thành công
-        when(locationMapper.toPopularLocationDTO(any(Location.class))).thenReturn(new PopularLocationDTO());
-        when(blogMapper.blogToBlogSummaryDTO(any(Blog.class))).thenReturn(new BlogSummaryDTO());
-
-
-        // Act: Gọi phương thức chính cần test
+        // Act
         HomepageDataDTO result = homepageService.getHomepageData();
 
+        // Assert
+        assertNotNull(result);
+        assertEquals(NUM_LOCATIONS_REQUIRED, result.getLocations().size()); // Tổng cộng phải là 8
 
-        // Assert: Kiểm tra xem kết quả trả về có đúng như mong đợi không.
-        System.out.println("Test Log: " + Constants.Message.HOMEPAGE_LOAD_SUCCESS);
+        // Verify
+        verify(locationRepository, times(1)).findLocationsWithMostTours(eq(NUM_LOCATIONS_REQUIRED));
+        verify(locationRepository, times(1)).findRandomLocation(eq(numNeeded)); // Xác minh đã gọi để lấy 3 địa điểm còn lại
+    }
 
-        assertNotNull(result, "Kết quả không được null");
+    @Test
+    @DisplayName("[getHomepageData] Abnormal Case: Không có tour giảm giá")
+    void getHomepageData_whenNoSaleTours_shouldReturnEmptySaleToursList() {
+        // Arrange
+        // Mock locations and blogs to have data
+        when(locationRepository.findLocationsWithMostTours(eq(NUM_LOCATIONS_REQUIRED))).thenReturn(List.of(Location.builder().id(1L).build()));
+        when(locationMapper.toPopularLocationDTO(any(Location.class))).thenReturn(new PopularLocationDTO());
+        when(blogRepository.findFirst5ByDeletedFalseOrderByCreatedAtDesc()).thenReturn(List.of(Blog.builder().id(101L).blogTags(Collections.emptyList()).build()));
+        when(blogMapper.blogToBlogSummaryDTO(any(Blog.class))).thenReturn(new BlogSummaryDTO());
 
-        // Kiểm tra số lượng
-        assertEquals(8, result.getLocations().size(), "Số lượng địa điểm mặc định phải là 8");
-        assertEquals(5, result.getSaleTours().size(), "Số lượng tour giảm giá mặc định phải là 5");
-        assertEquals(5, result.getRecentBlogs().size(), "Số lượng bài viết gần đây mặc định phải là 5");
+        // Mock sale tours to be empty
+        when(tourDiscountRepository.findTopDiscountedTours(any(LocalDateTime.class), eq(SALE_TOUR_PAGEABLE))).thenReturn(Collections.emptyList());
 
-        // Kiểm tra logic tính toán `availableSeats`
-        // tourPax.getMaxQuantity() là 20, bookedSlots là 5 => availableSeats phải là 15
-        SaleTourDTO firstSaleTour = result.getSaleTours().get(0);
-        assertEquals(15, firstSaleTour.getAvailableSeats(), "Số ghế trống phải được tính toán chính xác");
+        // Act
+        HomepageDataDTO result = homepageService.getHomepageData();
 
-        // Verify: Đảm bảo các phương thức repository đã được gọi đúng số lần
-        verify(locationRepository, times(1)).findLocationsWithMostTours(8);
-        verify(tourDiscountRepository, times(1)).findTopDiscountedTours(any(LocalDateTime.class), eq(PageRequest.of(0, 5)));
+        // Assert
+        assertNotNull(result);
+        assertFalse(result.getLocations().isEmpty());
+        assertFalse(result.getRecentBlogs().isEmpty());
+        assertTrue(result.getSaleTours().isEmpty()); // Danh sách tour giảm giá phải rỗng
+
+        // Verify
+        verify(tourDiscountRepository, times(1)).findTopDiscountedTours(any(LocalDateTime.class), eq(SALE_TOUR_PAGEABLE));
+    }
+
+    @Test
+    @DisplayName("[getHomepageData] Abnormal Case: Không có bài blog nào")
+    void getHomepageData_whenNoRecentBlogs_shouldReturnEmptyBlogsList() {
+        // Arrange
+        // Mock locations and sale tours to have data
+        when(locationRepository.findLocationsWithMostTours(eq(NUM_LOCATIONS_REQUIRED))).thenReturn(List.of(Location.builder().id(1L).build()));
+        when(locationMapper.toPopularLocationDTO(any(Location.class))).thenReturn(new PopularLocationDTO());
+        when(tourDiscountRepository.findTopDiscountedTours(any(LocalDateTime.class), eq(SALE_TOUR_PAGEABLE))).thenReturn(Collections.emptyList());
+
+        // Mock recent blogs to be empty
+        when(blogRepository.findFirst5ByDeletedFalseOrderByCreatedAtDesc()).thenReturn(Collections.emptyList());
+
+        // Act
+        HomepageDataDTO result = homepageService.getHomepageData();
+
+        // Assert
+        assertNotNull(result);
+        assertFalse(result.getLocations().isEmpty());
+        assertTrue(result.getRecentBlogs().isEmpty()); // Danh sách blog phải rỗng
+
+        // Verify
         verify(blogRepository, times(1)).findFirst5ByDeletedFalseOrderByCreatedAtDesc();
     }
+
     @Test
-    @DisplayName("[Boundary Case] Không có location nào được tìm thấy")
-    void getHomepageData_NoLocations() {
+    @DisplayName("[getHomepageData] Abnormal Case: Tất cả dữ liệu đều rỗng")
+    void getHomepageData_whenAllDataIsEmpty_shouldReturnEmptyHomepageData() {
         // Arrange
-        when(locationRepository.findLocationsWithMostTours(8)).thenReturn(List.of());
-        when(tourDiscountRepository.findTopDiscountedTours(any(LocalDateTime.class), any(Pageable.class))).thenReturn(List.of(tourDiscount));
-        when(blogRepository.findFirst5ByDeletedFalseOrderByCreatedAtDesc()).thenReturn(List.of(Blog.builder().id(1L).title("Blog").build()));
-        when(bookingRepository.sumGuestsByTourScheduleId(anyLong())).thenReturn(5);
-        when(blogMapper.blogToBlogSummaryDTO(any(Blog.class))).thenReturn(new BlogSummaryDTO());
+        when(locationRepository.findLocationsWithMostTours(eq(NUM_LOCATIONS_REQUIRED))).thenReturn(Collections.emptyList());
+        // Service sẽ gọi findRandomLocation với tham số là 8
+        when(locationRepository.findRandomLocation(eq(NUM_LOCATIONS_REQUIRED))).thenReturn(Collections.emptyList());
+        when(blogRepository.findFirst5ByDeletedFalseOrderByCreatedAtDesc()).thenReturn(Collections.emptyList());
+        when(tourDiscountRepository.findTopDiscountedTours(any(LocalDateTime.class), eq(SALE_TOUR_PAGEABLE))).thenReturn(Collections.emptyList());
 
         // Act
         HomepageDataDTO result = homepageService.getHomepageData();
 
         // Assert
-        System.out.println("Test Log: " + Constants.Message.HOMEPAGE_LOAD_SUCCESS + " (Boundary: No locations)");
-        assertNotNull(result);
-        assertTrue(result.getLocations().isEmpty(), "Danh sách địa điểm phải rỗng");
-        assertEquals(1, result.getSaleTours().size());
-        assertEquals(1, result.getRecentBlogs().size());
-    }
-
-    @Test
-    @DisplayName("[Boundary Case] Không có sale tour nào được tìm thấy")
-    void getHomepageData_NoSaleTours() {
-        // Arrange
-        when(locationRepository.findLocationsWithMostTours(8)).thenReturn(List.of(Location.builder().id(1L).name("Location").build()));
-        when(tourDiscountRepository.findTopDiscountedTours(any(LocalDateTime.class), any(Pageable.class))).thenReturn(List.of());
-        when(blogRepository.findFirst5ByDeletedFalseOrderByCreatedAtDesc()).thenReturn(List.of(Blog.builder().id(1L).title("Blog").build()));
-        when(locationMapper.toPopularLocationDTO(any(Location.class))).thenReturn(new PopularLocationDTO());
-        when(blogMapper.blogToBlogSummaryDTO(any(Blog.class))).thenReturn(new BlogSummaryDTO());
-
-        // Act
-        HomepageDataDTO result = homepageService.getHomepageData();
-
-        // Assert
-        System.out.println("Test Log: " + Constants.Message.HOMEPAGE_LOAD_SUCCESS + " (Boundary: No sale tours)");
-        assertNotNull(result);
-        assertEquals(1, result.getLocations().size());
-        assertTrue(result.getSaleTours().isEmpty(), "Danh sách tour giảm giá phải rỗng");
-        assertEquals(1, result.getRecentBlogs().size());
-    }
-
-    @Test
-    @DisplayName("[Boundary Case] Không có blog nào được tìm thấy")
-    void getHomepageData_NoBlogs() {
-        // Arrange
-        when(locationRepository.findLocationsWithMostTours(8)).thenReturn(List.of(Location.builder().id(1L).name("Location").build()));
-        when(tourDiscountRepository.findTopDiscountedTours(any(LocalDateTime.class), any(Pageable.class))).thenReturn(List.of(tourDiscount));
-        when(blogRepository.findFirst5ByDeletedFalseOrderByCreatedAtDesc()).thenReturn(List.of());
-        when(bookingRepository.sumGuestsByTourScheduleId(anyLong())).thenReturn(5);
-        when(locationMapper.toPopularLocationDTO(any(Location.class))).thenReturn(new PopularLocationDTO());
-
-        // Act
-        HomepageDataDTO result = homepageService.getHomepageData();
-
-        // Assert
-        System.out.println("Test Log: " + Constants.Message.HOMEPAGE_LOAD_SUCCESS + " (Boundary: No blogs)");
-        assertNotNull(result);
-        assertEquals(1, result.getLocations().size());
-        assertEquals(1, result.getSaleTours().size());
-        assertTrue(result.getRecentBlogs().isEmpty(), "Danh sách blog phải rỗng");
-    }
-
-    @Test
-    @DisplayName("[Negative Case] Không có dữ liệu nào trả về (all empty)")
-    void getHomepageData_AllEmpty() {
-        // Arrange
-        when(locationRepository.findLocationsWithMostTours(8)).thenReturn(List.of());
-        when(tourDiscountRepository.findTopDiscountedTours(any(LocalDateTime.class), any(Pageable.class))).thenReturn(List.of());
-        when(blogRepository.findFirst5ByDeletedFalseOrderByCreatedAtDesc()).thenReturn(List.of());
-
-        // Act
-        HomepageDataDTO result = homepageService.getHomepageData();
-
-        // Assert
-        System.out.println("Test Log: " + Constants.Message.HOMEPAGE_LOAD_FAIL + " (Boundary: All empty)");
         assertNotNull(result);
         assertTrue(result.getLocations().isEmpty());
-        assertTrue(result.getSaleTours().isEmpty());
         assertTrue(result.getRecentBlogs().isEmpty());
+        assertTrue(result.getSaleTours().isEmpty());
+
+        // Verify all repositories were called with correct hardcoded numbers
+        verify(locationRepository, times(1)).findLocationsWithMostTours(eq(NUM_LOCATIONS_REQUIRED));
+        verify(locationRepository, times(1)).findRandomLocation(eq(NUM_LOCATIONS_REQUIRED));
+        verify(blogRepository, times(1)).findFirst5ByDeletedFalseOrderByCreatedAtDesc();
+        verify(tourDiscountRepository, times(1)).findTopDiscountedTours(any(LocalDateTime.class), eq(SALE_TOUR_PAGEABLE));
     }
-
-    @Test
-    @DisplayName("[Boundary Case] Tour đã full chỗ, availableSeats = 0")
-    void getHomepageData_FullBooked() {
-        // Arrange
-        when(locationRepository.findLocationsWithMostTours(8)).thenReturn(List.of(Location.builder().id(1L).name("Location").build()));
-        when(tourDiscountRepository.findTopDiscountedTours(any(LocalDateTime.class), any(Pageable.class))).thenReturn(List.of(tourDiscount));
-        when(blogRepository.findFirst5ByDeletedFalseOrderByCreatedAtDesc()).thenReturn(List.of(Blog.builder().id(1L).title("Blog").build()));
-        when(bookingRepository.sumGuestsByTourScheduleId(anyLong())).thenReturn(20); // Full slot
-        when(locationMapper.toPopularLocationDTO(any(Location.class))).thenReturn(new PopularLocationDTO());
-        when(blogMapper.blogToBlogSummaryDTO(any(Blog.class))).thenReturn(new BlogSummaryDTO());
-
-        // Act
-        HomepageDataDTO result = homepageService.getHomepageData();
-
-        // Assert
-        System.out.println("Test Log: " + Constants.Message.HOMEPAGE_LOAD_SUCCESS + " (Boundary: Tour fully booked)");
-        assertNotNull(result);
-        SaleTourDTO saleTourDTO = result.getSaleTours().get(0);
-        assertEquals(0, saleTourDTO.getAvailableSeats(), "Available seats phải là 0 khi full booking");
-    }
-
-    @Test
-    @DisplayName("[Exception Case] Repository bị lỗi, service xử lý exception gracefully")
-    void getHomepageData_RepositoryException() {
-        // Arrange
-        String errorMessage = "Database error";
-        when(locationRepository.findLocationsWithMostTours(8)).thenThrow(new RuntimeException(errorMessage));
-
-        // Act & Assert
-        System.out.println("Test Log: " + Constants.Message.HOMEPAGE_LOAD_FAIL + " - Lý do: " + errorMessage);
-        Exception exception = assertThrows(RuntimeException.class, () -> homepageService.getHomepageData());
-
-        assertEquals(errorMessage, exception.getMessage());
-    }
-
 }
