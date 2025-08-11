@@ -44,8 +44,6 @@ public class RequestBooking extends BaseEntity {
     @Column(name = "tour_theme")
     private String tourTheme;
 
-    @Column(name = "desired_departure_date")
-    private LocalDate desiredDepartureDate;
 
     @Column(name = "desired_services", columnDefinition = "text")
     private String desiredServices;
