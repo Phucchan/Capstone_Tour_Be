@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.repository.partner;
 
 import com.fpt.capstone.tourism.model.domain.projection.PartnerServiceWithDayDTO;
+import com.fpt.capstone.tourism.model.enums.PartnerServiceStatus;
 import com.fpt.capstone.tourism.model.partner.PartnerService;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -29,5 +30,7 @@ public interface PartnerServiceRepository extends JpaRepository<PartnerService, 
 
         // Tìm tất cả dịch vụ theo ID của loại dịch vụ
         List<PartnerService> findByServiceTypeId(Long serviceTypeId);
+
+    List<PartnerService> findByStatus(PartnerServiceStatus status);
 
 }

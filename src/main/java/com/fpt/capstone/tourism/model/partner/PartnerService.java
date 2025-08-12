@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.model.partner;
 
 import com.fpt.capstone.tourism.model.BaseEntity;
 import com.fpt.capstone.tourism.model.enums.CostType;
+import com.fpt.capstone.tourism.model.enums.PartnerServiceStatus;
 import com.fpt.capstone.tourism.model.tour.TourDay;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,7 +33,7 @@ public class PartnerService extends BaseEntity {
     private ServiceType serviceType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "partner_id", nullable = false)
+    @JoinColumn(name = "partner_id")
     private Partner partner;
 
     @Column(name = "image_url")
@@ -50,6 +51,11 @@ public class PartnerService extends BaseEntity {
 
     @Column(name = "cost_type")
     private CostType costType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    @Builder.Default
+    private PartnerServiceStatus status = PartnerServiceStatus.PENDING;
 
     @ManyToMany(mappedBy = "services", fetch = FetchType.LAZY)
     private List<TourDay> tourDays = new ArrayList<>();

@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.dto.common.ServiceTypeShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
+import com.fpt.capstone.tourism.dto.request.PartnerServiceCreateDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.*;
 import com.fpt.capstone.tourism.dto.response.ServiceInfoDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourOptionsDTO;
@@ -46,6 +47,7 @@ public interface TourManagementService {
 
     GeneralResponse<TourDayManagerDTO> removeServiceFromTourDay(Long tourId, Long dayId, Long serviceId);
 
+    GeneralResponse<ServiceInfoDTO> createService(Long tourId, Long dayId, PartnerServiceCreateDTO dto);
 
     GeneralResponse<TourOptionsDTO> getTourOptions();
 

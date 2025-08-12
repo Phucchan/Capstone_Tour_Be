@@ -5,8 +5,10 @@ import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
+import com.fpt.capstone.tourism.dto.request.PartnerServiceCreateDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourDayManagerCreateRequestDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxManagerCreateRequestDTO;
+import com.fpt.capstone.tourism.dto.response.ServiceInfoDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxManagerDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourUpdateManagerRequestDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.*;
@@ -25,7 +27,6 @@ import java.util.List;
 @RequestMapping("/business")
 public class TourDetailManagementController {
 
-    @Autowired
     private final TourManagementService tourManagementService;
 
     // xem chi tiết tour
@@ -99,6 +100,14 @@ public class TourDetailManagementController {
             @PathVariable Long dayId,
             @PathVariable Long serviceId) {
         return ResponseEntity.ok(tourManagementService.removeServiceFromTourDay(tourId, dayId, serviceId));
+    }
+    @PostMapping("/tours/{tourId}/days/{dayId}/services")
+    // postman http://localhost:8080/v1/business/tours/1/days/1/services
+    public ResponseEntity<GeneralResponse<ServiceInfoDTO>> createService(
+            @PathVariable Long tourId,
+            @PathVariable Long dayId,
+            @RequestBody PartnerServiceCreateDTO dto) {
+        return ResponseEntity.ok(tourManagementService.createService(tourId, dayId, dto));
     }
 
 }
