@@ -24,7 +24,7 @@ public class RequestBookingDTO {
     private LocalDate startDate;
     private LocalDate endDate;
     private TourTransport transport;
-    private String tourTheme;
+    private List<Long> tourThemeIds;
     private String desiredServices;
     private Integer adults;
     private Integer children;

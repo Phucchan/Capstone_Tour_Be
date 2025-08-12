@@ -29,6 +29,7 @@ public class RequestBookingController {
     public ResponseEntity<GeneralResponse<List<TourThemeOptionDTO>>> getTourThemes() {
         return ResponseEntity.ok(requestBookingService.getTourThemes());
     }
+
     @GetMapping("/notification/{id}")
     public ResponseEntity<GeneralResponse<RequestBookingDTO>> getNotification(@PathVariable("id") Long id) {
         return ResponseEntity.ok(requestBookingService.getRequest(id));

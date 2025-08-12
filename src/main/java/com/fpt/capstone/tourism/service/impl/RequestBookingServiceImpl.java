@@ -52,7 +52,7 @@ public class RequestBookingServiceImpl implements RequestBookingService {
         if (requestBookingDTO.getDepartureLocationId() == null ||
                 requestBookingDTO.getDestinationLocationIds() == null ||
                 requestBookingDTO.getDestinationLocationIds().isEmpty() ||
-                requestBookingDTO.getTourTheme() == null || requestBookingDTO.getTourTheme().isBlank() ||
+                requestBookingDTO.getTourThemeIds() == null || requestBookingDTO.getTourThemeIds().isEmpty() ||
                 requestBookingDTO.getDesiredServices() == null || requestBookingDTO.getDesiredServices().isBlank() ||
                 requestBookingDTO.getStartDate() == null ||
                 requestBookingDTO.getEndDate() == null ||
@@ -76,17 +76,24 @@ public class RequestBookingServiceImpl implements RequestBookingService {
         if (depart == null) {
             return new GeneralResponse<>(HttpStatus.BAD_REQUEST.value(), "Departure location not found", null);
         }
+
         var destinations = locationRepository.findAllById(requestBookingDTO.getDestinationLocationIds());
+        var themes = tourThemeRepository.findAllById(requestBookingDTO.getTourThemeIds());
+        if (themes.size() != requestBookingDTO.getTourThemeIds().size()) {
+            return new GeneralResponse<>(HttpStatus.BAD_REQUEST.value(), "One or more tour themes not found", null);
+        }
 
         RequestBooking requestBooking = requestBookingMapper.toEntity(requestBookingDTO);
         requestBooking.setUser(user);
         requestBooking.setDepartureLocation(depart);
+        requestBooking.setTourTheme(themes.stream().map(t -> t.getName()).collect(Collectors.joining(", ")));
         requestBooking.setDestinationLocations(destinations);
         requestBooking.setStatus(RequestBookingStatus.PENDING);
         requestBooking.setReason(null);
         RequestBooking saved = requestBookingRepository.save(requestBooking);
         notifyNewRequestBooking(saved);
         RequestBookingDTO savedDto = requestBookingMapper.toDTO(saved);
+        savedDto.setTourThemeIds(requestBookingDTO.getTourThemeIds());
         return new GeneralResponse<>(HttpStatus.OK.value(), "Request saved", savedDto);
     }
 
