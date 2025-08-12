@@ -38,6 +38,7 @@ public class RequestBookingServiceImpl implements RequestBookingService {
     private final TourThemeRepository tourThemeRepository;
     private final LocationRepository locationRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final RequestBookingVerificationService verificationService;
 
     @Value("${frontend.base-url}")
     private String frontendBaseUrl;
@@ -65,8 +66,12 @@ public class RequestBookingServiceImpl implements RequestBookingService {
                 requestBookingDTO.getRoomCategory() == null ||
                 requestBookingDTO.getCustomerName() == null || requestBookingDTO.getCustomerName().isBlank() ||
                 requestBookingDTO.getCustomerEmail() == null || requestBookingDTO.getCustomerEmail().isBlank() ||
-                requestBookingDTO.getCustomerPhone() == null || requestBookingDTO.getCustomerPhone().isBlank()) {
+                requestBookingDTO.getCustomerPhone() == null || requestBookingDTO.getCustomerPhone().isBlank() ||
+                requestBookingDTO.getVerificationCode() == null || requestBookingDTO.getVerificationCode().isBlank()) {
             return new GeneralResponse<>(HttpStatus.BAD_REQUEST.value(), "Missing required fields", null);
+        }
+        if (!verificationService.verifyCode(requestBookingDTO.getCustomerEmail(), requestBookingDTO.getVerificationCode())) {
+            return new GeneralResponse<>(HttpStatus.BAD_REQUEST.value(), "Invalid verification code", null);
         }
         var user = userRepository.findUserById(requestBookingDTO.getUserId()).orElse(null);
         if (user == null) {
@@ -95,6 +100,14 @@ public class RequestBookingServiceImpl implements RequestBookingService {
         RequestBookingDTO savedDto = requestBookingMapper.toDTO(saved);
         savedDto.setTourThemeIds(requestBookingDTO.getTourThemeIds());
         return new GeneralResponse<>(HttpStatus.OK.value(), "Request saved", savedDto);
+    }
+    @Override
+    public GeneralResponse<String> sendVerificationCode(String email) {
+        if (email == null || email.isBlank()) {
+            return new GeneralResponse<>(HttpStatus.BAD_REQUEST.value(), "Email is required", null);
+        }
+        verificationService.sendCode(email);
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Verification code sent", null);
     }
 
     @Override

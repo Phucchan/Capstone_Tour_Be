@@ -25,6 +25,10 @@ public class RequestBookingController {
         requestBookingDTO.setUserId(userId);
         return ResponseEntity.ok(requestBookingService.createRequest(requestBookingDTO));
     }
+    @PostMapping("/send-code")
+    public ResponseEntity<GeneralResponse<String>> sendVerificationCode(@RequestParam("email") String email) {
+        return ResponseEntity.ok(requestBookingService.sendVerificationCode(email));
+    }
     @GetMapping("/themes")
     public ResponseEntity<GeneralResponse<List<TourThemeOptionDTO>>> getTourThemes() {
         return ResponseEntity.ok(requestBookingService.getTourThemes());

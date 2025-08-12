@@ -27,8 +27,7 @@ public interface RequestBookingService {
 
     GeneralResponse<RequestBookingDTO> rejectRequest(Long id, String reason);
 
-    GeneralResponse<PagingDTO<RequestBookingSummaryDTO>> getRequestsByStatus(RequestBookingStatus status,
-                                                                             int page,
-                                                                             int size,
-                                                                             String search);
+    GeneralResponse<PagingDTO<RequestBookingSummaryDTO>> getRequestsByStatus(RequestBookingStatus status, int page, int size, String search);
+
+    GeneralResponse<String> sendVerificationCode(String email);
 }
