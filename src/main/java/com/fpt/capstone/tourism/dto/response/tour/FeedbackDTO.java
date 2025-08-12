@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FeedbackDTO {
+    private Long id;
     private int rating;
     private String comment;
     private String userName;

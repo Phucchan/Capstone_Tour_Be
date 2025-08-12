@@ -240,4 +240,5 @@ public class TourServiceImpl implements TourService {
                 .availableSeats(availableSeats)
                 .build();
     }
+
 }

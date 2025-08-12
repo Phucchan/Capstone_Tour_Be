@@ -3,12 +3,17 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
+import com.fpt.capstone.tourism.dto.response.tour.FeedbackDTO;
+import com.fpt.capstone.tourism.dto.response.tour.TourDayDetailDTO;
+import com.fpt.capstone.tourism.dto.response.tour.TourDetailDTO;
+import com.fpt.capstone.tourism.dto.response.tour.TourScheduleDTO;
+import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.TourDetailMapper;
+import com.fpt.capstone.tourism.mapper.TourMapper;
 import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.model.enums.Region;
 import com.fpt.capstone.tourism.model.enums.TourTransport;
-import com.fpt.capstone.tourism.model.tour.Tour;
-import com.fpt.capstone.tourism.model.tour.TourSchedule;
+import com.fpt.capstone.tourism.model.tour.*;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
 import com.fpt.capstone.tourism.repository.tour.*;
 import org.junit.jupiter.api.DisplayName;
@@ -22,19 +27,22 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class TourServiceImplFilterTest {
+class TourServiceImplTest {
 
     @InjectMocks
     private TourServiceImpl tourService;
@@ -47,13 +55,16 @@ class TourServiceImplFilterTest {
     private TourPaxRepository tourPaxRepository;
     @Mock
     private TourScheduleRepository tourScheduleRepository;
-
-    // Các mock khác không cần thiết cho hàm này
-    @Mock private TourDayRepository tourDayRepository;
-    @Mock private BookingRepository bookingRepository;
-    @Mock private TourDiscountRepository tourDiscountRepository;
-    @Mock private TourDetailMapper tourDetailMapper;
-
+    @Mock
+    private TourDayRepository tourDayRepository;
+    @Mock
+    private BookingRepository bookingRepository;
+    @Mock
+    private TourDiscountRepository tourDiscountRepository;
+    @Mock
+    private TourDetailMapper tourDetailMapper;
+    @Mock
+    private TourMapper tourMapper;
 
     @Test
     @DisplayName("[filterTours] Normal Case: Lọc tour với khoảng giá priceMin=5,000,000, priceMax=10,000,000")
@@ -527,5 +538,134 @@ class TourServiceImplFilterTest {
         assertEquals(1, result.getItems().size());
         assertEquals("Tour Vũng Tàu", result.getItems().get(0).getName());
         verify(tourRepository, times(1)).findAll(any(Specification.class), eq(pageable));
+    }
+    @Test
+    @DisplayName("[getTourDetailById] Normal Case: Tour tồn tại với đầy đủ dữ liệu, trả về TourDetailDTO hoàn chỉnh")
+    void getTourDetailById_whenTourExistsWithAllData_shouldReturnFullDetailDTO() {
+        // Arrange
+        Long tourId = 1L;
+        Tour mockTour = Tour.builder().id(tourId).name("Test Tour").build();
+        TourDay mockTourDay = TourDay.builder().id(10L).dayNumber(1).build();
+        Feedback mockFeedback = Feedback.builder().id(20L).rating(5).comment("Great!").build();
+        TourPax mockTourPax = TourPax.builder().id(40L).maxQuantity(25).sellingPrice(1000.0).build();
+        TourSchedule mockSchedule = TourSchedule.builder().id(30L).tour(mockTour).tourPax(mockTourPax).build();
+
+        // Giả lập các DTO mà mapper sẽ trả về
+        TourDetailDTO mockTourDetailDTO = TourDetailDTO.builder().id(tourId).name("Test Tour").build();
+        TourDayDetailDTO mockTourDayDTO = TourDayDetailDTO.builder().id(10L).build();
+        FeedbackDTO mockFeedbackDTO = FeedbackDTO.builder().id(20L).build();
+        TourScheduleDTO mockScheduleDTO = TourScheduleDTO.builder().id(30L).build();
+
+        // Giả lập các lời gọi đến repository
+        when(tourRepository.findById(tourId)).thenReturn(Optional.of(mockTour));
+        when(tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId)).thenReturn(List.of(mockTourDay));
+        when(feedbackRepository.findByBooking_TourSchedule_Tour_Id(tourId)).thenReturn(List.of(mockFeedback));
+        when(tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(eq(tourId), any(LocalDateTime.class))).thenReturn(List.of(mockSchedule));
+        when(feedbackRepository.findAverageRatingByTourId(tourId)).thenReturn(4.8);
+        when(bookingRepository.sumGuestsByTourScheduleId(30L)).thenReturn(10); // Giả sử đã có 10 người đặt
+
+        // Giả lập các lời gọi đến mapper
+        when(tourDetailMapper.tourToTourDetailDTO(mockTour)).thenReturn(mockTourDetailDTO);
+        when(tourDetailMapper.tourDayToTourDayDetailDTO(mockTourDay)).thenReturn(mockTourDayDTO);
+        when(tourDetailMapper.feedbackToFeedbackDTO(mockFeedback)).thenReturn(mockFeedbackDTO);
+        when(tourDetailMapper.tourScheduleToTourScheduleDTO(mockSchedule)).thenReturn(mockScheduleDTO);
+
+        // Act
+        TourDetailDTO result = tourService.getTourDetailById(tourId);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(tourId, result.getId());
+        assertEquals("Test Tour", result.getName());
+        assertEquals(4.8, result.getAverageRating());
+
+        assertNotNull(result.getDays());
+        assertEquals(1, result.getDays().size());
+
+        assertNotNull(result.getFeedback());
+        assertEquals(1, result.getFeedback().size());
+
+        assertNotNull(result.getSchedules());
+        assertEquals(1, result.getSchedules().size());
+        assertEquals(15, result.getSchedules().get(0).getAvailableSeats()); // 25 tổng - 10 đã đặt = 15
+
+        // Verify (Xác minh các phương thức đã được gọi đúng)
+        verify(tourRepository, times(1)).findById(tourId);
+        verify(feedbackRepository, times(1)).findAverageRatingByTourId(tourId);
+        verify(bookingRepository, times(1)).sumGuestsByTourScheduleId(30L);
+    }
+
+    @Test
+    @DisplayName("[getTourDetailById] Abnormal Case: Tour không tồn tại, ném ra BusinessException")
+    void getTourDetailById_whenTourNotFound_shouldThrowBusinessException() {
+        // Arrange
+        Long nonExistentTourId = 99L;
+        when(tourRepository.findById(nonExistentTourId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            tourService.getTourDetailById(nonExistentTourId);
+        });
+
+        assertEquals(HttpStatus.NOT_FOUND.value(), exception.getHttpCode());
+        assertEquals("Tour not found", exception.getMessage());
+
+        // Xác minh rằng các repository khác không được gọi đến
+        verify(tourDayRepository, never()).findByTourIdOrderByDayNumberAsc(anyLong());
+        verify(feedbackRepository, never()).findAverageRatingByTourId(anyLong());
+    }
+
+    @Test
+    @DisplayName("[getTourDetailById] Normal Case: Tour tồn tại nhưng không có feedback, trả về DTO với danh sách feedback rỗng")
+    void getTourDetailById_whenTourExistsWithNoFeedback_shouldReturnDTOWithEmptyFeedback() {
+        // Arrange
+        Long tourId = 2L;
+        Tour mockTour = Tour.builder().id(tourId).name("New Tour").build();
+        TourDetailDTO mockTourDetailDTO = TourDetailDTO.builder().id(tourId).name("New Tour").build();
+
+        when(tourRepository.findById(tourId)).thenReturn(Optional.of(mockTour));
+        // Không có feedback
+        when(feedbackRepository.findByBooking_TourSchedule_Tour_Id(tourId)).thenReturn(Collections.emptyList());
+        when(feedbackRepository.findAverageRatingByTourId(tourId)).thenReturn(null); // Repository trả về null khi không có rating
+        // Các dữ liệu khác vẫn có thể có hoặc không
+        when(tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId)).thenReturn(Collections.emptyList());
+        when(tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(eq(tourId), any(LocalDateTime.class))).thenReturn(Collections.emptyList());
+        when(tourDetailMapper.tourToTourDetailDTO(mockTour)).thenReturn(mockTourDetailDTO);
+
+        // Act
+        TourDetailDTO result = tourService.getTourDetailById(tourId);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(tourId, result.getId());
+        assertNull(result.getAverageRating()); // Điểm đánh giá trung bình phải là null
+        assertTrue(result.getFeedback().isEmpty()); // Danh sách feedback phải rỗng
+    }
+
+    @Test
+    @DisplayName("[getTourDetailById] Normal Case: Tour tồn tại nhưng không có lịch trình trong tương lai, trả về DTO với danh sách schedule rỗng")
+    void getTourDetailById_whenTourExistsWithNoFutureSchedules_shouldReturnDTOWithEmptySchedules() {
+        // Arrange
+        Long tourId = 3L;
+        Tour mockTour = Tour.builder().id(tourId).name("Old Tour").build();
+        TourDetailDTO mockTourDetailDTO = TourDetailDTO.builder().id(tourId).name("Old Tour").build();
+
+        when(tourRepository.findById(tourId)).thenReturn(Optional.of(mockTour));
+        // Không có lịch trình trong tương lai
+        when(tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(eq(tourId), any(LocalDateTime.class))).thenReturn(Collections.emptyList());
+        // Các dữ liệu khác vẫn tồn tại
+        when(feedbackRepository.findByBooking_TourSchedule_Tour_Id(tourId)).thenReturn(Collections.emptyList());
+        when(feedbackRepository.findAverageRatingByTourId(tourId)).thenReturn(4.0);
+        when(tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId)).thenReturn(Collections.emptyList());
+        when(tourDetailMapper.tourToTourDetailDTO(mockTour)).thenReturn(mockTourDetailDTO);
+
+        // Act
+        TourDetailDTO result = tourService.getTourDetailById(tourId);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(tourId, result.getId());
+        assertEquals(4.0, result.getAverageRating());
+        assertTrue(result.getSchedules().isEmpty()); // Danh sách lịch trình phải rỗng
     }
 }

@@ -12,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TourDayDetailDTO {
+    private Long id;
     private int dayNumber;
     private String title;
     private String description;
