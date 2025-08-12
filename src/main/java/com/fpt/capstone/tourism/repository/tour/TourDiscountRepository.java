@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TourDiscountRepository extends JpaRepository<TourDiscount, Long> {
@@ -38,4 +39,10 @@ public interface TourDiscountRepository extends JpaRepository<TourDiscount, Long
             "AND ts.tour.tourStatus = com.fpt.capstone.tourism.model.enums.TourStatus.PUBLISHED " +
             "AND ts.tour.deleted = false")
     Page<TourDiscount> findActiveDiscountedTours(@Param("now") LocalDateTime now, Pageable pageable);
+
+    Optional<TourDiscount> findFirstByTourSchedule_IdAndStartDateLessThanEqualAndEndDateGreaterThanEqualAndDeletedFalse(
+            Long scheduleId,
+            LocalDateTime startDate,
+            LocalDateTime endDate
+    );
 }
