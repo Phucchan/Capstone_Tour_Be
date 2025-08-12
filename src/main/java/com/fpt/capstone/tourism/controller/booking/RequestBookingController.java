@@ -2,10 +2,13 @@ package com.fpt.capstone.tourism.controller.booking;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.RequestBookingDTO;
+import com.fpt.capstone.tourism.dto.response.tour.TourThemeOptionDTO;
 import com.fpt.capstone.tourism.service.RequestBookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,6 +24,10 @@ public class RequestBookingController {
             @RequestBody RequestBookingDTO requestBookingDTO) {
         requestBookingDTO.setUserId(userId);
         return ResponseEntity.ok(requestBookingService.createRequest(requestBookingDTO));
+    }
+    @GetMapping("/themes")
+    public ResponseEntity<GeneralResponse<List<TourThemeOptionDTO>>> getTourThemes() {
+        return ResponseEntity.ok(requestBookingService.getTourThemes());
     }
     @GetMapping("/notification/{id}")
     public ResponseEntity<GeneralResponse<RequestBookingDTO>> getNotification(@PathVariable("id") Long id) {

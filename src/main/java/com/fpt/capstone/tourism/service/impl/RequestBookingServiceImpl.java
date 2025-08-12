@@ -6,10 +6,12 @@ import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.RequestBookingDTO;
 import com.fpt.capstone.tourism.dto.request.RequestBookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.RequestBookingNotificationDTO;
+import com.fpt.capstone.tourism.dto.response.tour.TourThemeOptionDTO;
 import com.fpt.capstone.tourism.model.RequestBooking;
 import com.fpt.capstone.tourism.model.enums.RequestBookingStatus;
 import com.fpt.capstone.tourism.repository.LocationRepository;
 import com.fpt.capstone.tourism.repository.RequestBookingRepository;
+import com.fpt.capstone.tourism.repository.tour.TourThemeRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.service.RequestBookingService;
 import com.fpt.capstone.tourism.mapper.booking.RequestBookingMapper;
@@ -33,6 +35,7 @@ public class RequestBookingServiceImpl implements RequestBookingService {
     private final RequestBookingRepository requestBookingRepository;
     private final RequestBookingMapper requestBookingMapper;
     private final UserRepository userRepository;
+    private final TourThemeRepository tourThemeRepository;
     private final LocationRepository locationRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -122,6 +125,13 @@ public class RequestBookingServiceImpl implements RequestBookingService {
         RequestBooking saved = requestBookingRepository.save(booking);
         RequestBookingDTO dto = requestBookingMapper.toDTO(saved);
         return new GeneralResponse<>(HttpStatus.OK.value(), "Request rejected", dto);
+    }
+    @Override
+    public GeneralResponse<List<TourThemeOptionDTO>> getTourThemes() {
+        List<TourThemeOptionDTO> themes = tourThemeRepository.findAll().stream()
+                .map(t -> new TourThemeOptionDTO(t.getId(), t.getName()))
+                .collect(Collectors.toList());
+        return GeneralResponse.of(themes);
     }
 
     @Override

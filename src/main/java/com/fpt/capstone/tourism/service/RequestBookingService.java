@@ -6,6 +6,7 @@ import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.RequestBookingDTO;
 import com.fpt.capstone.tourism.dto.request.RequestBookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.RequestBookingNotificationDTO;
+import com.fpt.capstone.tourism.dto.response.tour.TourThemeOptionDTO;
 import com.fpt.capstone.tourism.model.RequestBooking;
 import com.fpt.capstone.tourism.model.enums.RequestBookingStatus;
 
@@ -21,6 +22,8 @@ public interface RequestBookingService {
     GeneralResponse<RequestBookingDTO> updateStatus(Long id, ChangeStatusDTO changeStatusDTO);
 
     GeneralResponse<PagingDTO<RequestBookingSummaryDTO>> getRequestsByUser(Long userId, int page, int size, String search);
+
+    GeneralResponse<List<TourThemeOptionDTO>> getTourThemes();
 
     GeneralResponse<RequestBookingDTO> rejectRequest(Long id, String reason);
 
