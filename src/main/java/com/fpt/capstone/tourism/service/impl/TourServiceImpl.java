@@ -48,7 +48,7 @@ public class TourServiceImpl implements TourService {
     private final TourDetailMapper tourDetailMapper;
 
     @Override
-    public PagingDTO<TourSummaryDTO> filterTours(Double priceMin, Double priceMax, Long departId, Long destId, LocalDate date, Pageable pageable) {
+    public PagingDTO<TourSummaryDTO> filterTours(Double priceMin, Double priceMax, Long departId, Long destId, LocalDate date, String name, Pageable pageable) {
 
         // 1. Bắt đầu với một Specification cơ sở (luôn lọc các tour đã publish)
         // KHÔNG DÙNG .where() nữa
@@ -66,6 +66,9 @@ public class TourServiceImpl implements TourService {
         }
         if (date != null) {
             spec = spec.and(TourSpecification.hasDepartureDate(date));
+        }
+        if (name != null && !name.isBlank()) {
+            spec = spec.and(TourSpecification.hasNameLike(name));
         }
 
         // 3. Gọi repository với specification đã được xây dựng hoàn chỉnh

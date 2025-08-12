@@ -51,6 +51,7 @@ public class TourController {
             @RequestParam(required = false) Long departId,
             @RequestParam(required = false) Long destId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) String name,
 
             // Các tham số cho việc phân trang
             @RequestParam(defaultValue = "0") int page,
@@ -61,7 +62,7 @@ public class TourController {
         Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
-        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, departId, destId, date, pageable);
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, departId, destId, date, name, pageable);
         List<PublicLocationDTO> departures = locationService.getAllDepartures().stream()
                 .map(d -> PublicLocationDTO.builder()
                         .id(d.getId())
@@ -112,6 +113,7 @@ public class TourController {
             @RequestParam(required = false) Long departId,
             @RequestParam(required = false) Long destId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) String name,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "6") int size,
             @RequestParam(defaultValue = "createdAt") String sortField,
@@ -122,7 +124,8 @@ public class TourController {
 
         Long effectiveDestId = destId != null ? destId : destIdPath;
 
-        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, departId, effectiveDestId, date, pageable);
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, departId, effectiveDestId, date, name, pageable);
+
 
         List<PublicLocationDTO> departures = locationService.getAllDepartures().stream()
                 .map(d -> PublicLocationDTO.builder()

@@ -12,7 +12,7 @@ public interface TourService {
 
     TourDetailDTO getTourDetailById(Long tourId);
 
-    PagingDTO<TourSummaryDTO> filterTours(Double priceMin, Double priceMax, Long departId, Long destId, LocalDate date, Pageable pageable);
+    PagingDTO<TourSummaryDTO> filterTours(Double priceMin, Double priceMax, Long departId, Long destId, LocalDate date, String name, Pageable pageable);
 
     PagingDTO<SaleTourDTO> getDiscountTours(Pageable pageable);
 
