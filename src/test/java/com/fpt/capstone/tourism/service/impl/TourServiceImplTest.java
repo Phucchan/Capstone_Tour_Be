@@ -84,7 +84,7 @@ class TourServiceImplFilterTest {
                 .thenReturn(Collections.emptyList());
 
         // Act
-        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, null, null, null, pageable);
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax,null, null, null, null, pageable);
 
         // Assert
         System.out.println("Test Log: " + Constants.Message.SEARCH_SUCCESS);
@@ -126,7 +126,7 @@ class TourServiceImplFilterTest {
                 .thenReturn(List.of(TourSchedule.builder().departureDate(date.atStartOfDay()).build()));
 
         // Act
-        PagingDTO<TourSummaryDTO> result = tourService.filterTours(null, null, departId, destId, date, pageable);
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(null, null, departId, destId, date,null, pageable);
 
         // Assert
         System.out.println("Test Log: " + Constants.Message.SEARCH_SUCCESS);
@@ -145,7 +145,7 @@ class TourServiceImplFilterTest {
         when(tourRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(Page.empty(pageable));
 
         // Act
-        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, null, null, null, null, pageable);
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, null, null, null, null,null, pageable);
 
         // Assert
         System.out.println("Test Log: " + Constants.Message.SEARCH_FAIL + " - No tours matched the criteria.");
@@ -182,7 +182,7 @@ class TourServiceImplFilterTest {
                 .thenReturn(Collections.emptyList());
 
         // Act
-        PagingDTO<TourSummaryDTO> result = tourService.filterTours(null, null, null, null, null, pageable);
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(null, null, null, null, null,null, pageable);
 
         // Assert
         System.out.println("Test Log: " + Constants.Message.SEARCH_SUCCESS);
@@ -221,7 +221,7 @@ class TourServiceImplFilterTest {
                 .thenReturn(Collections.emptyList());
 
         // Act
-        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, null, null, destId, null, pageable);
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, null, null, destId, null,null, pageable);
 
         // Assert
         System.out.println("Test Log: " + Constants.Message.SEARCH_SUCCESS);
@@ -263,7 +263,7 @@ class TourServiceImplFilterTest {
                 .thenReturn(List.of(TourSchedule.builder().departureDate(date.atStartOfDay()).build()));
 
         // Act
-        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, departId, destId, date, pageable);
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, departId, destId, date,null, pageable);
 
         // Assert
         System.out.println("Test Log: " + Constants.Message.SEARCH_SUCCESS);
@@ -285,7 +285,7 @@ class TourServiceImplFilterTest {
         when(tourRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(Page.empty(pageable));
 
         // Act
-        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, null, null, null, pageable);
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, null, null, null,null, pageable);
 
         // Assert
         System.out.println("Test Log: " + Constants.Message.SEARCH_FAIL + " - Invalid price range.");
@@ -316,7 +316,7 @@ class TourServiceImplFilterTest {
                 .thenReturn(Collections.emptyList());
 
         // Act
-        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, null, null, null, null, pageable);
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, null, null, null, null, null,pageable);
 
         // Assert
         System.out.println("Test Log: " + Constants.Message.SEARCH_SUCCESS);
@@ -348,7 +348,7 @@ class TourServiceImplFilterTest {
                 .thenReturn(Collections.emptyList());
 
         // Act
-        PagingDTO<TourSummaryDTO> result = tourService.filterTours(null, priceMax, null, null, null, pageable);
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(null, priceMax, null, null, null,null, pageable);
 
         // Assert
         System.out.println("Test Log: " + Constants.Message.SEARCH_SUCCESS);
@@ -376,7 +376,7 @@ class TourServiceImplFilterTest {
                 .thenReturn(List.of(TourSchedule.builder().departureDate(date.atStartOfDay()).build()));
 
         // Act
-        PagingDTO<TourSummaryDTO> result = tourService.filterTours(null, null, null, null, date, pageable);
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(null, null, null, null, date,null, pageable);
 
         // Assert
         System.out.println("Test Log: " + Constants.Message.SEARCH_SUCCESS);
@@ -411,7 +411,7 @@ class TourServiceImplFilterTest {
                 .thenReturn(Collections.emptyList());
 
         // Act
-        PagingDTO<TourSummaryDTO> result = tourService.filterTours(null, null, null, destId, null, pageable);
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(null, null, null, destId, null,null, pageable);
 
         // Assert
         System.out.println("Test Log: " + Constants.Message.SEARCH_SUCCESS);
@@ -440,7 +440,7 @@ class TourServiceImplFilterTest {
                 .thenReturn(Collections.emptyList());
 
         // Act
-        PagingDTO<TourSummaryDTO> result = tourService.filterTours(null, null, null, null, null, pageable);
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(null, null, null, null, null,null, pageable);
 
         // Assert
         System.out.println("Test Log: " + Constants.Message.SEARCH_SUCCESS);
@@ -463,7 +463,7 @@ class TourServiceImplFilterTest {
         when(tourRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(Page.empty(pageable));
 
         // Act
-        PagingDTO<TourSummaryDTO> result = tourService.filterTours(null, null, null, null, pastDate, pageable);
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(null, null, null, null, pastDate,null, pageable);
 
         // Assert
         System.out.println("Test Log: " + Constants.Message.SEARCH_FAIL + " - Date is in the past.");
@@ -491,7 +491,7 @@ class TourServiceImplFilterTest {
                 .thenReturn(Collections.emptyList());
 
         // Act
-        PagingDTO<TourSummaryDTO> result = tourService.filterTours(null, null, departId, null, null, pageable);
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(null, null, departId, null, null,null, pageable);
 
         // Assert
         System.out.println("Test Log: " + Constants.Message.SEARCH_SUCCESS);
@@ -519,7 +519,7 @@ class TourServiceImplFilterTest {
                 .thenReturn(Collections.emptyList());
 
         // Act
-        PagingDTO<TourSummaryDTO> result = tourService.filterTours(null, null, null, destId, null, pageable);
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(null, null, null, destId, null,null, pageable);
 
         // Assert
         System.out.println("Test Log: " + Constants.Message.SEARCH_SUCCESS);
