@@ -7,8 +7,10 @@ import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.BookingHelper;
 import com.fpt.capstone.tourism.mapper.booking.BookingCustomerMapper;
 import com.fpt.capstone.tourism.model.User;
+import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.payment.PaymentBill;
 import com.fpt.capstone.tourism.model.payment.PaymentBillItem;
+import com.fpt.capstone.tourism.model.payment.PaymentBillItemStatus;
 import com.fpt.capstone.tourism.model.tour.Booking;
 import com.fpt.capstone.tourism.model.tour.BookingCustomer;
 import com.fpt.capstone.tourism.model.tour.TourSchedule;
@@ -30,7 +32,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import com.fpt.capstone.tourism.model.enums.PaxType;
 import org.mockito.ArgumentCaptor;
-
+import com.fpt.capstone.tourism.model.domain.projection.PartnerServiceWithDayDTO;
+import com.fpt.capstone.tourism.model.enums.BookingServiceStatus;
+import com.fpt.capstone.tourism.model.partner.PartnerService;
+import com.fpt.capstone.tourism.model.tour.BookingService;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -517,4 +522,336 @@ class TourBookingServiceImplTest {
         // Đảm bảo hàm save của booking không được gọi do transaction sẽ rollback
         verify(bookingRepository, never()).save(any());
     }
+    @Test
+    @DisplayName("[saveTourBookingService] Normal Case: Lưu dịch vụ thành công khi lịch trình có dịch vụ")
+    void saveTourBookingService_whenScheduleHasServices_shouldSaveBookingServices() {
+        System.out.println("Test Case: Lưu dịch vụ thành công khi lịch trình có dịch vụ.");
+        // Arrange
+        // 1. Dữ liệu đầu vào
+        TourSchedule schedule = TourSchedule.builder().id(10L).build();
+        Booking booking = Booking.builder().id(1L).tourSchedule(schedule).build();
+        int totalCustomers = 5;
+
+        // 2. Giả lập repository trả về một danh sách dịch vụ
+        // SỬA LỖI: Tạo mock cho interface PartnerServiceWithDayDTO
+        PartnerServiceWithDayDTO dto1 = mock(PartnerServiceWithDayDTO.class);
+        when(dto1.getServiceId()).thenReturn(101L);
+        when(dto1.getDayNumber()).thenReturn(1);
+
+        PartnerServiceWithDayDTO dto2 = mock(PartnerServiceWithDayDTO.class);
+        when(dto2.getServiceId()).thenReturn(102L);
+        when(dto2.getDayNumber()).thenReturn(2);
+
+        List<PartnerServiceWithDayDTO> serviceDTOs = List.of(dto1, dto2);
+        when(partnerServiceRepository.findServicesWithDayNumberByScheduleId(10L)).thenReturn(serviceDTOs);
+
+        // 3. Sử dụng ArgumentCaptor để "bắt" lại danh sách được lưu
+        ArgumentCaptor<List<BookingService>> captor = ArgumentCaptor.forClass(List.class);
+
+        // Act
+        tourBookingService.saveTourBookingService(booking, totalCustomers);
+
+        // Assert & Verify
+        // 4. Xác minh rằng hàm saveAll đã được gọi đúng 1 lần
+        verify(bookingServiceRepository, times(1)).saveAll(captor.capture());
+
+        // 5. Kiểm tra nội dung của danh sách đã được "bắt"
+        List<BookingService> savedServices = captor.getValue();
+        assertEquals(2, savedServices.size(), "Số lượng dịch vụ được lưu phải bằng 2.");
+
+        BookingService firstService = savedServices.get(0);
+        assertEquals(booking.getId(), firstService.getBooking().getId());
+        assertEquals(101L, firstService.getService().getId());
+        assertEquals(1, firstService.getDayNumber());
+        assertEquals(totalCustomers, firstService.getQuantity());
+        assertEquals(BookingServiceStatus.CONFIRMED, firstService.getStatus());
+
+        System.out.println("Log: " + Constants.Message.SUCCESS);
+    }
+
+    @Test
+    @DisplayName("[saveTourBookingService] Normal Case: Lịch trình không có dịch vụ nào")
+    void saveTourBookingService_whenScheduleHasNoServices_shouldCallSaveAllWithEmptyList() {
+        System.out.println("Test Case: Xử lý thành công khi lịch trình không có dịch vụ nào.");
+        // Arrange
+        TourSchedule schedule = TourSchedule.builder().id(20L).build();
+        Booking booking = Booking.builder().id(2L).tourSchedule(schedule).build();
+        int totalCustomers = 3;
+
+        // Giả lập repository trả về một danh sách rỗng
+        when(partnerServiceRepository.findServicesWithDayNumberByScheduleId(20L)).thenReturn(Collections.emptyList());
+
+        ArgumentCaptor<List<BookingService>> captor = ArgumentCaptor.forClass(List.class);
+
+        // Act
+        tourBookingService.saveTourBookingService(booking, totalCustomers);
+
+        // Assert & Verify
+        // Xác minh rằng hàm saveAll vẫn được gọi, nhưng với một danh sách rỗng
+        verify(bookingServiceRepository, times(1)).saveAll(captor.capture());
+        assertTrue(captor.getValue().isEmpty(), "Danh sách dịch vụ được lưu phải là rỗng.");
+
+        System.out.println("Log: " + Constants.Message.SUCCESS);
+    }
+
+    @Test
+    @DisplayName("[saveTourBookingService] Abnormal Case: Tham số Booking là null")
+    void saveTourBookingService_whenBookingIsNull_shouldThrowException() {
+        System.out.println("Test Case: Thất bại khi tham số Booking là null.");
+        // Arrange
+        Booking nullBooking = null;
+        int totalCustomers = 2;
+
+        // Act & Assert
+        // Kỳ vọng một NullPointerException vì code sẽ cố gắng gọi nullBooking.getTourSchedule()
+        assertThrows(NullPointerException.class, () -> {
+            tourBookingService.saveTourBookingService(nullBooking, totalCustomers);
+        });
+
+        System.out.println("Log: " + Constants.Message.BOOKING_NOT_FOUND);
+        // Xác minh rằng không có tương tác nào với repository
+        verify(partnerServiceRepository, never()).findServicesWithDayNumberByScheduleId(anyLong());
+        verify(bookingServiceRepository, never()).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("[saveTourBookingService] Abnormal Case: TourSchedule trong Booking là null")
+    void saveTourBookingService_whenTourScheduleIsNull_shouldThrowException() {
+        System.out.println("Test Case: Thất bại khi TourSchedule trong Booking là null.");
+        // Arrange
+        Booking bookingWithNullSchedule = Booking.builder().id(3L).tourSchedule(null).build();
+        int totalCustomers = 4;
+
+        // Act & Assert
+        // Kỳ vọng một NullPointerException vì code sẽ cố gắng gọi tourSchedule.getId()
+        assertThrows(NullPointerException.class, () -> {
+            tourBookingService.saveTourBookingService(bookingWithNullSchedule, totalCustomers);
+        });
+
+        System.out.println("Log: " + Constants.Message.TOUR_SCHEDULE_NOT_FOUND);
+        verify(bookingServiceRepository, never()).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("[saveTourBookingService] Abnormal Case: Lỗi khi lưu vào database")
+    void saveTourBookingService_whenRepositoryFails_shouldThrowException() {
+        System.out.println("Test Case: Thất bại khi có lỗi từ database.");
+        // Arrange
+        TourSchedule schedule = TourSchedule.builder().id(30L).build();
+        Booking booking = Booking.builder().id(4L).tourSchedule(schedule).build();
+        int totalCustomers = 1;
+
+        // Giả lập repository tìm thấy dịch vụ
+        PartnerServiceWithDayDTO dto = mock(PartnerServiceWithDayDTO.class);
+        when(dto.getServiceId()).thenReturn(201L);
+        when(dto.getDayNumber()).thenReturn(1);
+        List<PartnerServiceWithDayDTO> serviceDTOs = List.of(dto);
+        when(partnerServiceRepository.findServicesWithDayNumberByScheduleId(30L)).thenReturn(serviceDTOs);
+
+        // Giả lập hàm saveAll ném ra lỗi
+        doThrow(new RuntimeException("Database connection failed")).when(bookingServiceRepository).saveAll(any());
+
+        // Act & Assert
+        // Kỳ vọng exception từ repository sẽ được ném ra ngoài
+        assertThrows(RuntimeException.class, () -> {
+            tourBookingService.saveTourBookingService(booking, totalCustomers);
+        });
+
+        System.out.println("Log: " + Constants.Message.GENERAL_FAIL_MESSAGE);
+        // Xác minh rằng hàm saveAll đã được gọi, mặc dù nó ném ra lỗi
+        verify(bookingServiceRepository, times(1)).saveAll(any());
+    }
+    @Test
+    @DisplayName("[saveTourBookingService] Normal Case: Xử lý thành công khi tổng số khách hàng là 0")
+    void saveTourBookingService_whenTotalCustomersIsZero_shouldSaveWithZeroQuantity() {
+        System.out.println("Test Case: Xử lý thành công khi tổng số khách hàng là 0.");
+        // Arrange
+        // 1. Dữ liệu đầu vào
+        TourSchedule schedule = TourSchedule.builder().id(40L).build();
+        Booking booking = Booking.builder().id(5L).tourSchedule(schedule).build();
+        int totalCustomers = 0; // Trường hợp cần test
+
+        // 2. Giả lập repository trả về một dịch vụ
+        PartnerServiceWithDayDTO dto = mock(PartnerServiceWithDayDTO.class);
+        when(dto.getServiceId()).thenReturn(301L);
+        when(dto.getDayNumber()).thenReturn(1);
+        List<PartnerServiceWithDayDTO> serviceDTOs = List.of(dto);
+        when(partnerServiceRepository.findServicesWithDayNumberByScheduleId(40L)).thenReturn(serviceDTOs);
+
+        // 3. Sử dụng ArgumentCaptor để "bắt" lại danh sách được lưu
+        ArgumentCaptor<List<BookingService>> captor = ArgumentCaptor.forClass(List.class);
+
+        // Act
+        tourBookingService.saveTourBookingService(booking, totalCustomers);
+
+        // Assert & Verify
+        // 4. Xác minh rằng hàm saveAll đã được gọi
+        verify(bookingServiceRepository, times(1)).saveAll(captor.capture());
+
+        // 5. Kiểm tra nội dung của danh sách đã được "bắt"
+        List<BookingService> savedServices = captor.getValue();
+        assertFalse(savedServices.isEmpty(), "Phải có dịch vụ được tạo để lưu.");
+
+        BookingService savedService = savedServices.get(0);
+        assertEquals(0, savedService.getQuantity(), "Số lượng (quantity) của dịch vụ phải là 0.");
+        assertEquals(booking.getId(), savedService.getBooking().getId());
+        assertEquals(301L, savedService.getService().getId());
+
+        System.out.println("Log: " + Constants.Message.SUCCESS);
+    }
+    // =================================================================
+    // Test Cases for createReceiptBookingBill
+    // =================================================================
+
+    @Test
+    @DisplayName("[createReceiptBookingBill] Normal Case: Tạo hóa đơn thành công với đầy đủ thông tin hợp lệ")
+    void createReceiptBookingBill_whenAllInputsAreValid_shouldSaveBillAndItem() {
+        System.out.println("Test Case: Tạo hóa đơn thành công với đầy đủ thông tin hợp lệ.");
+        // Arrange
+        User user = User.builder().id(100L).build();
+        Booking booking = Booking.builder().id(1L).bookingCode("BK-001").user(user).build();
+        Double total = 5000000.0;
+        String fullName = "Nguyễn Văn A";
+        PaymentMethod paymentMethod = PaymentMethod.BANKING;
+
+        // Giả lập hàm save của repository trả về chính đối tượng được truyền vào
+        when(paymentBillRepository.save(any(PaymentBill.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(paymentBillItemRepository.save(any(PaymentBillItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Sử dụng ArgumentCaptor để "bắt" lại các đối tượng được lưu
+        ArgumentCaptor<PaymentBill> billCaptor = ArgumentCaptor.forClass(PaymentBill.class);
+        ArgumentCaptor<PaymentBillItem> itemCaptor = ArgumentCaptor.forClass(PaymentBillItem.class);
+
+        // Act
+        tourBookingService.createReceiptBookingBill(booking, total, fullName, paymentMethod);
+
+        // Assert & Verify
+        // Xác minh rằng các hàm save đã được gọi
+        verify(paymentBillRepository, times(1)).save(billCaptor.capture());
+        verify(paymentBillItemRepository, times(1)).save(itemCaptor.capture());
+
+        // Kiểm tra nội dung của PaymentBill đã được "bắt"
+        PaymentBill capturedBill = billCaptor.getValue();
+        assertEquals(booking.getBookingCode(), capturedBill.getBookingCode());
+        assertEquals(fullName, capturedBill.getPaidBy());
+        assertEquals(user.getId(), capturedBill.getCreator().getId());
+        assertEquals(total, capturedBill.getTotalAmount().doubleValue());
+        assertEquals(paymentMethod, capturedBill.getPaymentMethod());
+
+        // Kiểm tra nội dung của PaymentBillItem đã được "bắt"
+        PaymentBillItem capturedItem = itemCaptor.getValue();
+        assertEquals(total, capturedItem.getAmount().doubleValue());
+        assertEquals(PaymentBillItemStatus.PENDING, capturedItem.getPaymentBillItemStatus());
+
+        System.out.println("Log: " + Constants.Message.SUCCESS);
+    }
+
+    @Test
+    @DisplayName("[createReceiptBookingBill] Normal Case: Xử lý thành công khi fullName là null")
+    void createReceiptBookingBill_whenFullNameIsNull_shouldSucceed() {
+        System.out.println("Test Case: Xử lý thành công khi fullName là null.");
+        // Arrange
+        User user = User.builder().id(100L).build();
+        Booking booking = Booking.builder().id(1L).bookingCode("BK-002").user(user).build();
+        Double total = 2500.0;
+        String nullFullName = null; // Trường hợp cần test
+        PaymentMethod paymentMethod = PaymentMethod.CASH;
+
+        when(paymentBillRepository.save(any(PaymentBill.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        ArgumentCaptor<PaymentBill> billCaptor = ArgumentCaptor.forClass(PaymentBill.class);
+
+        // Act
+        tourBookingService.createReceiptBookingBill(booking, total, nullFullName, paymentMethod);
+
+        // Assert & Verify
+        verify(paymentBillRepository, times(1)).save(billCaptor.capture());
+        PaymentBill capturedBill = billCaptor.getValue();
+        assertNull(capturedBill.getPaidBy(), "Trường paidBy phải là null.");
+
+        System.out.println("Log: " + Constants.Message.SUCCESS);
+    }
+
+    @Test
+    @DisplayName("[createReceiptBookingBill] Normal Case: Xử lý thành công khi paymentMethod là null")
+    void createReceiptBookingBill_whenPaymentMethodIsNull_shouldSucceed() {
+        System.out.println("Test Case: Xử lý thành công khi paymentMethod là null.");
+        // Arrange
+        User user = User.builder().id(100L).build();
+        Booking booking = Booking.builder().id(1L).bookingCode("BK-003").user(user).build();
+        Double total = 3000.0;
+        String fullName = "Trần Thị B";
+        PaymentMethod nullPaymentMethod = null; // Trường hợp cần test
+
+        when(paymentBillRepository.save(any(PaymentBill.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        ArgumentCaptor<PaymentBill> billCaptor = ArgumentCaptor.forClass(PaymentBill.class);
+
+        // Act
+        tourBookingService.createReceiptBookingBill(booking, total, fullName, nullPaymentMethod);
+
+        // Assert & Verify
+        verify(paymentBillRepository, times(1)).save(billCaptor.capture());
+        PaymentBill capturedBill = billCaptor.getValue();
+        assertNull(capturedBill.getPaymentMethod(), "Trường paymentMethod phải là null.");
+
+        System.out.println("Log: " + Constants.Message.SUCCESS);
+    }
+
+    @Test
+    @DisplayName("[createReceiptBookingBill] Abnormal Case: Thất bại khi tham số Booking là null")
+    void createReceiptBookingBill_whenBookingIsNull_shouldThrowException() {
+        System.out.println("Test Case: Thất bại khi tham số Booking là null.");
+        // Arrange
+        Booking nullBooking = null; // Trường hợp cần test
+
+        // Act & Assert
+        // Kỳ vọng một NullPointerException vì code sẽ cố gắng gọi nullBooking.getBookingCode()
+        assertThrows(NullPointerException.class, () -> {
+            tourBookingService.createReceiptBookingBill(nullBooking, 1000.0, "Test", PaymentMethod.BANKING);
+        });
+
+        System.out.println("Log: " + Constants.Message.BOOKING_NOT_FOUND);
+        // Xác minh rằng không có tương tác nào với repository
+        verify(paymentBillRepository, never()).save(any());
+        verify(paymentBillItemRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("[createReceiptBookingBill] Abnormal Case: Thất bại khi User trong Booking là null")
+    void createReceiptBookingBill_whenUserInBookingIsNull_shouldThrowException() {
+        System.out.println("Test Case: Thất bại khi User trong Booking là null.");
+        // Arrange
+        // Tạo booking hợp lệ nhưng không có user
+        Booking bookingWithNullUser = Booking.builder().id(2L).bookingCode("BK-004").user(null).build();
+
+        // Act & Assert
+        // Kỳ vọng một NullPointerException vì code sẽ cố gắng gọi tourBooking.getUser().getId()
+        assertThrows(NullPointerException.class, () -> {
+            tourBookingService.createReceiptBookingBill(bookingWithNullUser, 1000.0, "Test", PaymentMethod.BANKING);
+        });
+
+        System.out.println("Log: " + Constants.Message.USER_INFO_NOT_FOUND);
+        verify(paymentBillRepository, never()).save(any());
+        verify(paymentBillItemRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("[createReceiptBookingBill] Abnormal Case: Thất bại khi tham số total là null")
+    void createReceiptBookingBill_whenTotalIsNull_shouldThrowException() {
+        System.out.println("Test Case: Thất bại khi tham số total là null.");
+        // Arrange
+        User user = User.builder().id(100L).build();
+        Booking booking = Booking.builder().id(1L).bookingCode("BK-005").user(user).build();
+        Double nullTotal = null; // Trường hợp cần test
+
+        // Act & Assert
+        // Kỳ vọng một NullPointerException vì code sẽ gọi BigDecimal.valueOf(null)
+        assertThrows(NullPointerException.class, () -> {
+            tourBookingService.createReceiptBookingBill(booking, nullTotal, "Test", PaymentMethod.BANKING);
+        });
+
+        System.out.println("Log: " + Constants.Message.INVALID_PRICE);
+        verify(paymentBillRepository, never()).save(any());
+        verify(paymentBillItemRepository, never()).save(any());
+    }
+
 }
