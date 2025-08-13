@@ -27,7 +27,7 @@ public interface PartnerRepository extends JpaRepository<Partner, Integer>, JpaS
     FROM Partner p
     JOIN p.serviceType st
     JOIN p.location l
-    WHERE p.location.id IN :locationIds AND st.id IN (1, 3)
+    WHERE p.location.id IN :locationIds AND st.id IN (1, 3, 2)
 """)
     List<PartnerShortDTO> findAllShortByLocationIds(List<Integer> locationIds);
 
