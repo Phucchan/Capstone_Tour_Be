@@ -5,7 +5,7 @@ public class Constants {
     public static final class UserExceptionInformation {
         public static final String USER_NOT_FOUND_MESSAGE = "Không tìm thấy người dùng";
         public static final String USERNAME_ALREADY_EXISTS_MESSAGE = "Tên đăng nhập đã tồn tại";
-        public static final String EMAIL_ALREADY_EXISTS_MESSAGE = "Email đã được sử dụng";
+        public static final String EMAIL_ALREADY_EXISTS_MESSAGE = "Email already exists";
         public static final String PHONE_ALREADY_EXISTS_MESSAGE = "Số điện thoại đã được sử dụng";
         public static final String FAIL_TO_SAVE_USER_MESSAGE = "Lưu thông tin người dùng thất bại";
         public static final String GENDER_INVALID = "Giới tính không hợp lệ";
@@ -391,7 +391,7 @@ public class Constants {
         public static final String TAKE_BOOKING_FAIL = "Nhận đặt tour thất bại";
         public static final String GET_BOOKING_HISTORY_LIST_FAIL = "Lấy danh sách lịch sử đặt tour thất bại";
         public static final String GET_BOOKING_FAILED = "Lấy thông tin đặt tour thất bại";
-        public static final String CREATE_BOOKING_FAILED = "Tạo đặt tour thất bại";
+        public static final String CREATE_BOOKING_FAILED = "Tạo Tour Booking Thất Bại";
 
         //===================================================
         // Transaction Related Messages

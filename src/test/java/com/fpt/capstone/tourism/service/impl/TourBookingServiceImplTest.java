@@ -28,10 +28,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.fpt.capstone.tourism.model.enums.PaxType;
+import org.mockito.ArgumentCaptor;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -60,7 +60,8 @@ class TourBookingServiceImplTest {
     @Mock private SimpMessagingTemplate messagingTemplate;
 
     private BookingRequestDTO validBookingRequest;
-
+    private Booking existingBooking;
+    private List<BookingRequestCustomerDTO> newCustomersDTO;
     @BeforeEach
     void setUp() {
         // Khởi tạo một request hợp lệ để tái sử dụng trong các test case
@@ -81,6 +82,25 @@ class TourBookingServiceImplTest {
                 .infants(Collections.emptyList())
                 .toddlers(Collections.emptyList())
                 .build();
+        // --- Setup cho các test case của addCustomersToSchedule ---
+        TourSchedule schedule = TourSchedule.builder().id(10L).build();
+        existingBooking = Booking.builder()
+                .id(1L)
+                .tourSchedule(schedule)
+                .adults(1)
+                .children(0)
+                .infants(0)
+                .toddlers(0)
+                .singleRooms(0)
+                .sellingPrice(2000000.0)
+                .extraHotelCost(500000.0)
+                .totalAmount(2000000.0)
+                .build();
+
+        newCustomersDTO = Arrays.asList(
+                BookingRequestCustomerDTO.builder().paxType(PaxType.ADULT).build(),
+                BookingRequestCustomerDTO.builder().paxType(PaxType.CHILD).build()
+        );
     }
 
     // ===================================================
@@ -340,5 +360,161 @@ class TourBookingServiceImplTest {
         verify(bookingRepository, times(1)).save(any(Booking.class));
         // Nhưng các hàm sau đó (như lưu bill) thì không được gọi do transaction sẽ rollback
         verify(paymentBillRepository, never()).save(any(PaymentBill.class));
+    }
+
+    // =================================================================
+    // Test Cases for addCustomersToSchedule
+    // =================================================================
+
+    @Test
+    @DisplayName("[addCustomers] Normal Case: Thêm khách hàng thành công với dữ liệu hợp lệ")
+    void addCustomersToSchedule_whenRequestIsValid_shouldSucceed() {
+        System.out.println("Test Case: Thêm khách hàng thành công với dữ liệu hợp lệ.");
+        // Arrange
+        Long bookingId = 1L;
+        Long scheduleId = 10L;
+
+        // Giả lập repository tìm thấy booking
+        when(bookingRepository.findByIdForUpdate(bookingId)).thenReturn(Optional.of(existingBooking));
+
+        // Giả lập mapper chuyển đổi DTO sang entity
+        List<BookingCustomer> newCustomerEntities = Arrays.asList(
+                BookingCustomer.builder().paxType(PaxType.ADULT).build(),
+                BookingCustomer.builder().paxType(PaxType.CHILD).build()
+        );
+        when(bookingCustomerMapper.toEntity(newCustomersDTO)).thenReturn(newCustomerEntities);
+
+        // Sử dụng ArgumentCaptor để bắt lại đối tượng Booking được lưu
+        ArgumentCaptor<Booking> bookingCaptor = ArgumentCaptor.forClass(Booking.class);
+
+        // Act
+        // Kỳ vọng hàm chạy mà không ném ra exception
+        assertDoesNotThrow(() -> tourBookingService.addCustomersToSchedule(bookingId, scheduleId, newCustomersDTO));
+
+        // Assert & Verify
+        // Xác minh rằng hàm save của bookingRepository đã được gọi
+        verify(bookingRepository).save(bookingCaptor.capture());
+        Booking updatedBooking = bookingCaptor.getValue();
+
+        // Kiểm tra số lượng khách đã được cập nhật đúng
+        // Ban đầu: 1 người lớn. Thêm: 1 người lớn, 1 trẻ em.
+        assertEquals(2, updatedBooking.getAdults(), "Số lượng người lớn phải được cập nhật chính xác.");
+        assertEquals(1, updatedBooking.getChildren(), "Số lượng trẻ em phải được cập nhật chính xác.");
+
+        // Kiểm tra tổng tiền đã được tính lại
+        // Tiền ban đầu: 2,000,000
+        // Thêm 1 người lớn: 2,000,000
+        // Thêm 1 trẻ em (75%): 1,500,000
+        // Tổng mới mong đợi: 2,000,000 + 2,000,000 + 1,500,000 = 5,500,000
+        assertEquals(5500000.0, updatedBooking.getTotalAmount(), "Tổng tiền phải được tính toán lại chính xác.");
+
+        // Xác minh các hàm khác được gọi
+        verify(bookingRepository, times(1)).findByIdForUpdate(bookingId);
+        verify(bookingCustomerRepository, times(1)).saveAll(newCustomerEntities);
+        System.out.println("Log: " + Constants.Message.SUCCESS);
+    }
+
+    @Test
+    @DisplayName("[addCustomers] Abnormal Case: Thất bại khi không tìm thấy Booking")
+    void addCustomersToSchedule_whenBookingNotFound_shouldThrowBusinessException() {
+        System.out.println("Test Case: Thất bại khi không tìm thấy Booking ID.");
+        // Arrange
+        Long nonExistentBookingId = 99L;
+        Long scheduleId = 10L;
+
+        // Giả lập repository không tìm thấy booking
+        when(bookingRepository.findByIdForUpdate(nonExistentBookingId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            tourBookingService.addCustomersToSchedule(nonExistentBookingId, scheduleId, newCustomersDTO);
+        });
+
+        // Kiểm tra thông báo lỗi
+        assertEquals("Thêm khách hàng thất bại", exception.getMessage());
+        System.out.println("Log: " + Constants.Message.BOOKING_NOT_FOUND);
+
+        // Verify
+        // Đảm bảo không có hành động lưu nào được thực hiện
+        verify(bookingCustomerRepository, never()).saveAll(any());
+        verify(bookingRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("[addCustomers] Abnormal Case: Thất bại khi Schedule ID không khớp")
+    void addCustomersToSchedule_whenScheduleIdMismatches_shouldThrowBusinessException() {
+        System.out.println("Test Case: Thất bại khi Schedule ID không khớp.");
+        // Arrange
+        Long bookingId = 1L;
+        Long wrongScheduleId = 99L; // ID lịch trình sai
+
+        // Giả lập repository tìm thấy booking, nhưng scheduleId của nó là 10L
+        when(bookingRepository.findByIdForUpdate(bookingId)).thenReturn(Optional.of(existingBooking));
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            tourBookingService.addCustomersToSchedule(bookingId, wrongScheduleId, newCustomersDTO);
+        });
+
+        assertEquals("Thêm khách hàng thất bại", exception.getMessage());
+        System.out.println("Log: Lỗi không khớp Schedule ID.");
+
+        // Verify
+        verify(bookingCustomerRepository, never()).saveAll(any());
+        verify(bookingRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("[addCustomers] Abnormal Case: Thất bại khi danh sách khách hàng truyền vào là null")
+    void addCustomersToSchedule_whenCustomerListIsNull_shouldThrowBusinessException() {
+        System.out.println("Test Case: Thất bại khi danh sách khách hàng là null.");
+        // Arrange
+        Long bookingId = 1L;
+        Long scheduleId = 10L;
+
+        // Giả lập repository tìm thấy booking
+        when(bookingRepository.findByIdForUpdate(bookingId)).thenReturn(Optional.of(existingBooking));
+
+        // Giả lập mapper sẽ ném lỗi khi nhận list null
+        when(bookingCustomerMapper.toEntity(null)).thenThrow(NullPointerException.class);
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            tourBookingService.addCustomersToSchedule(bookingId, scheduleId, null); // Truyền vào list null
+        });
+
+        assertEquals("Thêm khách hàng thất bại", exception.getMessage());
+        System.out.println("Log: " + Constants.Message.GET_DATA_FAIL);
+
+        // Verify
+        verify(bookingCustomerRepository, never()).saveAll(any());
+        verify(bookingRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("[addCustomers] Abnormal Case: Thất bại khi database gặp lỗi lúc lưu")
+    void addCustomersToSchedule_whenDatabaseFailsOnSave_shouldThrowBusinessException() {
+        System.out.println("Test Case: Thất bại khi database gặp lỗi lúc lưu.");
+        // Arrange
+        Long bookingId = 1L;
+        Long scheduleId = 10L;
+
+        when(bookingRepository.findByIdForUpdate(bookingId)).thenReturn(Optional.of(existingBooking));
+        when(bookingCustomerMapper.toEntity(newCustomersDTO)).thenReturn(new ArrayList<>());
+
+        // Giả lập database ném ra lỗi khi lưu danh sách khách hàng
+        doThrow(new RuntimeException("Database connection error")).when(bookingCustomerRepository).saveAll(any());
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            tourBookingService.addCustomersToSchedule(bookingId, scheduleId, newCustomersDTO);
+        });
+
+        assertEquals("Thêm khách hàng thất bại", exception.getMessage());
+        System.out.println("Log: " + Constants.Message.GENERAL_FAIL_MESSAGE);
+
+        // Verify
+        // Đảm bảo hàm save của booking không được gọi do transaction sẽ rollback
+        verify(bookingRepository, never()).save(any());
     }
 }
