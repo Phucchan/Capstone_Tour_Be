@@ -50,6 +50,7 @@ public class TourDayManagementController {
 
     // Xóa một ngày trong tour
     @DeleteMapping("/tours/{tourId}/days/{dayId}")
+    //postman http://localhost:8080/business/tours/1/days/1
     public ResponseEntity<GeneralResponse<String>> deleteTourDay(@PathVariable Long tourId,
                                                                  @PathVariable Long dayId) {
         return ResponseEntity.ok(tourManagementService.deleteTourDay(tourId, dayId));
@@ -81,11 +82,13 @@ public class TourDayManagementController {
 
     // Tạo mới dịch vụ cho một ngày của tour
     @PostMapping("/tours/{tourId}/days/{dayId}/services")
+    //postman http://localhost:8080/business/tours/2/days/1/services
     public ResponseEntity<GeneralResponse<ServiceInfoDTO>> createService(
             @PathVariable Long tourId,
             @PathVariable Long dayId,
             @RequestBody PartnerServiceCreateDTO dto) {
         return ResponseEntity.ok(tourManagementService.createService(tourId, dayId, dto));
     }
+
 }
 

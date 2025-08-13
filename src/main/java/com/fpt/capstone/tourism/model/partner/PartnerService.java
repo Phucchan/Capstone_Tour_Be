@@ -33,7 +33,7 @@ public class PartnerService extends BaseEntity {
     private ServiceType serviceType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "partner_id")
+    @JoinColumn(name = "partner_id", nullable = true)
     private Partner partner;
 
     @Column(name = "image_url")

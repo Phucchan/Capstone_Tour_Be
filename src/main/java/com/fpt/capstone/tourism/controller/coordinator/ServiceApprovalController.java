@@ -28,6 +28,7 @@ public class ServiceApprovalController {
     }
 
     @PutMapping("/{id}")
+    // postman http://localhost:8080/coordinator/services/1
     public ResponseEntity<GeneralResponse<ServiceInfoDTO>> updateService(@PathVariable Long id,
                                                                          @RequestBody PendingServiceUpdateDTO dto) {
         return ResponseEntity.ok(approvalService.updateService(id, dto));

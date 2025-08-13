@@ -29,12 +29,14 @@ import com.fpt.capstone.tourism.model.enums.PartnerServiceStatus;
 import com.fpt.capstone.tourism.model.enums.RequestBookingStatus;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
+import com.fpt.capstone.tourism.model.partner.Partner;
 import com.fpt.capstone.tourism.model.partner.PartnerService;
 import com.fpt.capstone.tourism.model.partner.ServiceType;
 import com.fpt.capstone.tourism.model.tour.*;
 import com.fpt.capstone.tourism.repository.LocationRepository;
 import com.fpt.capstone.tourism.repository.RequestBookingRepository;
 import com.fpt.capstone.tourism.repository.TourManagementRepository;
+import com.fpt.capstone.tourism.repository.partner.PartnerRepository;
 import com.fpt.capstone.tourism.repository.partner.PartnerServiceRepository;
 import com.fpt.capstone.tourism.repository.partner.ServiceTypeRepository;
 import com.fpt.capstone.tourism.repository.tour.TourDayRepository;
@@ -78,6 +80,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     private final PartnerServiceRepository partnerServiceRepository;
     private final ServiceTypeRepository serviceTypeRepository;
     private final TourHelper tourHelper;
+    private final PartnerRepository partnerRepository;
     private final RequestBookingRepository requestBookingRepository;
     private final S3Service s3Service;
     private final ServiceInfoMapper serviceInfoMapper;
@@ -501,10 +504,16 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         ServiceType type = serviceTypeRepository.findById(dto.getServiceTypeId())
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.SERVICE_TYPE_NOT_FOUND));
 
+        if (dto.getPartnerId() == null) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.SERVICE_PROVIDER_NOT_FOUND);
+        }
+        Partner partner = partnerRepository.findById(Math.toIntExact(dto.getPartnerId()))
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.SERVICE_PROVIDER_NOT_FOUND));
         PartnerService service = PartnerService.builder()
                 .name(dto.getName())
                 .description(dto.getDescription())
                 .serviceType(type)
+                .partner(partner)
                 .status(PartnerServiceStatus.PENDING)
                 .build();
 
