@@ -22,6 +22,7 @@ import com.fpt.capstone.tourism.service.UserService;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class UserManagementServiceImpl implements UserManagementService {
 
     @Autowired
@@ -231,8 +233,8 @@ public class UserManagementServiceImpl implements UserManagementService {
                 .toList();
         return new UserManagementDTO(
                 user.getId(),
-                user.getEmail(),
                 user.getFullName(),
+                user.getEmail(),
                 user.getGender(),
                 user.getPhone(),
                 roleNames,
