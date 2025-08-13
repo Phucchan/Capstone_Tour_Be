@@ -37,11 +37,11 @@ public class TourController {
     private final LocationService locationService;
 
     @GetMapping("/{id}")
+    //postman http://localhost:8080/v1/public/tours/1
     public ResponseEntity<GeneralResponse<TourDetailDTO>> getTourDetailById(@PathVariable Long id) {
         TourDetailDTO result = tourService.getTourDetailById(id);
         return ResponseEntity.ok(GeneralResponse.of(result, "Tour detail loaded successfully."));
     }
-
 
     @GetMapping("/discounts")
     //postman http://localhost:8080/v1/public/tours/discounts?page=0&size=6

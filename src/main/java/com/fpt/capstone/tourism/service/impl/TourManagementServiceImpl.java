@@ -7,6 +7,7 @@ import com.fpt.capstone.tourism.dto.common.location.LocationShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
+import com.fpt.capstone.tourism.dto.request.PartnerServiceCreateDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.*;
 import com.fpt.capstone.tourism.dto.response.ServiceInfoDTO;
 import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
@@ -24,14 +25,18 @@ import com.fpt.capstone.tourism.mapper.tourManager.TourManagementMapper;
 import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.model.RequestBooking;
 import com.fpt.capstone.tourism.model.User;
+import com.fpt.capstone.tourism.model.enums.PartnerServiceStatus;
 import com.fpt.capstone.tourism.model.enums.RequestBookingStatus;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
+import com.fpt.capstone.tourism.model.partner.Partner;
 import com.fpt.capstone.tourism.model.partner.PartnerService;
+import com.fpt.capstone.tourism.model.partner.ServiceType;
 import com.fpt.capstone.tourism.model.tour.*;
 import com.fpt.capstone.tourism.repository.LocationRepository;
 import com.fpt.capstone.tourism.repository.RequestBookingRepository;
 import com.fpt.capstone.tourism.repository.TourManagementRepository;
+import com.fpt.capstone.tourism.repository.partner.PartnerRepository;
 import com.fpt.capstone.tourism.repository.partner.PartnerServiceRepository;
 import com.fpt.capstone.tourism.repository.partner.ServiceTypeRepository;
 import com.fpt.capstone.tourism.repository.tour.TourDayRepository;
@@ -75,6 +80,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
     private final PartnerServiceRepository partnerServiceRepository;
     private final ServiceTypeRepository serviceTypeRepository;
     private final TourHelper tourHelper;
+    private final PartnerRepository partnerRepository;
     private final RequestBookingRepository requestBookingRepository;
     private final S3Service s3Service;
     private final ServiceInfoMapper serviceInfoMapper;
@@ -486,6 +492,38 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         return GeneralResponse.of(Constants.Message.TOUR_DAY_DELETED_SUCCESS);
     }
 
+    @Override
+    public GeneralResponse<ServiceInfoDTO> createService(Long tourId, Long dayId, PartnerServiceCreateDTO dto) {
+        TourDay day = tourDayRepository.findById(dayId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.TOUR_DAY_NOT_FOUND));
+
+        if (!day.getTour().getId().equals(tourId)) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.TOUR_DAY_NOT_BELONG);
+        }
+
+        ServiceType type = serviceTypeRepository.findById(dto.getServiceTypeId())
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.SERVICE_TYPE_NOT_FOUND));
+
+        if (dto.getPartnerId() == null) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.SERVICE_PROVIDER_NOT_FOUND);
+        }
+        Partner partner = partnerRepository.findById(Math.toIntExact(dto.getPartnerId()))
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.SERVICE_PROVIDER_NOT_FOUND));
+        PartnerService service = PartnerService.builder()
+                .name(dto.getName())
+                .description(dto.getDescription())
+                .serviceType(type)
+                .partner(partner)
+                .status(PartnerServiceStatus.PENDING)
+                .build();
+
+        PartnerService savedService = partnerServiceRepository.save(service);
+        day.getServices().add(savedService);
+        tourDayRepository.save(day);
+
+        return GeneralResponse.of(serviceInfoMapper.toDto(savedService), Constants.Message.SERVICE_CREATED);
+    }
+
 
 
     @Override
@@ -612,14 +650,20 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         } else {
             services = partnerServiceRepository.findAll();
         }
+        services.forEach(service -> {
+            if (service.getStatus() == null) {
+                service.setStatus(PartnerServiceStatus.ACTIVE);
+                partnerServiceRepository.save(service);
+            }
+        });
 
-        // SỬA LẠI DÒNG NÀY: Thêm s.getServiceType().getName() vào constructor
         List<PartnerServiceShortDTO> dtos = services.stream()
+                .filter(s -> s.getStatus() == PartnerServiceStatus.ACTIVE)
                 .map(s -> new PartnerServiceShortDTO(
                         s.getId(),
                         s.getName(),
-                        s.getPartner().getName(),
-                        s.getServiceType().getName() // <-- Thêm tham số thứ 4
+                        s.getPartner() != null ? s.getPartner().getName() : null,
+                        s.getServiceType().getName()
                 ))
                 .collect(Collectors.toList());
 

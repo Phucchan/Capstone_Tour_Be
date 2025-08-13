@@ -14,4 +14,5 @@ public class ServiceInfoDTO {
     private String name;
     private String partnerName;
     private String serviceTypeName;
+    private String status;
 }

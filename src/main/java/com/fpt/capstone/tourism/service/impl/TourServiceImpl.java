@@ -113,7 +113,9 @@ public class TourServiceImpl implements TourService {
         log.info("Finished feedbacks for tour ID: {}", tourId);
 
         log.info("Fetching schedules for tour ID: {}", tourId);
-        List<TourSchedule> schedules = tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(tourId, LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        List<TourSchedule> schedules = tourScheduleRepository
+                .findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(tourId, now);
         log.info("Finished schedules for tour ID: {}", tourId);
 
         log.info("Fetching Average Rating for tour ID: {}", tourId);
@@ -151,6 +153,16 @@ public class TourServiceImpl implements TourService {
 
             // Gán số chỗ trống vào DTO
             dto.setAvailableSeats(availableSeats);
+
+            // Áp dụng giảm giá nếu có
+            tourDiscountRepository
+                    .findFirstByTourSchedule_IdAndStartDateLessThanEqualAndEndDateGreaterThanEqualAndDeletedFalse(
+                            schedule.getId(), now, now)
+                    .ifPresent(discount -> {
+                        dto.setDiscountPercent(discount.getDiscountPercent());
+                    });
+
+
 
             return dto;
         }).collect(Collectors.toList());

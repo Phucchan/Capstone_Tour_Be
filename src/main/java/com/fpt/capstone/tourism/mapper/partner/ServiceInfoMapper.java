@@ -16,5 +16,6 @@ public interface ServiceInfoMapper {
     @Mapping(source = "partner.name", target = "partnerName")
     // Lấy tên loại dịch vụ từ PartnerService -> ServiceType -> name
     @Mapping(source = "serviceType.name", target = "serviceTypeName")
+    @Mapping(source = "status", target = "status")
     ServiceInfoDTO toDto(PartnerService partnerService);
 }
