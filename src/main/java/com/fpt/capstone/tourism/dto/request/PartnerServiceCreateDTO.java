@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PartnerServiceCreateDTO {
-
     private String name;
     private Long serviceTypeId;
     private Long partnerId;
