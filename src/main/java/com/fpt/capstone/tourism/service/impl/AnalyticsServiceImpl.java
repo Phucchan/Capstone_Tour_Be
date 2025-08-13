@@ -122,4 +122,5 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .build();
         return GeneralResponse.of(dto);
     }
+
 }
