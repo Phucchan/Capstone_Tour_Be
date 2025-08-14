@@ -22,6 +22,7 @@ public class BookingRequestDTO {
     private String address;
     private PaymentMethod paymentMethod;
     private String email;
+    private String verificationCode;
     private List<BookingRequestCustomerDTO> adults;
     private List<BookingRequestCustomerDTO> children;
     private List<BookingRequestCustomerDTO> infants;

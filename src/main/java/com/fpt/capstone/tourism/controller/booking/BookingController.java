@@ -4,6 +4,7 @@ package com.fpt.capstone.tourism.controller.booking;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.booking.BookingRequestDTO;
 import com.fpt.capstone.tourism.dto.response.booking.BookingConfirmResponse;
+import com.fpt.capstone.tourism.service.RequestBookingService;
 import com.fpt.capstone.tourism.service.VNPayService;
 import com.fpt.capstone.tourism.service.tourbooking.TourBookingService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +24,7 @@ public class BookingController {
 
     private final TourBookingService tourBookingService;
     private final VNPayService vnPayService;
+    private final RequestBookingService requestBookingService;
 
     @Value("${frontend.base-url}")
     private String frontendBaseUrl;
@@ -52,6 +54,10 @@ public class BookingController {
         tourBookingService.confirmPayment(paymentStatus, orderInfo);
 
         return new RedirectView(redirectUrl);
+    }
+    @PostMapping("/send-code")
+    public ResponseEntity<GeneralResponse<String>> sendVerificationCode(@RequestParam("email") String email) {
+        return ResponseEntity.ok(requestBookingService.sendVerificationCode(email));
     }
 
 }

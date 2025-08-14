@@ -270,6 +270,12 @@ public class Constants {
         public static final String VOUCHER_CODE_EXISTS = "Mã voucher đã tồn tại";
         public static final String VOUCHER_LIST_SUCCESS = "Lấy danh sách voucher thành công";
         public static final String VOUCHER_LIST_FAIL = "Lấy danh sách voucher thất bại";
+        // Tour discount related
+        public static final String TOUR_DISCOUNT_CREATE_SUCCESS = "Tạo giảm giá tour thành công";
+        public static final String TOUR_DISCOUNT_CREATE_FAIL = "Tạo giảm giá tour thất bại";
+        public static final String TOUR_DISCOUNT_EXISTS = "Giảm giá cho lịch trình đã tồn tại";
+        public static final String TOUR_DISCOUNT_LIST_SUCCESS = "Lấy danh sách giảm giá tour thành công";
+        public static final String TOUR_DISCOUNT_LIST_FAIL = "Lấy danh sách giảm giá tour thất bại";
         //===================================================
         // Tour day management
         public static final String TOUR_DAY_SERVICE_ADDED_SUCCESS = "Thêm dịch vụ vào ngày tour thành công";

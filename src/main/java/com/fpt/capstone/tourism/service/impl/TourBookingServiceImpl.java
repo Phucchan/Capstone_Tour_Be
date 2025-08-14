@@ -29,6 +29,7 @@ import com.fpt.capstone.tourism.service.tourbooking.TourBookingService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -56,6 +57,7 @@ public class TourBookingServiceImpl implements TourBookingService {
     private final TourDetailMapper tourDetailMapper;
     private final SimpMessagingTemplate messagingTemplate;
     private final com.fpt.capstone.tourism.repository.tour.TourScheduleRepository tourScheduleRepository;
+    private final RequestBookingVerificationService verificationService;
 
     @Value("${backend.base-url}")
     private String backendBaseUrl;
@@ -64,6 +66,11 @@ public class TourBookingServiceImpl implements TourBookingService {
     @Transactional
     public String createBooking(BookingRequestDTO bookingRequestDTO) {
         try {
+            if (bookingRequestDTO.getEmail() == null || bookingRequestDTO.getEmail().isBlank()
+                    || bookingRequestDTO.getVerificationCode() == null || bookingRequestDTO.getVerificationCode().isBlank()
+                    || !verificationService.verifyCode(bookingRequestDTO.getEmail(), bookingRequestDTO.getVerificationCode())) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Invalid verification code");
+            }
             List<BookingRequestCustomerDTO> allCustomersDTO = Stream.of(bookingRequestDTO.getAdults(), bookingRequestDTO.getChildren(), bookingRequestDTO.getInfants(), bookingRequestDTO.getToddlers())
                     .filter(Objects::nonNull)           // lọc ra list null
                     .flatMap(List::stream)              // gộp các list thành stream duy nhất
