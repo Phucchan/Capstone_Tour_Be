@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.request.ChangeDeleteStatusDTO;
 import com.fpt.capstone.tourism.dto.response.PartnerSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.PartnerDetailDTO;
 import com.fpt.capstone.tourism.dto.request.PartnerUpdateRequestDTO;
@@ -235,5 +236,24 @@ public class PartnerManagementServiceImpl implements PartnerManagementService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
+    @Override
+    @Transactional
+    public GeneralResponse<PartnerSummaryDTO> changePartnerStatus(Long id, ChangeDeleteStatusDTO changeStatusDTO) {
+        try {
+            Partner partner = partnerRepository.findById(Math.toIntExact(id))
+                    .orElseThrow(() -> BusinessException.of(Constants.Message.SERVICE_PROVIDER_NOT_FOUND));
 
+            if (Boolean.TRUE.equals(changeStatusDTO.getDeleted())) {
+                partner.softDelete();
+            } else {
+                partner.restore();
+            }
+            Partner saved = partnerRepository.save(partner);
+            return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.PARTNER_STATUS_UPDATED, partnerMapper.toSummaryDTO(saved));
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception ex) {
+            throw BusinessException.of(Constants.Message.PARTNER_UPDATE_FAIL, ex);
+        }
+    }
 }

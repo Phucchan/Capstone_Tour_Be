@@ -112,6 +112,7 @@ public class Constants {
         public static final String NO_SERVICES_AVAILABLE = "Không có dịch vụ tour nào";
         public static final String SERVICE_ID_REQUIRED = "Cần có ID dịch vụ để thêm dịch vụ vào ngày tour mới";
         public static final String SERVICE_NOT_ASSOCIATED = "Dịch vụ không được liên kết với tour này";
+        public static final String PARTNER_STATUS_UPDATED = "Thay đổi trạng thái nhà cung cấp thành công";
 
         // PartnerService operations
         public static final String SERVICE_CREATE_FAIL = "Tạo dịch vụ thất bại";

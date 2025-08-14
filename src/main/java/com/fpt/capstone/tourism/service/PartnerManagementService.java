@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.service;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.request.ChangeDeleteStatusDTO;
 import com.fpt.capstone.tourism.dto.request.PartnerUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PartnerDetailDTO;
 import com.fpt.capstone.tourism.dto.response.PartnerSummaryDTO;
@@ -20,4 +21,6 @@ public interface PartnerManagementService {
     GeneralResponse<PartnerDetailDTO> updatePartner(Long id, PartnerUpdateRequestDTO requestDTO);
 
     GeneralResponse<PartnerDetailDTO> addPartner(PartnerUpdateRequestDTO requestDTO);
+
+    GeneralResponse<PartnerSummaryDTO> changePartnerStatus(Long id, ChangeDeleteStatusDTO changeStatusDTO);
 }
