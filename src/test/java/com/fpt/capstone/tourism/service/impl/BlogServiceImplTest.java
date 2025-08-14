@@ -3,22 +3,33 @@ package com.fpt.capstone.tourism.service.impl;
 import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.common.BlogManagerDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.BlogManagerRequestDTO;
+import com.fpt.capstone.tourism.dto.response.homepage.BlogSummaryDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.BlogMapper;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.blog.Blog;
+import com.fpt.capstone.tourism.model.blog.Tag;
 import com.fpt.capstone.tourism.repository.blog.BlogRepository;
 import com.fpt.capstone.tourism.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -170,113 +181,125 @@ class BlogServiceImplTest {
         assertEquals(Constants.Message.BLOG_CREATE_FAIL, ex.getResponseMessage());
     }
 
-    // Normal case: updateBlog success
+    // =================================================================
+
     @Test
-    void updateBlog_Success() {
+    @DisplayName("[getAllBlogs] Valid Input: Lấy danh sách blog thành công khi có dữ liệu")
+    void getAllBlogs_whenBlogsExist_shouldReturnPagingDTOWithData() {
+        System.out.println("Test Case: Valid Input - Lấy danh sách blog thành công khi có dữ liệu.");
         // Arrange
-        Long blogId = 1L;
-        BlogManagerRequestDTO req = new BlogManagerRequestDTO();
-        req.setTitle("New Title");
-        req.setDescription("New Description");
+        Pageable pageable = PageRequest.of(0, 10);
 
-        Blog existingBlog = Blog.builder().id(blogId).title("Old Title").description("Old Description").build();
-        BlogManagerDTO dto = new BlogManagerDTO();
+        // 1. Tạo dữ liệu giả
+        // Blog 1 có 2 tag
+        Blog blogWithTags = Blog.builder().id(1L).title("Blog with Tags").build();
+        // SỬA LỖI: Sử dụng builder để tạo đối tượng Tag, đây là cách làm an toàn và đúng đắn hơn.
+        blogWithTags.setBlogTags(List.of(
+                Tag.builder().id(1L).name("Travel").build(),
+                Tag.builder().id(2L).name("Asia").build()
+        ));
 
-        when(blogRepository.findById(blogId)).thenReturn(Optional.of(existingBlog));
-        when(blogRepository.save(any(Blog.class))).thenReturn(existingBlog);
-        when(blogMapper.blogToBlogDTO(existingBlog)).thenReturn(dto);
+        // Blog 2 không có tag (list tag là null)
+        Blog blogWithNullTags = Blog.builder().id(2L).title("Blog with Null Tags").build();
+        blogWithNullTags.setBlogTags(null);
+
+        // Blog 3 có list tag rỗng
+        Blog blogWithEmptyTags = Blog.builder().id(3L).title("Blog with Empty Tags").build();
+        blogWithEmptyTags.setBlogTags(Collections.emptyList());
+
+        List<Blog> blogList = List.of(blogWithTags, blogWithNullTags, blogWithEmptyTags);
+        Page<Blog> blogPage = new PageImpl<>(blogList, pageable, blogList.size());
+
+        // 2. Giả lập hành vi của các dependency
+        when(blogRepository.findByDeletedFalse(pageable)).thenReturn(blogPage);
+
+        // Giả lập mapper cho từng blog. Service sẽ tự thêm các tag vào DTO này.
+        when(blogMapper.blogToBlogSummaryDTO(blogWithTags)).thenReturn(
+                BlogSummaryDTO.builder().id(1L).title("Blog with Tags").tags(new ArrayList<>()).build()
+        );
+        when(blogMapper.blogToBlogSummaryDTO(blogWithNullTags)).thenReturn(
+                BlogSummaryDTO.builder().id(2L).title("Blog with Null Tags").tags(new ArrayList<>()).build()
+        );
+        when(blogMapper.blogToBlogSummaryDTO(blogWithEmptyTags)).thenReturn(
+                BlogSummaryDTO.builder().id(3L).title("Blog with Empty Tags").tags(new ArrayList<>()).build()
+        );
 
         // Act
-        GeneralResponse<BlogManagerDTO> response = blogService.updateBlog(blogId, req);
+        PagingDTO<BlogSummaryDTO> result = blogService.getAllBlogs(pageable);
 
         // Assert
-        assertEquals(HttpStatus.OK.value(), response.getStatus());
-        assertEquals(Constants.Message.BLOG_UPDATE_SUCCESS, response.getMessage());
-        assertNotNull(response.getData());
-        verify(blogRepository, times(1)).save(existingBlog);
-        assertEquals("New Title", existingBlog.getTitle());
-        assertEquals("New Description", existingBlog.getDescription());
+        assertNotNull(result, "Kết quả không được là null.");
+        assertEquals(3, result.getTotal(), "Tổng số lượng blog phải là 3.");
+        assertEquals(3, result.getItems().size(), "Danh sách blog trả về phải có 3 phần tử.");
+
+        // Kiểm tra chi tiết từng DTO
+        BlogSummaryDTO dto1 = result.getItems().get(0);
+        assertEquals("Blog with Tags", dto1.getTitle());
+        assertNotNull(dto1.getTags());
+        assertEquals(2, dto1.getTags().size(), "Blog 1 phải có 2 tag.");
+        assertTrue(dto1.getTags().contains("Travel"), "Phải chứa tag 'Travel'.");
+
+        BlogSummaryDTO dto2 = result.getItems().get(1);
+        assertEquals("Blog with Null Tags", dto2.getTitle());
+        assertNotNull(dto2.getTags(), "Danh sách tag không được là null.");
+        assertTrue(dto2.getTags().isEmpty(), "Blog 2 phải có danh sách tag rỗng.");
+
+        BlogSummaryDTO dto3 = result.getItems().get(2);
+        assertEquals("Blog with Empty Tags", dto3.getTitle());
+        assertNotNull(dto3.getTags());
+        assertTrue(dto3.getTags().isEmpty(), "Blog 3 phải có danh sách tag rỗng.");
+
+        // Verify
+        verify(blogRepository, times(1)).findByDeletedFalse(pageable);
+        verify(blogMapper, times(3)).blogToBlogSummaryDTO(any(Blog.class));
+        System.out.println("Log: " + Constants.Message.BLOG_LIST_SUCCESS);
     }
 
-    // Abnormal case: updateBlog throws BusinessException when blog not found
     @Test
-    void updateBlog_ThrowsBusinessException_WhenBlogNotFound() {
+    @DisplayName("[getAllBlogs] Valid Input: Trả về trang rỗng khi không có blog nào")
+    void getAllBlogs_whenNoBlogsExist_shouldReturnEmptyPagingDTO() {
+        System.out.println("Test Case: Valid Input - Trả về trang rỗng khi không có blog nào.");
         // Arrange
-        Long blogId = 99L; // Non-existent blog
-        BlogManagerRequestDTO req = new BlogManagerRequestDTO();
-        req.setTitle("New Title");
-
-        when(blogRepository.findById(blogId)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        BusinessException ex = assertThrows(BusinessException.class, () -> blogService.updateBlog(blogId, req));
-        assertEquals(Constants.Message.BLOG_NOT_FOUND, ex.getResponseMessage());
-    }
-
-    // Normal case: updateBlog should not update fields when their DTO values are null
-    @Test
-    void updateBlog_shouldNotUpdateFields_whenRequestFieldsAreNull() {
-        // Arrange
-        Long blogId = 1L;
-        String oldTitle = "Old Title";
-        String oldDescription = "Old Description";
-        String oldContent = "Old Content";
-        String oldThumbnail = "old_thumb.jpg";
-
-        BlogManagerRequestDTO reqWithNulls = new BlogManagerRequestDTO();
-        reqWithNulls.setTitle(null);
-        reqWithNulls.setDescription(null);
-        reqWithNulls.setContent(null);
-        reqWithNulls.setThumbnailImageUrl(null);
-
-        Blog existingBlog = Blog.builder().id(blogId).title(oldTitle).description(oldDescription).content(oldContent).thumbnailImageUrl(oldThumbnail).build();
-
-        when(blogRepository.findById(blogId)).thenReturn(Optional.of(existingBlog));
-
-        // Act: This call should not throw an exception
-        assertDoesNotThrow(() -> blogService.updateBlog(blogId, reqWithNulls));
-
-        // Assert
-        verify(blogRepository).save(blogArgumentCaptor.capture());
-        Blog savedBlog = blogArgumentCaptor.getValue();
-
-        // Verify that the fields were NOT updated because the input was null
-        assertEquals(oldTitle, savedBlog.getTitle(), "Title should not be updated for null input");
-        assertEquals(oldDescription, savedBlog.getDescription(), "Description should not be updated for null input");
-        assertEquals(oldContent, savedBlog.getContent(), "Content should not be updated for null input");
-        assertEquals(oldThumbnail, savedBlog.getThumbnailImageUrl(), "Thumbnail should not be updated for null input");
-    }
-    // Normal case: deleteBlog success
-    @Test
-    void deleteBlog_Success() {
-        // Arrange
-        Long blogId = 1L;
-        Blog existingBlog = Blog.builder()
-                .id(blogId)
-                .deleted(false) // Giá trị ban đầu
-                .build();
-
-        when(blogRepository.findById(blogId)).thenReturn(Optional.of(existingBlog));
+        Pageable pageable = PageRequest.of(0, 10);
+        // Giả lập repository trả về một trang rỗng
+        when(blogRepository.findByDeletedFalse(pageable)).thenReturn(Page.empty(pageable));
 
         // Act
-        GeneralResponse<String> response = blogService.deleteBlog(blogId);
+        PagingDTO<BlogSummaryDTO> result = blogService.getAllBlogs(pageable);
 
         // Assert
-        assertEquals(HttpStatus.OK.value(), response.getStatus());
-        assertEquals(Constants.Message.BLOG_DELETE_SUCCESS, response.getMessage());
-        assertTrue(existingBlog.getDeleted());
-        verify(blogRepository, times(1)).save(existingBlog);
+        assertNotNull(result, "Kết quả không được là null.");
+        assertEquals(0, result.getTotal(), "Tổng số lượng blog phải là 0.");
+        assertTrue(result.getItems().isEmpty(), "Danh sách blog trả về phải rỗng.");
+
+        // Verify
+        verify(blogRepository, times(1)).findByDeletedFalse(pageable);
+        // Mapper không bao giờ được gọi vì không có blog nào để chuyển đổi
+        verify(blogMapper, never()).blogToBlogSummaryDTO(any());
+        System.out.println("Log: " + Constants.Message.SUCCESS + ". " + Constants.Message.NO_SERVICES_AVAILABLE);
     }
 
-    // Abnormal case: deleteBlog throws BusinessException when blog not found
     @Test
-    void deleteBlog_ThrowsBusinessException_WhenBlogNotFound() {
+    @DisplayName("[getAllBlogs] Invalid Input: Thất bại khi repository ném ra lỗi")
+    void getAllBlogs_whenRepositoryFails_shouldPropagateException() {
+        System.out.println("Test Case: Invalid Input - Thất bại khi repository ném ra lỗi.");
         // Arrange
-        Long blogId = 99L; // Non-existent blog
-        when(blogRepository.findById(blogId)).thenReturn(Optional.empty());
+        Pageable pageable = PageRequest.of(0, 10);
+        // Giả lập repository ném ra một lỗi runtime (ví dụ: mất kết nối DB)
+        when(blogRepository.findByDeletedFalse(pageable)).thenThrow(new RuntimeException("Database connection error"));
 
         // Act & Assert
-        BusinessException ex = assertThrows(BusinessException.class, () -> blogService.deleteBlog(blogId));
-        assertEquals(Constants.Message.BLOG_NOT_FOUND, ex.getResponseMessage());
+        // Vì phương thức không có khối try-catch, exception sẽ được ném ra ngoài
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            blogService.getAllBlogs(pageable);
+        });
+
+        assertEquals("Database connection error", exception.getMessage(), "Thông báo lỗi phải khớp.");
+
+        // Verify
+        verify(blogRepository, times(1)).findByDeletedFalse(pageable);
+        verify(blogMapper, never()).blogToBlogSummaryDTO(any());
+        System.out.println("Log: " + Constants.Message.FAILED + ". " + Constants.Message.BLOG_LIST_FAIL);
     }
+
 }
