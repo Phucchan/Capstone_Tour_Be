@@ -38,6 +38,7 @@ public class TourPaxManagerServiceImpl implements TourPaxManagerService {
                 .id(saved.getId())
                 .minQuantity(saved.getMinQuantity())
                 .maxQuantity(saved.getMaxQuantity())
+                .sellingPrice(saved.getSellingPrice())
                 .build();
 
         return GeneralResponse.of(dto, Constants.Message.PAX_CONFIG_CREATE_SUCCESS);
@@ -59,6 +60,7 @@ public class TourPaxManagerServiceImpl implements TourPaxManagerService {
                 .id(pax.getId())
                 .minQuantity(pax.getMinQuantity())
                 .maxQuantity(pax.getMaxQuantity())
+                .sellingPrice(pax.getSellingPrice())
                 .build();
 
         return GeneralResponse.of(dto, Constants.Message.PAX_CONFIG_LOAD_SUCCESS);

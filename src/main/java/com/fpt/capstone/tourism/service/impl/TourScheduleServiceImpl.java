@@ -101,6 +101,7 @@ public class TourScheduleServiceImpl implements TourScheduleService {
                     .tourPaxId(saved.getTourPax().getId())
                     .departureDate(saved.getDepartureDate())
                     .endDate(saved.getEndDate())
+                    .price(saved.getPrice())
                     .build());
         }
 
@@ -158,6 +159,7 @@ public class TourScheduleServiceImpl implements TourScheduleService {
                         .tourPaxId(s.getTourPax() != null ? s.getTourPax().getId() : null)
                         .departureDate(s.getDepartureDate())
                         .endDate(s.getEndDate())
+                        .price(s.getPrice())
                         .build())
                 .collect(Collectors.toList());
 
