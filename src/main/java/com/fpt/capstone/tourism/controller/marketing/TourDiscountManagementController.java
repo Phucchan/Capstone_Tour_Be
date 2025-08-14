@@ -6,6 +6,7 @@ import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.TourDiscountRequestDTO;
 import com.fpt.capstone.tourism.dto.response.TourDiscountSummaryDTO;
 import com.fpt.capstone.tourism.service.TourDiscountService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,7 @@ public class TourDiscountManagementController {
 
     @PostMapping
     //postman http://localhost:8080/v1/marketing/discounts
-    public ResponseEntity<GeneralResponse<TourDiscountDTO>> createDiscount(@RequestBody TourDiscountRequestDTO dto) {
+    public ResponseEntity<GeneralResponse<TourDiscountDTO>> createDiscount(@Valid @RequestBody TourDiscountRequestDTO dto) {
         return ResponseEntity.ok(tourDiscountService.createDiscount(dto));
     }
 

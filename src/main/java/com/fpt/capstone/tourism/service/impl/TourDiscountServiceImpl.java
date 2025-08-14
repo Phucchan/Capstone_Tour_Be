@@ -34,6 +34,15 @@ public class TourDiscountServiceImpl implements TourDiscountService {
     @Override
     public GeneralResponse<TourDiscountDTO> createDiscount(TourDiscountRequestDTO requestDTO) {
         try {
+            if (requestDTO.getDiscountPercent() <= 0 || requestDTO.getDiscountPercent() > 100) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.TOUR_DISCOUNT_INVALID_PERCENT);
+            }
+            if (!requestDTO.getStartDate().isAfter(LocalDateTime.now())) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.TOUR_DISCOUNT_START_DATE_IN_PAST);
+            }
+            if (!requestDTO.getStartDate().isBefore(requestDTO.getEndDate())) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.TOUR_DISCOUNT_INVALID_DATE_RANGE);
+            }
             TourSchedule schedule = tourScheduleRepository.findById(requestDTO.getScheduleId())
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.TOUR_SCHEDULE_NOT_FOUND));
 

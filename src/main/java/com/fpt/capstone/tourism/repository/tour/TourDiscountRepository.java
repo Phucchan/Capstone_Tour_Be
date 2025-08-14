@@ -47,7 +47,7 @@ public interface TourDiscountRepository extends JpaRepository<TourDiscount, Long
             "AND td.deleted = false " +
             "AND ts.deleted = false " +
             "AND t.deleted = false " +
-            "AND (:keyword IS NULL OR LOWER(FUNCTION('convert_from', t.name, 'UTF8')) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+            "AND (:keyword IS NULL OR LOWER(t.name) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     Page<TourDiscount> searchActiveDiscounts(@Param("keyword") String keyword,
                                              @Param("now") LocalDateTime now,
                                              Pageable pageable);

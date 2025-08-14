@@ -8,14 +8,12 @@ public class Constants {
         public static final String EMAIL_ALREADY_EXISTS_MESSAGE = "Email already exists";
         public static final String PHONE_ALREADY_EXISTS_MESSAGE = "Số điện thoại đã được sử dụng";
         public static final String FAIL_TO_SAVE_USER_MESSAGE = "Lưu thông tin người dùng thất bại";
-        public static final String GENDER_INVALID = "Giới tính không hợp lệ";
         public static final String USER_INFORMATION_NULL_OR_EMPTY = "Thông tin này là bắt buộc";
         public static final String USERNAME_INVALID = "Tên đăng nhập chỉ bao gồm chữ cái, số, dấu gạch ngang (-), gạch dưới (_) và có độ dài từ 8 đến 30 ký tự";
         public static final String PASSWORD_INVALID = "Mật khẩu phải từ 8 ký tự trở lên, bao gồm ít nhất 1 chữ hoa, 1 chữ thường và 1 ký tự đặc biệt";
         public static final String FULL_NAME_INVALID = "Họ tên phải bắt đầu bằng chữ cái, chỉ chứa chữ cái và khoảng trắng";
         public static final String PHONE_INVALID = "Số điện thoại phải gồm đúng 10-15 chữ số";
         public static final String EMAIL_INVALID = "Email không hợp lệ";
-        public static final String ROLES_NAME_INVALID = "Tên vai trò không hợp lệ";
         public static final String USER_NOT_FOUND = "Không tìm thấy người dùng, vui lòng đăng nhập bằng tài khoản hợp lệ để xem thông tin cá nhân";
     }
 
@@ -30,8 +28,6 @@ public class Constants {
         // Login related
         public static final String LOGIN_SUCCESS_MESSAGE = "Đăng nhập thành công";
         public static final String LOGIN_FAIL_MESSAGE = "Đăng nhập thất bại! Tên đăng nhập hoặc mật khẩu không đúng";
-        public static final String USER_NOT_AUTHENTICATED = "Người dùng chưa được xác thực";
-        public static final String LOGOUT_SUCCESS_MESSAGE = "Đăng xuất thành công";
         // Password related
         public static final String PASSWORDS_DO_NOT_MATCH_MESSAGE = "Mật khẩu và xác nhận mật khẩu không trùng khớp";
         public static final String INVALID_OLD_PASSWORD_MESSAGE = "Mật khẩu hiện tại không chính xác";
@@ -61,21 +57,14 @@ public class Constants {
         public static final String EMPTY_LOCATION_NAME = "Tên địa điểm không được để trống";
         public static final String EMPTY_LOCATION_DESCRIPTION = "Mô tả địa điểm không được để trống";
         public static final String EMPTY_LOCATION_IMAGE = "Hình ảnh địa điểm không được để trống";
-        public static final String EMPTY_LOCATION_GEO_POSITION = "Vị trí địa lý của địa điểm không được để trống";
-        public static final String EMPTY_LOCATION = "Địa điểm không được để trống";
         public static final String TOUR_NOT_PUBLISHED = "Tour chưa được mở bán";
         // Location management
         public static final String EXISTED_LOCATION = "Địa điểm đã tồn tại";
         public static final String CREATE_LOCATION_SUCCESS = "Tạo địa điểm thành công";
         public static final String CREATE_LOCATION_FAIL = "Tạo địa điểm thất bại";
         public static final String LOCATION_NOT_FOUND = "Không tìm thấy địa điểm";
-        public static final String DEPART_LOCATION_NOT_FOUND = "Không tìm thấy địa điểm khởi hành";
-        public static final String LOCATION_DETAIL_LOAD_SUCCESS = "Tải chi tiết địa điểm thành công";
-        public static final String LOCATION_DETAIL_LOAD_FAIL = "Tải chi tiết địa điểm thất bại";
         public static final String GET_LOCATIONS_SUCCESS = "Lấy danh sách địa điểm thành công";
         public static final String GET_LOCATIONS_FAIL = "Lấy danh sách địa điểm thất bại";
-        public static final String LOCATION_NOT_FOUND_BY_ID = "Không tìm thấy địa điểm với ID: %s";
-        public static final String GET_TOUR_LOCATIONS_FAIL = "Không thể lấy địa điểm của tour";
 
         //===================================================
         // PartnerService Provider Related Messages
@@ -276,6 +265,9 @@ public class Constants {
         public static final String TOUR_DISCOUNT_EXISTS = "Giảm giá cho lịch trình đã tồn tại";
         public static final String TOUR_DISCOUNT_LIST_SUCCESS = "Lấy danh sách giảm giá tour thành công";
         public static final String TOUR_DISCOUNT_LIST_FAIL = "Lấy danh sách giảm giá tour thất bại";
+        public static final String TOUR_DISCOUNT_INVALID_PERCENT = "Phần trăm giảm giá phải lớn hơn 0 và nhỏ hơn hoặc bằng 100";
+        public static final String TOUR_DISCOUNT_INVALID_DATE_RANGE = "Thời gian bắt đầu phải trước thời gian kết thúc";
+        public static final String TOUR_DISCOUNT_START_DATE_IN_PAST = "Ngày bắt đầu phải ở tương lai";
         //===================================================
         // Tour day management
         public static final String TOUR_DAY_SERVICE_ADDED_SUCCESS = "Thêm dịch vụ vào ngày tour thành công";
@@ -336,6 +328,7 @@ public class Constants {
         public static final String GET_SCHEDULE_OPTIONS_SUCCESS = "Lấy danh sách tùy chọn lịch trình thành công";
         public static final String SCHEDULE_CREATED_SUCCESS = "Tạo lịch trình tour thành công";
         public static final String SCHEDULE_ID_REQUIRED = "Mã lịch trình là bắt buộc đối với các cập nhật";
+        public static final String DEPARTURE_DATE_IN_PAST = "Ngày khởi hành phải ở trong tương lai";
         public static final String TOUR_SCHEDULE_NOT_FOUND = "Không tìm thấy lịch trình tour";
         public static final String SCHEDULE_CANNOT_BE_UPDATED = "Không thể cập nhật lịch trình có trạng thái ĐANG DIỄN RA";
         public static final String SCHEDULE_END_DATE_EXCEEDS_DURATION = "Ngày kết thúc vượt quá số ngày của tour";

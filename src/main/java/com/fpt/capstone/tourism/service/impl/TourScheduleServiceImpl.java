@@ -41,12 +41,14 @@ public class TourScheduleServiceImpl implements TourScheduleService {
 
     @Override
     public GeneralResponse<List<TourScheduleManagerDTO>> createTourSchedule(Long tourId, TourScheduleCreateRequestDTO requestDTO) {
+        if (requestDTO.getDepartureDate().isBefore(LocalDateTime.now())) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.DEPARTURE_DATE_IN_PAST);
+        }
         Tour tour = tourRepository.findById(tourId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
         if (tour.getTourStatus() != TourStatus.PUBLISHED) {
             throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.TOUR_NOT_PUBLISHED);
         }
-
         TourPax tourPax = tourPaxRepository.findById(requestDTO.getTourPaxId())
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.TOUR_PAX_NOT_FOUND));
         if (!tourPax.getTour().getId().equals(tourId)) {
@@ -86,7 +88,6 @@ public class TourScheduleServiceImpl implements TourScheduleService {
             schedule.setCoordinator(coordinator);
             schedule.setTourPax(tourPax);
             schedule.setPrice(tourPax.getSellingPrice());
-            schedule.setExtraHotelCost(tourPax.getExtraHotelCost());
             schedule.setAvailableSeats(tourPax.getMaxQuantity());
             schedule.setDepartureDate(departureDate);
             schedule.setEndDate(endDate);
