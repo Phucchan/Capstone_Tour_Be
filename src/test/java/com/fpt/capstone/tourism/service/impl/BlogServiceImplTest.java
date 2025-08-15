@@ -301,5 +301,126 @@ class BlogServiceImplTest {
         verify(blogMapper, never()).blogToBlogSummaryDTO(any());
         System.out.println("Log: " + Constants.Message.FAILED + ". " + Constants.Message.BLOG_LIST_FAIL);
     }
+    @Test
+    @DisplayName("[getBlogs] Valid Input: Lấy danh sách blog thành công khi có dữ liệu")
+    void getBlogs_whenDataExists_shouldSucceed() {
+        System.out.println("Test Case: Valid Input - Lấy danh sách blog thành công khi có dữ liệu.");
+        // Arrange
+        int page = 0;
+        int size = 5;
 
+        // Tạo dữ liệu giả
+        Blog blog1 = Blog.builder().id(1L).title("Blog 1").build();
+        Blog blog2 = Blog.builder().id(2L).title("Blog 2").build();
+        Page<Blog> mockPage = new PageImpl<>(List.of(blog1, blog2));
+
+        // Giả lập hành vi của repository và mapper
+        when(blogRepository.findByDeletedFalseOrderByCreatedAtDesc(any(Pageable.class)))
+                .thenReturn(mockPage);
+        when(blogMapper.blogToBlogDTO(any(Blog.class))).thenReturn(new BlogManagerDTO());
+
+        // Act
+        GeneralResponse<PagingDTO<BlogManagerDTO>> response = blogService.getBlogs(page, size);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK.value(), response.getStatus());
+        assertEquals(Constants.Message.BLOG_LIST_SUCCESS, response.getMessage());
+
+        PagingDTO<BlogManagerDTO> pagingDTO = response.getData();
+        assertNotNull(pagingDTO);
+        assertEquals(2, pagingDTO.getTotal());
+        assertEquals(2, pagingDTO.getItems().size());
+        assertEquals(0, pagingDTO.getPage());
+
+        // Verify
+        verify(blogRepository, times(1)).findByDeletedFalseOrderByCreatedAtDesc(any(Pageable.class));
+        verify(blogMapper, times(2)).blogToBlogDTO(any(Blog.class));
+        System.out.println("Log: " + Constants.Message.SUCCESS);
+    }
+
+    @Test
+    @DisplayName("[getBlogs] Valid Input: Trả về trang rỗng khi không có dữ liệu")
+    void getBlogs_whenNoData_shouldReturnEmptyPage() {
+        System.out.println("Test Case: Valid Input - Trả về trang rỗng khi không có dữ liệu.");
+        // Arrange
+        int page = 0;
+        int size = 10;
+
+        // Giả lập repository trả về một trang rỗng
+        when(blogRepository.findByDeletedFalseOrderByCreatedAtDesc(any(Pageable.class)))
+                .thenReturn(Page.empty());
+
+        // Act
+        GeneralResponse<PagingDTO<BlogManagerDTO>> response = blogService.getBlogs(page, size);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK.value(), response.getStatus());
+        assertNotNull(response.getData());
+        assertEquals(0, response.getData().getTotal());
+        assertTrue(response.getData().getItems().isEmpty());
+
+        // Verify
+        // Mapper không bao giờ được gọi vì không có blog nào để chuyển đổi
+        verify(blogMapper, never()).blogToBlogDTO(any());
+        System.out.println("Log: " + Constants.Message.SUCCESS + ". " + Constants.Message.NO_SERVICES_AVAILABLE);
+    }
+
+    @Test
+    @DisplayName("[getBlogs] Invalid Input: Thất bại khi page là số âm")
+    void getBlogs_whenPageIsNegative_shouldThrowBusinessException() {
+        System.out.println("Test Case: Invalid Input - Thất bại khi page là số âm.");
+        // Arrange
+        int invalidPage = -1;
+        int size = 10;
+
+        // Act & Assert
+        // PageRequest.of() sẽ ném ra IllegalArgumentException,
+        // và khối try-catch trong service sẽ bắt và gói nó lại thành BusinessException.
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            blogService.getBlogs(invalidPage, size);
+        });
+
+        assertEquals(Constants.Message.BLOG_LIST_FAIL, exception.getResponseMessage());
+        System.out.println("Log: " + Constants.Message.FAILED + ". Nguyên nhân: Page không được là số âm.");
+    }
+
+    @Test
+    @DisplayName("[getBlogs] Invalid Input: Thất bại khi size nhỏ hơn 1")
+    void getBlogs_whenSizeIsLessThanOne_shouldThrowBusinessException() {
+        System.out.println("Test Case: Invalid Input - Thất bại khi size nhỏ hơn 1.");
+        // Arrange
+        int page = 0;
+        int invalidSize = 0;
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            blogService.getBlogs(page, invalidSize);
+        });
+
+        assertEquals(Constants.Message.BLOG_LIST_FAIL, exception.getResponseMessage());
+        System.out.println("Log: " + Constants.Message.FAILED + ". Nguyên nhân: Size phải lớn hơn 0.");
+    }
+
+    @Test
+    @DisplayName("[getBlogs] System Failure: Thất bại khi repository ném ra lỗi")
+    void getBlogs_whenRepositoryFails_shouldThrowBusinessException() {
+        System.out.println("Test Case: System Failure - Thất bại khi repository ném ra lỗi.");
+        // Arrange
+        int page = 0;
+        int size = 10;
+
+        // Giả lập repository ném ra một lỗi runtime (ví dụ: mất kết nối DB)
+        when(blogRepository.findByDeletedFalseOrderByCreatedAtDesc(any(Pageable.class)))
+                .thenThrow(new RuntimeException("Database connection error"));
+
+        // Act & Assert
+        BusinessException exception = assertThrows(BusinessException.class, () -> {
+            blogService.getBlogs(page, size);
+        });
+
+        assertEquals(Constants.Message.BLOG_LIST_FAIL, exception.getResponseMessage());
+        System.out.println("Log: " + Constants.Message.FAILED + ". " + Constants.Message.GENERAL_FAIL_MESSAGE);
+    }
 }
