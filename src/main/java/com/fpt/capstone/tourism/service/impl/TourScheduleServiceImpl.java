@@ -11,6 +11,7 @@ import com.fpt.capstone.tourism.dto.response.tour.TourThemeOptionDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.UserMapper;
 import com.fpt.capstone.tourism.model.enums.ScheduleRepeatType;
+import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.model.tour.Tour;
 import com.fpt.capstone.tourism.model.tour.TourPax;
 import com.fpt.capstone.tourism.model.tour.TourSchedule;
@@ -19,6 +20,7 @@ import com.fpt.capstone.tourism.repository.TourManagementRepository;
 import com.fpt.capstone.tourism.repository.tour.TourPaxRepository;
 import com.fpt.capstone.tourism.repository.tour.TourScheduleRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
+import com.fpt.capstone.tourism.service.EmailService;
 import com.fpt.capstone.tourism.service.TourScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -38,6 +40,7 @@ public class TourScheduleServiceImpl implements TourScheduleService {
     private final UserRepository userRepository;
     private final TourScheduleRepository tourScheduleRepository;
     private final UserMapper userMapper;
+    private final EmailService emailService;
 
     @Override
     public GeneralResponse<List<TourScheduleManagerDTO>> createTourSchedule(Long tourId, TourScheduleCreateRequestDTO requestDTO) {
@@ -62,6 +65,7 @@ public class TourScheduleServiceImpl implements TourScheduleService {
         int repeatCount = requestDTO.getRepeatCount() != null ? Math.max(0, requestDTO.getRepeatCount()) : 0;
 
         List<TourScheduleManagerDTO> result = new ArrayList<>();
+        TourSchedule firstSchedule = null;
 
         for (int i = 0; i <= repeatCount; i++) {
             LocalDateTime departureDate = requestDTO.getDepartureDate();
@@ -94,7 +98,9 @@ public class TourScheduleServiceImpl implements TourScheduleService {
             schedule.setPublished(false);
 
             TourSchedule saved = tourScheduleRepository.save(schedule);
-
+            if (i == 0) {
+                firstSchedule = saved;
+            }
             result.add(TourScheduleManagerDTO.builder()
                     .id(saved.getId())
                     .coordinatorId(saved.getCoordinator().getId())
@@ -103,6 +109,22 @@ public class TourScheduleServiceImpl implements TourScheduleService {
                     .endDate(saved.getEndDate())
                     .price(saved.getPrice())
                     .build());
+        }
+        if (tour.getTourType() == TourType.CUSTOM
+                && tour.getRequestBooking() != null
+                && firstSchedule != null) {
+            var request = tour.getRequestBooking();
+            String to = request.getCustomerEmail();
+            if (to != null && !to.isBlank()) {
+                String subject = "Thông báo tour đặt riêng đã được tạo";
+                String customerName = request.getCustomerName() != null ? request.getCustomerName() : "";
+                String content = String.format(
+                        "Xin chào %s,\n\nTour đặt riêng của bạn mã %s đã được tạo với ngày khởi hành %s.Vui lòng vào web của chúng tôi để kiểm tra.\n\n Trân trọng.",
+                        customerName,
+                        tour.getCode(),
+                        firstSchedule.getDepartureDate().toLocalDate());
+                emailService.sendEmail(to, subject, content);
+            }
         }
 
         return GeneralResponse.of(result, Constants.Message.SCHEDULE_CREATED_SUCCESS);
