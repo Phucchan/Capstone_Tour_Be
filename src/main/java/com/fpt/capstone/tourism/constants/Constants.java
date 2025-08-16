@@ -22,7 +22,6 @@ public class Constants {
     }
 
     public static final class Message {
-        //===================================================
         // Authentication & User Management Messages
         //===================================================
         // Login related

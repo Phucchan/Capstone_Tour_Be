@@ -10,6 +10,7 @@ import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
 import com.fpt.capstone.tourism.dto.response.UserProfileResponseDTO;
 import com.fpt.capstone.tourism.model.User;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ public interface UserService {
 
     GeneralResponse<UserProfileResponseDTO> getUserProfile(Long userId);
 
-    GeneralResponse<UserProfileResponseDTO> updateUserProfile(Long userId, UpdateProfileRequestDTO requestDTO);
+    GeneralResponse<UserProfileResponseDTO> updateUserProfile(Long userId, UpdateProfileRequestDTO requestDTO, MultipartFile avatarFile);
 
     GeneralResponse<String> changePassword(Long userId, ChangePasswordRequestDTO requestDTO);
 

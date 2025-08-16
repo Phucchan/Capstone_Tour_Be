@@ -3,10 +3,9 @@ package com.fpt.capstone.tourism.model.tour;
 import com.fpt.capstone.tourism.model.BaseEntity;
 import com.fpt.capstone.tourism.model.User;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import lombok.*;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 
@@ -52,6 +51,6 @@ public class TourSchedule extends BaseEntity {
 
 
     @Column(name = "available_seats", nullable = false)
+    @Min(0)
     private Integer availableSeats;
-
 }

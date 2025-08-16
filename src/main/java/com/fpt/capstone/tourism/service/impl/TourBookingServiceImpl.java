@@ -38,6 +38,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -75,6 +76,17 @@ public class TourBookingServiceImpl implements TourBookingService {
                     .filter(Objects::nonNull)           // lọc ra list null
                     .flatMap(List::stream)              // gộp các list thành stream duy nhất
                     .toList();      // thu về một danh sách
+
+            // Kiểm tra số ghế còn trống trước khi tạo booking
+            TourSchedule schedule = tourScheduleRepository.findById(bookingRequestDTO.getScheduleId())
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Schedule not found"));
+            int passengers = allCustomersDTO.size() + 1; // +1 cho người đặt tour
+            int totalSlots = schedule.getTourPax().getMaxQuantity();
+            int bookedSlots = Optional.ofNullable(bookingRepository.sumGuestsByTourScheduleId(schedule.getId())).orElse(0);
+            int availableSeats = totalSlots - bookedSlots;
+            if (availableSeats < passengers) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Not enough available seats");
+            }
 
             List<BookingCustomer> allCustomers = bookingCustomerMapper.toEntity(allCustomersDTO);
 
@@ -149,6 +161,12 @@ public class TourBookingServiceImpl implements TourBookingService {
             List<BookingCustomer> entities = bookingCustomerMapper.toEntity(customers);
             for (BookingCustomer bc : entities) {
                 bc.setBooking(booking);
+            }
+            int totalSlots = booking.getTourSchedule().getTourPax().getMaxQuantity();
+            int bookedSlots = Optional.ofNullable(bookingRepository.sumGuestsByTourScheduleId(scheduleId)).orElse(0);
+            int availableSeats = totalSlots - bookedSlots;
+            if (availableSeats < entities.size()) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Not enough available seats");
             }
             bookingCustomerRepository.saveAll(entities);
 
