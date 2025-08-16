@@ -91,7 +91,6 @@ public class TourScheduleServiceImpl implements TourScheduleService {
             schedule.setTour(tour);
             schedule.setCoordinator(coordinator);
             schedule.setTourPax(tourPax);
-            schedule.setPrice(tourPax.getSellingPrice());
             schedule.setAvailableSeats(tourPax.getMaxQuantity());
             schedule.setDepartureDate(departureDate);
             schedule.setEndDate(endDate);
@@ -107,7 +106,7 @@ public class TourScheduleServiceImpl implements TourScheduleService {
                     .tourPaxId(saved.getTourPax().getId())
                     .departureDate(saved.getDepartureDate())
                     .endDate(saved.getEndDate())
-                    .price(saved.getPrice())
+                    .price(saved.getTourPax().getSellingPrice())
                     .build());
         }
         if (tour.getTourType() == TourType.CUSTOM
@@ -182,7 +181,7 @@ public class TourScheduleServiceImpl implements TourScheduleService {
                         .tourPaxId(s.getTourPax() != null ? s.getTourPax().getId() : null)
                         .departureDate(s.getDepartureDate())
                         .endDate(s.getEndDate())
-                        .price(s.getPrice())
+                        .price(s.getTourPax().getSellingPrice())
                         .build())
                 .collect(Collectors.toList());
 

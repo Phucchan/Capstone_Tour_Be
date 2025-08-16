@@ -45,11 +45,6 @@ public class TourSchedule extends BaseEntity {
     @Column(name = "is_published")
     private boolean published;
 
-    @Column(name = "price", nullable = false)
-    private Double price;
-
-
-
     @Column(name = "available_seats", nullable = false)
     @Min(0)
     private Integer availableSeats;
