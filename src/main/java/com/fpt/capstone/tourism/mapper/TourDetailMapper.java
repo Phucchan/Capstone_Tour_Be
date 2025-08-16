@@ -46,7 +46,7 @@ public interface TourDetailMapper {
     @Mapping(source = "user.avatarImage", target = "userAvatarUrl")
     FeedbackDTO feedbackToFeedbackDTO(Feedback feedback);
 
-    @Mapping(source = "price", target = "price")
+    @Mapping(source = "tourPax.sellingPrice", target = "price")
     @Mapping(source = "tourPax.extraHotelCost", target = "extraHotelCost")
         // Giả sử cần tính số ghế còn lại, nếu không có thì có thể bỏ qua
         // @Mapping(target = "availableSeats", expression = "java(...)")
