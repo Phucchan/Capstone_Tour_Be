@@ -12,8 +12,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 
@@ -30,12 +32,13 @@ public class ProfileController {
         return ResponseEntity.ok(userService.getUserProfile(userId));
     }
 
-    @PutMapping("/profile")
+    @PutMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     //postman http://localhost:8080/v1/users/profile?userId=1
     public ResponseEntity<GeneralResponse<UserProfileResponseDTO>> updateProfile(
             @RequestParam Long userId,
-            @RequestBody UpdateProfileRequestDTO requestDTO) {
-        return ResponseEntity.ok(userService.updateUserProfile(userId, requestDTO));
+            @RequestPart("profileData") UpdateProfileRequestDTO requestDTO,
+            @RequestPart(value = "avatarFile", required = false) MultipartFile avatarFile) {
+        return ResponseEntity.ok(userService.updateUserProfile(userId, requestDTO, avatarFile));
     }
 
     @PutMapping("/change-password")

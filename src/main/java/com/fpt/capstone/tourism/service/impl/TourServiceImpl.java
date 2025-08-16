@@ -179,7 +179,7 @@ public class TourServiceImpl implements TourService {
         if (search != null && !search.isBlank()) {
             tourPage = tourRepository.searchCustomToursByUser(userId, TourType.CUSTOM, search.trim().toLowerCase(), pageable);
         } else {
-            tourPage = tourRepository.findByRequestBooking_User_IdAndTourType(userId, TourType.CUSTOM, pageable);
+            tourPage = tourRepository.findCustomToursByUserWithSchedules(userId, TourType.CUSTOM, pageable);
         }
         return mapTourPageToPagingDTO(tourPage);
     }

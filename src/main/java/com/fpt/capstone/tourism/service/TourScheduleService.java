@@ -12,4 +12,6 @@ public interface TourScheduleService {
     GeneralResponse<TourScheduleOptionsDTO> getScheduleOptions(Long tourId);
 
     GeneralResponse<List<TourScheduleManagerDTO>> getTourSchedules(Long tourId);
+
+    GeneralResponse<String> deleteTourSchedule(Long tourId, Long scheduleId);
 }
