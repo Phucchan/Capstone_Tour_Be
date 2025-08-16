@@ -50,10 +50,12 @@ import java.util.stream.Collectors;
                                 .id(b.getId())
                                 .tourId(b.getTourSchedule().getTour().getId())
                                 .bookingCode(b.getBookingCode())
+                                .tourImage(b.getTourSchedule().getTour().getThumbnailUrl())
                                 .tourName(b.getTourSchedule().getTour().getName())
                                 .status(b.getBookingStatus() != null ? b.getBookingStatus().name() : null)
                                 .totalAmount(b.getTotalAmount())
                                 .createdAt(b.getCreatedAt())
+                                .tourImage(b.getTourSchedule().getTour().getThumbnailUrl())
                                 .departureDate(b.getTourSchedule().getDepartureDate())
                                 .build())
                         .collect(Collectors.toList());
