@@ -9,7 +9,6 @@ import java.util.List;
 @NoArgsConstructor
 public class TourSummaryDTO {
     private Long id;
-    private Long scheduleId;
     private String name;
     private String thumbnailUrl;
     private Double averageRating;

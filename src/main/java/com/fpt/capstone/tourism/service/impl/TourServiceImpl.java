@@ -200,12 +200,10 @@ public class TourServiceImpl implements TourService {
                     List<LocalDateTime> departureDates = futureSchedules.stream()
                             .map(TourSchedule::getDepartureDate)
                             .collect(Collectors.toList());
-                    Long scheduleId = futureSchedules.isEmpty() ? null : futureSchedules.get(0).getId();
 
                     // Xây dựng DTO với các trường đã được cập nhật
                     return TourSummaryDTO.builder()
                             .id(tour.getId())
-                            .scheduleId(scheduleId)
                             .name(tour.getName())
                             .thumbnailUrl(tour.getThumbnailUrl())
                             .durationDays(tour.getDurationDays())
