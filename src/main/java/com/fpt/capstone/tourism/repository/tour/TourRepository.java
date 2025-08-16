@@ -37,10 +37,15 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
     @Query("SELECT DISTINCT td.location FROM Tour t JOIN t.tourDays td WHERE t.tourStatus = 'PUBLISHED' AND t.deleted = false")
     List<Location> findDistinctDestinations();
 
-    Page<Tour> findByRequestBooking_User_IdAndTourType(Long userId, TourType tourType, Pageable pageable);
+    @Query("SELECT t FROM Tour t WHERE t.requestBooking.user.id = :userId AND t.tourType = :tourType " +
+            "AND EXISTS (SELECT ts FROM TourSchedule ts WHERE ts.tour = t AND ts.departureDate > CURRENT_TIMESTAMP)")
+    Page<Tour> findCustomToursByUserWithSchedules(@Param("userId") Long userId,
+                                                  @Param("tourType") TourType tourType,
+                                                  Pageable pageable);
 
     @Query("SELECT t FROM Tour t WHERE t.tourType = :tourType AND t.requestBooking.user.id = :userId " +
-            "AND LOWER(t.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+            "AND LOWER(t.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "AND EXISTS (SELECT ts FROM TourSchedule ts WHERE ts.tour = t AND ts.departureDate > CURRENT_TIMESTAMP)")
     Page<Tour> searchCustomToursByUser(@Param("userId") Long userId,
                                        @Param("tourType") TourType tourType,
                                        @Param("keyword") String keyword,
