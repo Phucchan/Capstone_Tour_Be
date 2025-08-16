@@ -174,10 +174,12 @@ public class HomepageServiceImpl implements HomepageService {
         List<LocalDateTime> departureDates = futureSchedules.stream()
                 .map(TourSchedule::getDepartureDate)
                 .collect(Collectors.toList());
+        Long scheduleId = futureSchedules.isEmpty() ? null : futureSchedules.get(0).getId();
 
         TourSummaryDTO dto = tourMapper.tourToTourSummaryDTO(tour);
         dto.setAverageRating(averageRating);
         dto.setStartingPrice(startingPrice);
+        dto.setScheduleId(scheduleId);
         dto.setDepartureDates(departureDates);
         return dto;
 

@@ -153,6 +153,7 @@ public class TourScheduleServiceImpl implements TourScheduleService {
 
         List<TourScheduleManagerDTO> schedules = tourScheduleRepository.findByTourId(tourId)
                 .stream()
+                .filter(s -> !Boolean.TRUE.equals(s.getDeleted()))
                 .map(s -> TourScheduleManagerDTO.builder()
                         .id(s.getId())
                         .coordinatorId(s.getCoordinator() != null ? s.getCoordinator().getId() : null)
@@ -164,5 +165,21 @@ public class TourScheduleServiceImpl implements TourScheduleService {
                 .collect(Collectors.toList());
 
         return GeneralResponse.of(schedules);
+    }
+    @Override
+    public GeneralResponse<String> deleteTourSchedule(Long tourId, Long scheduleId) {
+        tourRepository.findById(tourId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
+
+        TourSchedule schedule = tourScheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.TOUR_SCHEDULE_NOT_FOUND));
+
+        if (!schedule.getTour().getId().equals(tourId)) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.SCHEDULE_NOT_BELONG);
+        }
+
+        tourScheduleRepository.delete(schedule);
+
+        return GeneralResponse.of(Constants.Message.SCHEDULE_DELETED_SUCCESS);
     }
 }

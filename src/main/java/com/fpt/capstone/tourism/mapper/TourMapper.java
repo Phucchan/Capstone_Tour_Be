@@ -14,6 +14,8 @@ public interface TourMapper {
     @Mapping(source = "departLocation.name", target = "locationName")
     @Mapping(source = "region", target = "region")
     @Mapping(source = "tourTransport", target = "tourTransport", qualifiedByName = "transportToString")
+    @Mapping(target = "scheduleId", ignore = true)
+    @Mapping(target = "departureDates", ignore = true)
     TourSummaryDTO tourToTourSummaryDTO(Tour tour);
     @Named("transportToString")
     default String transportToString(TourTransport transport) {

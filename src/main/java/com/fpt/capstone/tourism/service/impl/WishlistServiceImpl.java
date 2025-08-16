@@ -9,6 +9,8 @@ import com.fpt.capstone.tourism.mapper.TourMapper;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.tour.Tour;
 import com.fpt.capstone.tourism.model.Wishlist;
+import com.fpt.capstone.tourism.model.tour.TourSchedule;
+import com.fpt.capstone.tourism.repository.tour.TourScheduleRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.repository.tour.FeedbackRepository;
 import com.fpt.capstone.tourism.repository.tour.TourPaxRepository;
@@ -19,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,6 +35,7 @@ public class WishlistServiceImpl implements WishlistService {
     private final TourMapper tourMapper;
     private final FeedbackRepository feedbackRepository;
     private final TourPaxRepository tourPaxRepository;
+    private final TourScheduleRepository tourScheduleRepository;
 
     @Override
     public GeneralResponse<String> addToWishlist(Long userId, Long tourId) {
@@ -85,8 +89,18 @@ public class WishlistServiceImpl implements WishlistService {
                         TourSummaryDTO dto = tourMapper.tourToTourSummaryDTO(tour);
                         Double rating = feedbackRepository.findAverageRatingByTourId(tour.getId());
                         Double startingPrice = tourPaxRepository.findStartingPriceByTourId(tour.getId());
+                        List<TourSchedule> futureSchedules = tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(
+                                tour.getId(),
+                                LocalDateTime.now()
+                        );
+                        List<LocalDateTime> departureDates = futureSchedules.stream()
+                                .map(TourSchedule::getDepartureDate)
+                                .collect(Collectors.toList());
+                        Long scheduleId = futureSchedules.isEmpty() ? null : futureSchedules.get(0).getId();
                         dto.setAverageRating(rating);
                         dto.setStartingPrice(startingPrice);
+                        dto.setDepartureDates(departureDates);
+                        dto.setScheduleId(scheduleId);
                         return WishlistTourSummaryDTO.builder()
                                 .wishlistId(w.getId())
                                 .tour(dto)

@@ -195,6 +195,8 @@ public class Constants {
         public static final String SCHEDULE_CREATED_SUCCESS = "Tạo lịch trình tour thành công";
         public static final String DEPARTURE_DATE_IN_PAST = "Ngày khởi hành phải ở trong tương lai";
         public static final String TOUR_SCHEDULE_NOT_FOUND = "Không tìm thấy lịch trình tour";
+        public static final String SCHEDULE_DELETED_SUCCESS = "Xóa lịch trình tour thành công";
+        public static final String SCHEDULE_NOT_BELONG = "Lịch trình không thuộc tour này";
 
         // Price configuration
         public static final String INVALID_PRICE = "Giá phải là một số hợp lệ";
