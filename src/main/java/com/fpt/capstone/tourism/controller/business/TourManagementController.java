@@ -71,6 +71,7 @@ public class TourManagementController {
     }
 
     @GetMapping("/request-bookings")
+    // postman http://localhost:8080/v1/business/request-bookings?page=0&size=10
     public ResponseEntity<GeneralResponse<PagingDTO<RequestBookingNotificationDTO>>> getListRequests(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
