@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.dto.common.VoucherDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.VoucherRequestDTO;
+import com.fpt.capstone.tourism.dto.response.UserVoucherSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.VoucherSummaryDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.VoucherMapper;
@@ -164,5 +165,33 @@ public class VoucherServiceImpl implements VoucherService {
         }
     }
 
+    @Override
+    public GeneralResponse<List<UserVoucherSummaryDTO>> getUserVouchers(Long userId) {
+        try {
+            List<UserVoucher> userVouchers = userVoucherRepository.findByUserId(userId);
+            LocalDateTime now = LocalDateTime.now();
+            List<UserVoucherSummaryDTO> dtos = userVouchers.stream()
+                    .filter(uv -> Boolean.FALSE.equals(uv.getUsed()))
+                    .filter(uv -> {
+                        Voucher v = uv.getVoucher();
+                        return v.getVoucherStatus() == VoucherStatus.ACTIVE
+                                && (v.getValidFrom() == null || !v.getValidFrom().isAfter(now))
+                                && (v.getValidTo() == null || !v.getValidTo().isBefore(now))
+                                && (v.getMaxUsage() == null || v.getMaxUsage() > 0);
+                    })
+                    .map(uv -> UserVoucherSummaryDTO.builder()
+                            .id(uv.getId())
+                            .voucherId(uv.getVoucher().getId())
+                            .code(uv.getVoucher().getCode())
+                            .discountAmount(uv.getVoucher().getDiscountAmount())
+                            .build())
+                    .collect(Collectors.toList());
+            return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.VOUCHER_LIST_SUCCESS, dtos);
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception ex) {
+            throw BusinessException.of(Constants.Message.VOUCHER_LIST_FAIL, ex);
+        }
+    }
 
 }

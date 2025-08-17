@@ -80,7 +80,6 @@ import java.util.stream.Collectors;
                                     .id(c.getId())
                                     .imageUrl(c.getImageUrl())
                                     .createdAt(c.getCreatedAt())
-                                    .pointsEarned(c.getPointsEarned())
                                     .build())
                             .collect(Collectors.toList());
                     return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.GET_CHECKINS_SUCCESS, dtos);
@@ -106,8 +105,8 @@ import java.util.stream.Collectors;
 
                         String key = s3Service.uploadFile(file, "albums");
 
-                        long earned = checkInRepository.countByBooking_IdAndPointsEarnedGreaterThan(bookingId, 0);
-                        int pointsAwarded = earned < 10 ? 1 : 0;
+                        long count = checkInRepository.countByBooking_Id(bookingId);
+                        boolean award = count < 10;
 
                         CheckIn checkIn = CheckIn.builder()
                                 .booking(booking)
@@ -115,17 +114,16 @@ import java.util.stream.Collectors;
                                 .build();
                         CheckIn saved = checkInRepository.save(checkIn);
 
-                        if (pointsAwarded > 0) {
+                        if (award) {
                             var user = booking.getUser();
                             int current = user.getPoints() != null ? user.getPoints() : 0;
-                            user.setPoints(current + pointsAwarded);
+                            user.setPoints(current + 1);
                             userRepository.save(user);
                         }
 
                         CheckInDTO dto = CheckInDTO.builder()
                                 .id(saved.getId())
                                 .imageUrl(saved.getImageUrl())
-                                .pointsEarned(saved.getPointsEarned())
                                 .createdAt(saved.getCreatedAt())
                                 .build();
 

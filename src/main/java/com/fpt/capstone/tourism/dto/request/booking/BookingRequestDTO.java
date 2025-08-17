@@ -33,4 +33,5 @@ public class BookingRequestDTO {
     private Double sellingPrice;
     private Double extraHotelCost;
     private String tourName;
+    private Long userVoucherId;
 }

@@ -1,7 +1,6 @@
 package com.fpt.capstone.tourism.model.tour;
 
 import com.fpt.capstone.tourism.model.BaseEntity;
-import com.fpt.capstone.tourism.model.Location;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,11 +22,6 @@ public class CheckIn extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booking_id", nullable = false)
     private Booking booking;
-
-    @Column(name = "check_in_type", length = 50)
-    private String checkInType = "photo_upload";
-
-    private Integer pointsEarned;
 
     @Column(name = "image_url", columnDefinition = "text")
     private String imageUrl;

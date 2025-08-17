@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.controller.user;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.UserVoucherSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.VoucherSummaryDTO;
 import com.fpt.capstone.tourism.service.VoucherService;
 import lombok.RequiredArgsConstructor;
@@ -32,5 +33,9 @@ public class VoucherController {
     public ResponseEntity<GeneralResponse<String>> redeemVoucher(@RequestParam Long userId,
                                                                  @PathVariable Long voucherId) {
         return ResponseEntity.ok(voucherService.redeemVoucher(userId, voucherId));
+    }
+    @GetMapping("/userVoucher/{userId}")
+    public ResponseEntity<GeneralResponse<List<UserVoucherSummaryDTO>>> getUserVouchers(@PathVariable Long userId) {
+        return ResponseEntity.ok(voucherService.getUserVouchers(userId));
     }
 }
