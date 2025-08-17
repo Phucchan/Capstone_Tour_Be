@@ -17,7 +17,6 @@ import com.fpt.capstone.tourism.model.enums.BookingStatus;
 import com.fpt.capstone.tourism.model.payment.Refund;
 import com.fpt.capstone.tourism.model.tour.Booking;
 import com.fpt.capstone.tourism.repository.RefundRepository;
-import com.fpt.capstone.tourism.repository.user.UserPointRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
 import com.fpt.capstone.tourism.service.S3Service;
@@ -25,9 +24,7 @@ import com.fpt.capstone.tourism.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -53,7 +50,6 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final BookingRepository bookingRepository;
-    private final UserPointRepository userPointRepository;
     private final RefundRepository refundRepository;
     private final S3Service s3Service;
 
@@ -132,8 +128,6 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND_MESSAGE));
         UserProfileResponseDTO dto = userMapper.toUserProfileResponseDTO(user);
         dto.setTotalToursBooked(Math.toIntExact(bookingRepository.countByUser_Id(userId)));
-        Integer points = userPointRepository.sumPointsByUserId(userId);
-        dto.setPoints(points != null ? points : 0);
         return GeneralResponse.of(dto);
     }
 
@@ -163,8 +157,6 @@ public class UserServiceImpl implements UserService {
         User saved = userRepository.save(user);
         UserProfileResponseDTO dto = userMapper.toUserProfileResponseDTO(saved);
         dto.setTotalToursBooked(Math.toIntExact(bookingRepository.countByUser_Id(userId)));
-        Integer points = userPointRepository.sumPointsByUserId(userId);
-        dto.setPoints(points != null ? points : 0);
         return GeneralResponse.of(dto);
     }
 

@@ -14,7 +14,6 @@ import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.JwtHelper;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.repository.RoleRepository;
-import com.fpt.capstone.tourism.repository.user.UserPointRepository;
 import com.fpt.capstone.tourism.repository.user.UserRoleRepository;
 import com.fpt.capstone.tourism.service.AuthService;
 import com.fpt.capstone.tourism.service.EmailConfirmationService;
@@ -25,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -47,7 +45,6 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordGenerateImpl passwordGenerate;
     private final UserRoleRepository userRoleRepository;
     private final UserMapper userMapper;
-    private final UserPointRepository userPointRepository;
 
     @Override
     public GeneralResponse<TokenDTO> login(UserDTO userDTO) {
@@ -172,11 +169,7 @@ public class AuthServiceImpl implements AuthService {
 
             userRoleRepository.save(newUserRole);
 
-            UserPoint userPoint = UserPoint.builder()
-                    .user(savedUser)
-                    .points(0)
-                    .build();
-            userPointRepository.save(userPoint);
+
 
             // Send email confirmation
             Token token = emailConfirmationService.createEmailConfirmationToken(savedUser);

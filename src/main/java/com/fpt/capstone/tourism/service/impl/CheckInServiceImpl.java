@@ -5,13 +5,11 @@ import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.response.BookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.tour.CheckInDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
-import com.fpt.capstone.tourism.model.UserPoint;
 import com.fpt.capstone.tourism.model.enums.BookingStatus;
 import com.fpt.capstone.tourism.model.tour.Booking;
 import com.fpt.capstone.tourism.model.tour.CheckIn;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
 import com.fpt.capstone.tourism.repository.tour.CheckInRepository;
-import com.fpt.capstone.tourism.repository.user.UserPointRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.service.CheckInService;
 import com.fpt.capstone.tourism.service.S3Service;
@@ -31,7 +29,6 @@ import java.util.stream.Collectors;
         private final BookingRepository bookingRepository;
         private final CheckInRepository checkInRepository;
         private final UserRepository userRepository;
-        private final UserPointRepository userPointRepository;
         private final S3Service s3Service;
 
         @Value("${aws.s3.bucket-url}")
@@ -119,11 +116,10 @@ import java.util.stream.Collectors;
                         CheckIn saved = checkInRepository.save(checkIn);
 
                         if (pointsAwarded > 0) {
-                            UserPoint userPoint = UserPoint.builder()
-                                    .user(booking.getUser())
-                                    .points(pointsAwarded)
-                                    .build();
-                            userPointRepository.save(userPoint);
+                            var user = booking.getUser();
+                            int current = user.getPoints() != null ? user.getPoints() : 0;
+                            user.setPoints(current + pointsAwarded);
+                            userRepository.save(user);
                         }
 
                         CheckInDTO dto = CheckInDTO.builder()
