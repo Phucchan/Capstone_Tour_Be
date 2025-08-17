@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.controller.user;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.VoucherSummaryDTO;
 import com.fpt.capstone.tourism.service.VoucherService;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +19,11 @@ public class VoucherController {
 
     @GetMapping
     //postman http://localhost:8080/v1/customer/vouchers?page=1&size=10&keyword=discount
-    public ResponseEntity<GeneralResponse<List<VoucherSummaryDTO>>> getAvailableVouchers() {
-        return ResponseEntity.ok(voucherService.getAvailableVouchers());
+    public ResponseEntity<GeneralResponse<PagingDTO<VoucherSummaryDTO>>> getAvailableVouchers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword) {
+        return ResponseEntity.ok(voucherService.getAvailableVouchers(keyword, page, size));
     }
 
     @PostMapping("/{voucherId}/redeem")

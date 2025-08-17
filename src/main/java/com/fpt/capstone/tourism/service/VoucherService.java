@@ -11,7 +11,7 @@ public interface VoucherService {
 
     GeneralResponse<PagingDTO<VoucherSummaryDTO>> getVouchers(String keyword, int page, int size);
 
-    GeneralResponse<java.util.List<VoucherSummaryDTO>> getAvailableVouchers();
+    GeneralResponse<PagingDTO<VoucherSummaryDTO>> getAvailableVouchers(String keyword, int page, int size);
 
     GeneralResponse<String> redeemVoucher(Long userId, Long voucherId);
 }

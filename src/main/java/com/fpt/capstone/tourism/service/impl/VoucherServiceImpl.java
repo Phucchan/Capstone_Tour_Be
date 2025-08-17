@@ -10,7 +10,9 @@ import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.VoucherMapper;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.enums.VoucherStatus;
+import com.fpt.capstone.tourism.model.voucher.UserVoucher;
 import com.fpt.capstone.tourism.model.voucher.Voucher;
+import com.fpt.capstone.tourism.repository.user.UserVoucherRepository;
 import com.fpt.capstone.tourism.repository.voucher.VoucherRepository;
 import com.fpt.capstone.tourism.service.UserService;
 import com.fpt.capstone.tourism.service.VoucherService;
@@ -30,7 +32,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class VoucherServiceImpl implements VoucherService {
-
+    private final UserVoucherRepository userVoucherRepository;
     private final VoucherRepository voucherRepository;
     private final UserService userService;
     private final VoucherMapper voucherMapper;
@@ -90,18 +92,19 @@ public class VoucherServiceImpl implements VoucherService {
         }
     }
     @Override
-    public GeneralResponse<List<VoucherSummaryDTO>> getAvailableVouchers() {
+    public GeneralResponse<PagingDTO<VoucherSummaryDTO>> getAvailableVouchers(String keyword, int page, int size) {
         try {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
             LocalDateTime now = LocalDateTime.now();
-            List<VoucherSummaryDTO> vouchers = voucherRepository.findAll().stream()
-                    .filter(v -> v.getDeleted() == null || !v.getDeleted())
-                    .filter(v -> v.getVoucherStatus() == VoucherStatus.ACTIVE)
-                    .filter(v -> (v.getValidFrom() == null || !v.getValidFrom().isAfter(now))
-                            && (v.getValidTo() == null || !v.getValidTo().isBefore(now)))
-                    .filter(v -> v.getMaxUsage() == null || v.getMaxUsage() > 0)
-                    .map(voucherMapper::toSummaryDTO)
-                    .collect(Collectors.toList());
-            return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.VOUCHER_LIST_SUCCESS, vouchers);
+            String searchKeyword = (keyword != null && !keyword.isBlank()) ? keyword : null;
+            Page<Voucher> voucherPage = voucherRepository.findAvailableVouchers(searchKeyword, VoucherStatus.ACTIVE, now, pageable);
+            PagingDTO<VoucherSummaryDTO> pagingDTO = PagingDTO.<VoucherSummaryDTO>builder()
+                    .page(voucherPage.getNumber())
+                    .size(voucherPage.getSize())
+                    .total(voucherPage.getTotalElements())
+                    .items(voucherPage.getContent().stream().map(voucherMapper::toSummaryDTO).toList())
+                    .build();
+            return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.VOUCHER_LIST_SUCCESS, pagingDTO);
         } catch (BusinessException be) {
             throw be;
         } catch (Exception ex) {
@@ -144,6 +147,14 @@ public class VoucherServiceImpl implements VoucherService {
                 }
             }
             voucherRepository.save(voucher);
+            UserVoucher userVoucher = UserVoucher.builder()
+                    .user(user)
+                    .voucher(voucher)
+                    .redeemedAt(now)
+                    .used(false)
+                    .build();
+            userVoucher.setDeleted(false);
+            userVoucherRepository.save(userVoucher);
 
             return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.VOUCHER_REDEEM_SUCCESS, voucher.getCode());
         } catch (BusinessException be) {
