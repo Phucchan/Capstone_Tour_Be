@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.controller.seller;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
+import com.fpt.capstone.tourism.dto.request.RejectRequestDTO;
 import com.fpt.capstone.tourism.dto.request.RequestBookingDTO;
 import com.fpt.capstone.tourism.dto.request.RequestBookingSummaryDTO;
 import com.fpt.capstone.tourism.model.enums.RequestBookingStatus;
@@ -30,9 +31,15 @@ public class SellerRequestBookingController {
     }
 
     @PatchMapping("/{id}/approve")
+    // Example request: PATCH http://localhost:8080/v1/seller/request-bookings/1/approve
     public ResponseEntity<GeneralResponse<RequestBookingDTO>> approveRequest(@PathVariable Long id) {
         return ResponseEntity.ok(
                 requestBookingService.updateStatus(id, new ChangeStatusDTO(RequestBookingStatus.ACCEPTED.name()))
         );
+    }
+    @PatchMapping("/{id}/reject")
+    public ResponseEntity<GeneralResponse<RequestBookingDTO>> rejectRequest(@PathVariable Long id,
+                                                                            @RequestBody RejectRequestDTO dto) {
+        return ResponseEntity.ok(requestBookingService.rejectRequest(id, dto.getReason()));
     }
 }

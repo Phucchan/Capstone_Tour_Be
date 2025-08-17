@@ -20,8 +20,10 @@ import com.fpt.capstone.tourism.repository.RefundRepository;
 import com.fpt.capstone.tourism.repository.user.UserPointRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
+import com.fpt.capstone.tourism.service.S3Service;
 import com.fpt.capstone.tourism.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +32,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -52,6 +55,10 @@ public class UserServiceImpl implements UserService {
     private final BookingRepository bookingRepository;
     private final UserPointRepository userPointRepository;
     private final RefundRepository refundRepository;
+    private final S3Service s3Service;
+
+    @Value("${aws.s3.bucket-url}")
+    private String bucketUrl;
 
 
     @Override
@@ -131,16 +138,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public GeneralResponse<UserProfileResponseDTO> updateUserProfile(Long userId, UpdateProfileRequestDTO requestDTO) {
+    public GeneralResponse<UserProfileResponseDTO> updateUserProfile(Long userId, UpdateProfileRequestDTO requestDTO, MultipartFile avatarFile) {
         User user = userRepository.findUserById(userId)
                 .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND_MESSAGE));
 
         if (requestDTO.getFullName() != null) user.setFullName(requestDTO.getFullName());
-        if (requestDTO.getEmail() != null) user.setEmail(requestDTO.getEmail());
+        if (requestDTO.getEmail() != null && !requestDTO.getEmail().equals(user.getEmail())) {
+            if (userRepository.existsByEmail(requestDTO.getEmail())) {
+                throw BusinessException.of(EMAIL_ALREADY_EXISTS_MESSAGE);
+            }
+            user.setEmail(requestDTO.getEmail());
+        }
         if (requestDTO.getGender() != null) user.setGender(requestDTO.getGender());
         if (requestDTO.getPhone() != null) user.setPhone(requestDTO.getPhone());
         if (requestDTO.getAddress() != null) user.setAddress(requestDTO.getAddress());
-        if (requestDTO.getAvatarImg() != null) user.setAvatarImage(requestDTO.getAvatarImg());
+        if (avatarFile != null && !avatarFile.isEmpty()) {
+            String key = s3Service.uploadFile(avatarFile, "avatars");
+            user.setAvatarImage(bucketUrl + "/" + key);
+        } else if (requestDTO.getAvatarImg() != null) {
+            user.setAvatarImage(requestDTO.getAvatarImg());
+        }
         if (requestDTO.getDateOfBirth() != null) user.setDateOfBirth(requestDTO.getDateOfBirth());
 
         User saved = userRepository.save(user);

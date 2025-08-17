@@ -40,6 +40,17 @@ public interface TourDiscountRepository extends JpaRepository<TourDiscount, Long
             "AND ts.tour.deleted = false")
     Page<TourDiscount> findActiveDiscountedTours(@Param("now") LocalDateTime now, Pageable pageable);
 
+    @Query("SELECT td FROM TourDiscount td " +
+            "JOIN td.tourSchedule ts " +
+            "JOIN ts.tour t " +
+            "WHERE td.startDate <= :now AND td.endDate >= :now " +
+            "AND td.deleted = false " +
+            "AND ts.deleted = false " +
+            "AND t.deleted = false " +
+            "AND (:keyword IS NULL OR LOWER(t.name) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<TourDiscount> searchActiveDiscounts(@Param("keyword") String keyword,
+                                             @Param("now") LocalDateTime now,
+                                             Pageable pageable);
     Optional<TourDiscount> findFirstByTourSchedule_IdAndStartDateLessThanEqualAndEndDateGreaterThanEqualAndDeletedFalse(
             Long scheduleId,
             LocalDateTime startDate,

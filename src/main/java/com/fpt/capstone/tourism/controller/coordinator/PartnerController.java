@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.controller.coordinator;
 
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.request.ChangeDeleteStatusDTO;
 import com.fpt.capstone.tourism.dto.request.PartnerUpdateRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PartnerDetailDTO;
 import com.fpt.capstone.tourism.dto.response.PartnerSummaryDTO;
@@ -28,19 +29,32 @@ public class PartnerController {
     ) {
         return ResponseEntity.ok(partnerManagementService.getPartners(page, size, keyword, isDeleted, sortField, sortDirection));
     }
+
     @GetMapping("/partners/{id}")
     // postman http://localhost:8080/cordinator/partners/1
     public ResponseEntity<GeneralResponse<PartnerDetailDTO>> getPartnerDetail(@PathVariable Long id) {
         return ResponseEntity.ok(partnerManagementService.getPartnerDetail(id));
     }
+
     @PutMapping("/partners/{id}")
     public ResponseEntity<GeneralResponse<PartnerDetailDTO>> updatePartner(
             @PathVariable Long id,
             @RequestBody PartnerUpdateRequestDTO requestDTO) {
         return ResponseEntity.ok(partnerManagementService.updatePartner(id, requestDTO));
     }
+
     @PostMapping("/partners")
     public ResponseEntity<GeneralResponse<PartnerDetailDTO>> addPartner(@RequestBody PartnerUpdateRequestDTO requestDTO) {
         return ResponseEntity.ok(partnerManagementService.addPartner(requestDTO));
+    }
+
+    /**
+     * Dùng để thay đổi trạng thái (soft-delete/restore) của một Partner.
+     */
+    @PatchMapping("/partners/{id}/status")
+    public ResponseEntity<GeneralResponse<PartnerSummaryDTO>> changePartnerStatus(
+            @PathVariable Long id,
+            @RequestBody ChangeDeleteStatusDTO changeStatusDTO) {
+        return ResponseEntity.ok(partnerManagementService.changePartnerStatus(id, changeStatusDTO));
     }
 }

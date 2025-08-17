@@ -52,7 +52,8 @@ public class TourServiceImpl implements TourService {
 
         // 1. Bắt đầu với một Specification cơ sở (luôn lọc các tour đã publish)
         // KHÔNG DÙNG .where() nữa
-        Specification<Tour> spec = TourSpecification.isPublished();
+        Specification<Tour> spec = TourSpecification.isPublished()
+                .and(TourSpecification.hasUpcomingSchedule());
 
         // 2. Tuần tự thêm các điều kiện lọc nếu tham số của chúng tồn tại
         if (priceMin != null || priceMax != null) {
@@ -179,7 +180,7 @@ public class TourServiceImpl implements TourService {
         if (search != null && !search.isBlank()) {
             tourPage = tourRepository.searchCustomToursByUser(userId, TourType.CUSTOM, search.trim().toLowerCase(), pageable);
         } else {
-            tourPage = tourRepository.findByRequestBooking_User_IdAndTourType(userId, TourType.CUSTOM, pageable);
+            tourPage = tourRepository.findCustomToursByUserWithSchedules(userId, TourType.CUSTOM, pageable);
         }
         return mapTourPageToPagingDTO(tourPage);
     }

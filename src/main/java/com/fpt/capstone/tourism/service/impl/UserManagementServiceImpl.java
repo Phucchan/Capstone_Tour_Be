@@ -104,6 +104,11 @@ public class UserManagementServiceImpl implements UserManagementService {
         try {
             UserStatus newStatus = UserStatus.valueOf(statusValue.toUpperCase());
             user.setUserStatus(newStatus);
+            if (newStatus == UserStatus.INACTIVE) {
+                user.setDeleted(true);
+            } else if (newStatus == UserStatus.ACTIVE) {
+                user.setDeleted(false);
+            }
             userRepository.save(user);
         } catch (IllegalArgumentException e) {
             throw BusinessException.of(HttpStatus.BAD_REQUEST,

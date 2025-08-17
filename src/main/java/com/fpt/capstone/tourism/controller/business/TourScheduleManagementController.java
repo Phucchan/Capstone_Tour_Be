@@ -38,4 +38,11 @@ public class TourScheduleManagementController {
             @PathVariable Long tourId) {
         return ResponseEntity.ok(tourScheduleService.getTourSchedules(tourId));
     }
+    @DeleteMapping("/tours/{tourId}/schedules/{scheduleId}")
+    // Example: http://localhost:8080/v1/business/tours/1/schedules/2
+    public ResponseEntity<GeneralResponse<String>> deleteSchedule(
+            @PathVariable Long tourId,
+            @PathVariable Long scheduleId) {
+        return ResponseEntity.ok(tourScheduleService.deleteTourSchedule(tourId, scheduleId));
+    }
 }

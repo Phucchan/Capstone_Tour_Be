@@ -17,4 +17,5 @@ public class TourScheduleManagerDTO {
     private Long tourPaxId;
     private LocalDateTime departureDate;
     private LocalDateTime endDate;
+    private Double price;
 }

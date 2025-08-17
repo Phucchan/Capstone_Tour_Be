@@ -20,6 +20,7 @@ public class CheckinController {
     private final CheckInService checkInService;
 
     @GetMapping
+    //postman
     public ResponseEntity<GeneralResponse<List<BookingSummaryDTO>>> getCompletedTours(@PathVariable Long userId) {
         return ResponseEntity.ok(checkInService.getCompletedTours(userId));
     }

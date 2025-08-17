@@ -29,6 +29,7 @@ import com.fpt.capstone.tourism.service.tourbooking.TourBookingService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +38,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -56,6 +58,7 @@ public class TourBookingServiceImpl implements TourBookingService {
     private final TourDetailMapper tourDetailMapper;
     private final SimpMessagingTemplate messagingTemplate;
     private final com.fpt.capstone.tourism.repository.tour.TourScheduleRepository tourScheduleRepository;
+    private final RequestBookingVerificationService verificationService;
 
     @Value("${backend.base-url}")
     private String backendBaseUrl;
@@ -64,10 +67,26 @@ public class TourBookingServiceImpl implements TourBookingService {
     @Transactional
     public String createBooking(BookingRequestDTO bookingRequestDTO) {
         try {
+            if (bookingRequestDTO.getEmail() == null || bookingRequestDTO.getEmail().isBlank()
+                    || bookingRequestDTO.getVerificationCode() == null || bookingRequestDTO.getVerificationCode().isBlank()
+                    || !verificationService.verifyCode(bookingRequestDTO.getEmail(), bookingRequestDTO.getVerificationCode())) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Invalid verification code");
+            }
             List<BookingRequestCustomerDTO> allCustomersDTO = Stream.of(bookingRequestDTO.getAdults(), bookingRequestDTO.getChildren(), bookingRequestDTO.getInfants(), bookingRequestDTO.getToddlers())
                     .filter(Objects::nonNull)           // lọc ra list null
                     .flatMap(List::stream)              // gộp các list thành stream duy nhất
                     .toList();      // thu về một danh sách
+
+            // Kiểm tra số ghế còn trống trước khi tạo booking
+            TourSchedule schedule = tourScheduleRepository.findById(bookingRequestDTO.getScheduleId())
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Schedule not found"));
+            int passengers = allCustomersDTO.size() + 1; // +1 cho người đặt tour
+            int totalSlots = schedule.getTourPax().getMaxQuantity();
+            int bookedSlots = Optional.ofNullable(bookingRepository.sumGuestsByTourScheduleId(schedule.getId())).orElse(0);
+            int availableSeats = totalSlots - bookedSlots;
+            if (availableSeats < passengers) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Not enough available seats");
+            }
 
             List<BookingCustomer> allCustomers = bookingCustomerMapper.toEntity(allCustomersDTO);
 
@@ -142,6 +161,12 @@ public class TourBookingServiceImpl implements TourBookingService {
             List<BookingCustomer> entities = bookingCustomerMapper.toEntity(customers);
             for (BookingCustomer bc : entities) {
                 bc.setBooking(booking);
+            }
+            int totalSlots = booking.getTourSchedule().getTourPax().getMaxQuantity();
+            int bookedSlots = Optional.ofNullable(bookingRepository.sumGuestsByTourScheduleId(scheduleId)).orElse(0);
+            int availableSeats = totalSlots - bookedSlots;
+            if (availableSeats < entities.size()) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Not enough available seats");
             }
             bookingCustomerRepository.saveAll(entities);
 

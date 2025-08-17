@@ -15,9 +15,11 @@ public class BookingSummaryDTO {
     private Long id;
     private Long tourId;
     private String bookingCode;
+    private String tourImage;
     private String tourName;
     private String status;
     private double totalAmount;
+    private LocalDateTime endDate;
     private LocalDateTime createdAt;
     private LocalDateTime departureDate;
     private boolean hasRefundInfo;

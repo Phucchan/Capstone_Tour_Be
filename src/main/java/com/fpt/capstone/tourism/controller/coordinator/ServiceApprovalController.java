@@ -20,6 +20,7 @@ public class ServiceApprovalController {
     private final PartnerServiceApprovalService approvalService;
 
     @GetMapping("/pending")
+    // postman http://localhost:8080/coordinator/services/pending?page=0&size=10
     public ResponseEntity<GeneralResponse<PagingDTO<ServiceInfoDTO>>> getPendingServices(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,

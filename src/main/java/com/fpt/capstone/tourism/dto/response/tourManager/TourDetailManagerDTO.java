@@ -28,4 +28,5 @@ public class TourDetailManagerDTO {
     private List<LocationShortDTO> destinations;
     private List<TourThemeOptionDTO> themes;
     private RequestBookingDTO requestBooking;
+    private String createdByName;
 }

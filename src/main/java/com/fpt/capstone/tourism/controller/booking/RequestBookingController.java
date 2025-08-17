@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("customer/request-bookings")
+@RequestMapping("public/request-bookings")
 public class RequestBookingController {
 
     private final RequestBookingService requestBookingService;
@@ -26,6 +26,7 @@ public class RequestBookingController {
         return ResponseEntity.ok(requestBookingService.createRequest(requestBookingDTO));
     }
     @PostMapping("/send-code")
+    //postman http://localhost:
     public ResponseEntity<GeneralResponse<String>> sendVerificationCode(@RequestParam("email") String email) {
         return ResponseEntity.ok(requestBookingService.sendVerificationCode(email));
     }

@@ -11,6 +11,7 @@ import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class TourSpecification {
     /**
@@ -76,6 +77,18 @@ public class TourSpecification {
                     criteriaBuilder.equal(locationJoin.get("id"), destId),
                     criteriaBuilder.isFalse(tourDayJoin.get("deleted")),
                     criteriaBuilder.isFalse(locationJoin.get("deleted"))
+            );
+        };
+    }
+    public static Specification<Tour> hasUpcomingSchedule() {
+        return (root, query, criteriaBuilder) -> {
+            Join<Tour, TourSchedule> scheduleJoin = root.join("schedules");
+            query.distinct(true);
+            return criteriaBuilder.and(
+                    criteriaBuilder.isFalse(root.get("deleted")),
+                    criteriaBuilder.isFalse(scheduleJoin.get("deleted")),
+                    criteriaBuilder.isTrue(scheduleJoin.get("published")),
+                    criteriaBuilder.greaterThanOrEqualTo(scheduleJoin.get("departureDate"), LocalDateTime.now())
             );
         };
     }
