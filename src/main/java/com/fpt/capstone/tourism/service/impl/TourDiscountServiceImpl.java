@@ -66,6 +66,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
         } catch (BusinessException be) {
             throw be;
         } catch (Exception ex) {
+            ex.printStackTrace(); // <-- THÊM DÒNG NÀY ĐỂ DEBUG
             throw BusinessException.of(Constants.Message.TOUR_DISCOUNT_CREATE_FAIL, ex);
         }
     }
@@ -73,9 +74,9 @@ public class TourDiscountServiceImpl implements TourDiscountService {
     @Override
     public GeneralResponse<PagingDTO<TourDiscountSummaryDTO>> getDiscounts(String keyword, int page, int size) {
         try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "discountPercent"));
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "discount_percent"));
             Page<TourDiscount> discountPage = tourDiscountRepository
-                    .searchActiveDiscounts(keyword, LocalDateTime.now(), pageable);
+                    .searchActiveDiscounts(keyword, pageable);
             PagingDTO<TourDiscountSummaryDTO> pagingDTO = PagingDTO.<TourDiscountSummaryDTO>builder()
                     .page(discountPage.getNumber())
                     .size(discountPage.getSize())
@@ -86,6 +87,9 @@ public class TourDiscountServiceImpl implements TourDiscountService {
         } catch (BusinessException be) {
             throw be;
         } catch (Exception ex) {
+            // === THÊM DÒNG NÀY VÀO ĐỂ IN RA LỖI GỐC ===
+            ex.printStackTrace();
+            // ==========================================
             throw BusinessException.of(Constants.Message.TOUR_DISCOUNT_LIST_FAIL, ex);
         }
     }
