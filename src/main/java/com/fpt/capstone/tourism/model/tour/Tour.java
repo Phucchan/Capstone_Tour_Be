@@ -17,7 +17,6 @@ import java.util.List;
 
 @Entity
 @Table(name = "tours")
-@org.hibernate.annotations.Check(constraints = "((tour_type = 'CUSTOM' AND request_id IS NOT NULL) OR (tour_type = 'FIXED' AND request_id IS NULL))")
 @Data
 @Builder
 @NoArgsConstructor
@@ -67,8 +66,7 @@ public class Tour extends BaseEntity {
     @Column(name = "tour_status", length = 50)
     private TourStatus tourStatus;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "request_id", unique = true)
+    @OneToOne(mappedBy = "tour", fetch = FetchType.LAZY)
     private RequestBooking requestBooking;
 
     @Enumerated(EnumType.STRING)

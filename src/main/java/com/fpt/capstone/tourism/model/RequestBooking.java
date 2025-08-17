@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.model;
 import com.fpt.capstone.tourism.model.enums.RequestBookingStatus;
 import com.fpt.capstone.tourism.model.enums.RoomCategory;
 import com.fpt.capstone.tourism.model.enums.TourTransport;
+import com.fpt.capstone.tourism.model.tour.Tour;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,6 +29,12 @@ public class RequestBooking extends BaseEntity {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private User user;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tour_id", unique = true)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Tour tour;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "depart_location_id")

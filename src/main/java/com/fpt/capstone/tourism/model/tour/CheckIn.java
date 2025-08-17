@@ -24,7 +24,6 @@ public class CheckIn extends BaseEntity {
     @JoinColumn(name = "booking_id", nullable = false)
     private Booking booking;
 
-
     @Column(name = "check_in_type", length = 50)
     private String checkInType = "photo_upload";
 

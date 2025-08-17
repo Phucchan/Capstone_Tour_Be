@@ -134,34 +134,36 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         tour.setTourType(requestDTO.getTourType() != null ? requestDTO.getTourType() : TourType.FIXED);
         tour.setTourStatus(TourStatus.DRAFT);
 
+        RequestBooking request = null;
         if (tour.getTourType() == TourType.CUSTOM) {
             if (requestDTO.getRequestBookingId() == null) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, "Custom tour requires requestBookingId");
             }
-            RequestBooking request = requestBookingRepository.findById(requestDTO.getRequestBookingId())
+            request = requestBookingRepository.findById(requestDTO.getRequestBookingId())
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Request booking not found"));
-            tour.setRequestBooking(request);
             request.setStatus(RequestBookingStatus.COMPLETED);
-            requestBookingRepository.save(request);
+            tour.setCreatedBy(request.getUser());
         } else {
             if (requestDTO.getRequestBookingId() != null) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, "Fixed tour cannot have requestBookingId");
             }
         }
-
         if (requestDTO.getDepartLocationId() != null) {
             Location depart = locationRepository.findById(requestDTO.getDepartLocationId())
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Depart location not found"));
             tour.setDepartLocation(depart);
         }
-
-
         if (requestDTO.getTourThemeIds() != null) {
 
             List<TourTheme> themes = tourThemeRepository.findAllById(requestDTO.getTourThemeIds());
             tour.setThemes(themes);
         }
         Tour savedTour = tourRepository.save(tour);
+        if (request != null) {
+            request.setTour(savedTour);
+            requestBookingRepository.save(request);
+            savedTour.setRequestBooking(request);
+        }
 
         if (requestDTO.getDestinationLocationIds() != null) {
             int dayNumber = 1;
@@ -389,6 +391,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                         ? requestBookingMapper.toDTO(tour.getRequestBooking())
                         : null)
                 .requestBookingId(tour.getRequestBooking() != null ? tour.getRequestBooking().getId() : null)
+                .createdByName(tour.getCreatedBy() != null ? tour.getCreatedBy().getFullName() : null)
                 .build();
     }
 
