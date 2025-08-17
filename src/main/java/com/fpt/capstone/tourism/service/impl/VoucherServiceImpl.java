@@ -9,8 +9,10 @@ import com.fpt.capstone.tourism.dto.response.VoucherSummaryDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.VoucherMapper;
 import com.fpt.capstone.tourism.model.User;
+import com.fpt.capstone.tourism.model.UserPoint;
 import com.fpt.capstone.tourism.model.enums.VoucherStatus;
 import com.fpt.capstone.tourism.model.voucher.Voucher;
+import com.fpt.capstone.tourism.repository.user.UserPointRepository;
 import com.fpt.capstone.tourism.repository.voucher.VoucherRepository;
 import com.fpt.capstone.tourism.service.UserService;
 import com.fpt.capstone.tourism.service.VoucherService;
@@ -21,6 +23,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +36,7 @@ public class VoucherServiceImpl implements VoucherService {
     private final VoucherRepository voucherRepository;
     private final UserService userService;
     private final VoucherMapper voucherMapper;
+    private final UserPointRepository userPointRepository;
 
     @Override
     public GeneralResponse<VoucherDTO> createVoucher(VoucherRequestDTO requestDTO) {
@@ -82,6 +90,73 @@ public class VoucherServiceImpl implements VoucherService {
             throw be;
         } catch (Exception ex) {
             throw BusinessException.of(Constants.Message.VOUCHER_LIST_FAIL, ex);
+        }
+    }
+    @Override
+    public GeneralResponse<List<VoucherSummaryDTO>> getAvailableVouchers() {
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            List<VoucherSummaryDTO> vouchers = voucherRepository.findAll().stream()
+                    .filter(v -> v.getDeleted() == null || !v.getDeleted())
+                    .filter(v -> v.getVoucherStatus() == VoucherStatus.ACTIVE)
+                    .filter(v -> (v.getValidFrom() == null || !v.getValidFrom().isAfter(now))
+                            && (v.getValidTo() == null || !v.getValidTo().isBefore(now)))
+                    .filter(v -> v.getMaxUsage() == null || v.getMaxUsage() > 0)
+                    .map(voucherMapper::toSummaryDTO)
+                    .collect(Collectors.toList());
+            return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.VOUCHER_LIST_SUCCESS, vouchers);
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception ex) {
+            throw BusinessException.of(Constants.Message.VOUCHER_LIST_FAIL, ex);
+        }
+    }
+
+    @Override
+    @Transactional
+    public GeneralResponse<String> redeemVoucher(Long userId, Long voucherId) {
+        try {
+            Voucher voucher = voucherRepository.findById(voucherId)
+                    .orElseThrow(() -> BusinessException.of(Constants.Message.VOUCHER_NOT_FOUND));
+
+            LocalDateTime now = LocalDateTime.now();
+            if ((voucher.getDeleted() != null && voucher.getDeleted())
+                    || voucher.getVoucherStatus() != VoucherStatus.ACTIVE
+                    || (voucher.getValidFrom() != null && voucher.getValidFrom().isAfter(now))
+                    || (voucher.getValidTo() != null && voucher.getValidTo().isBefore(now))) {
+                throw BusinessException.of(Constants.Message.VOUCHER_REDEEM_FAIL);
+            }
+
+            if (voucher.getMaxUsage() != null && voucher.getMaxUsage() <= 0) {
+                throw BusinessException.of(Constants.Message.VOUCHER_OUT_OF_STOCK);
+            }
+
+            Integer points = userPointRepository.sumPointsByUserId(userId);
+            int currentPoints = points != null ? points : 0;
+            if (currentPoints < voucher.getPointsRequired()) {
+                throw BusinessException.of(Constants.Message.VOUCHER_NOT_ENOUGH_POINTS);
+            }
+
+            User user = userService.findById(userId);
+            UserPoint userPoint = UserPoint.builder()
+                    .user(user)
+                    .points(-voucher.getPointsRequired())
+                    .build();
+            userPointRepository.save(userPoint);
+
+            if (voucher.getMaxUsage() != null) {
+                voucher.setMaxUsage(voucher.getMaxUsage() - 1);
+                if (voucher.getMaxUsage() <= 0) {
+                    voucher.setVoucherStatus(VoucherStatus.USED);
+                }
+            }
+            voucherRepository.save(voucher);
+
+            return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.VOUCHER_REDEEM_SUCCESS, voucher.getCode());
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception ex) {
+            throw BusinessException.of(Constants.Message.VOUCHER_REDEEM_FAIL, ex);
         }
     }
 

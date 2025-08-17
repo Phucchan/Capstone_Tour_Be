@@ -139,6 +139,11 @@ public class Constants {
         public static final String VOUCHER_CODE_EXISTS = "Mã voucher đã tồn tại";
         public static final String VOUCHER_LIST_SUCCESS = "Lấy danh sách voucher thành công";
         public static final String VOUCHER_LIST_FAIL = "Lấy danh sách voucher thất bại";
+        public static final String VOUCHER_REDEEM_SUCCESS = "Đổi voucher thành công";
+        public static final String VOUCHER_REDEEM_FAIL = "Đổi voucher thất bại";
+        public static final String VOUCHER_NOT_FOUND = "Không tìm thấy voucher";
+        public static final String VOUCHER_OUT_OF_STOCK = "Voucher đã hết lượt sử dụng";
+        public static final String VOUCHER_NOT_ENOUGH_POINTS = "Không đủ điểm để đổi voucher";
         // Tour discount related
         public static final String TOUR_DISCOUNT_CREATE_SUCCESS = "Tạo giảm giá tour thành công";
         public static final String TOUR_DISCOUNT_CREATE_FAIL = "Tạo giảm giá tour thất bại";
