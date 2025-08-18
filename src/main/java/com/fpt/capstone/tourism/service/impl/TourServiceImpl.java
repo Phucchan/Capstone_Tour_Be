@@ -116,7 +116,7 @@ public class TourServiceImpl implements TourService {
         log.info("Fetching schedules for tour ID: {}", tourId);
         LocalDateTime now = LocalDateTime.now();
         List<TourSchedule> schedules = tourScheduleRepository
-                .findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(tourId, now);
+                .findByTourIdAndDepartureDateAfterAndDeletedFalseOrderByDepartureDateAsc(tourId, now);
         log.info("Finished schedules for tour ID: {}", tourId);
 
         log.info("Fetching Average Rating for tour ID: {}", tourId);
@@ -194,7 +194,7 @@ public class TourServiceImpl implements TourService {
                     Double startingPrice = tourPaxRepository.findStartingPriceByTourId(tour.getId());
 
                     // Lấy danh sách các lịch trình trong tương lai
-                    List<TourSchedule> futureSchedules = tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(
+                    List<TourSchedule> futureSchedules = tourScheduleRepository.findByTourIdAndDepartureDateAfterAndDeletedFalseOrderByDepartureDateAsc(
                             tour.getId(),
                             LocalDateTime.now()
                     );

@@ -166,7 +166,7 @@ public class HomepageServiceImpl implements HomepageService {
         Double startingPrice = tourPaxRepository.findStartingPriceByTourId(tour.getId());
 
         // Lấy lịch trình gần nhất
-        List<TourSchedule> futureSchedules = tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(
+        List<TourSchedule> futureSchedules = tourScheduleRepository.findByTourIdAndDepartureDateAfterAndDeletedFalseOrderByDepartureDateAsc(
                 tour.getId(),
                 LocalDateTime.now()
         );
