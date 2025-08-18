@@ -97,7 +97,7 @@ public class VoucherServiceImpl implements VoucherService {
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
             LocalDateTime now = LocalDateTime.now();
-            String searchKeyword = (keyword != null && !keyword.isBlank()) ? keyword : null;
+            String searchKeyword = (keyword != null && !keyword.isBlank()) ? "%" + keyword.toLowerCase() + "%" : null;
             Page<Voucher> voucherPage = voucherRepository.findAvailableVouchers(searchKeyword, VoucherStatus.ACTIVE, now, pageable);
             PagingDTO<VoucherSummaryDTO> pagingDTO = PagingDTO.<VoucherSummaryDTO>builder()
                     .page(voucherPage.getNumber())

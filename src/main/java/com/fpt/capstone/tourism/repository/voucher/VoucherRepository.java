@@ -25,7 +25,7 @@ public interface VoucherRepository extends JpaRepository<Voucher, Long> {
             "AND (v.validFrom IS NULL OR v.validFrom <= :now) " +
             "AND (v.validTo IS NULL OR v.validTo >= :now) " +
             "AND (v.maxUsage IS NULL OR v.maxUsage > 0) " +
-            "AND (:keyword IS NULL OR LOWER(v.code) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "AND (:keyword IS NULL OR LOWER(v.code) LIKE :keyword) " +
             "ORDER BY v.createdAt DESC")
     Page<Voucher> findAvailableVouchers(@Param("keyword") String keyword,
                                         @Param("status") VoucherStatus status,
