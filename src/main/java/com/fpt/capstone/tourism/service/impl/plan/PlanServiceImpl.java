@@ -83,8 +83,12 @@ public class PlanServiceImpl implements PlanService {
                 throw BusinessException.of("Không có đối tác nào phù hợp với địa điểm đã chọn");
             }
 
-            Map<Integer, List<PartnerShortDTO>> partnersByLocation = partners.stream()
+            Map<Integer, List<PartnerShortDTO>> partnersByLocation = partners.stream().filter(partner -> !partner.getPartnerType().equalsIgnoreCase("Phương tiện di chuyển"))
                     .collect(Collectors.groupingBy(partner -> Math.toIntExact(partner.getLocationId())));
+
+            List<PartnerShortDTO> transportPartners = partners.stream()
+                    .filter(partner -> partner.getPartnerType().equalsIgnoreCase("Phương tiện di chuyển"))
+                    .toList();
 
             double totalSpending = 0;
 
@@ -125,7 +129,7 @@ public class PlanServiceImpl implements PlanService {
                 planDays.add(planDay);
             }
 
-            String planDetailsPrompt = generatePrompt(locationNames, preferences, totalDays);
+            String planDetailsPrompt = generatePrompt(locationNames, preferences, totalDays, transportPartners);
             String planDetailsResponse = geminiApiService.getGeminiResponse(planDetailsPrompt);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -142,7 +146,7 @@ public class PlanServiceImpl implements PlanService {
                     .planType(dto.getPlanType())
                     .createdAt(LocalDateTime.now())
                     .planStatus(PlanStatus.PENDING)
-                    .transportationType(planDetails.getTransportationType())
+                    .transports(planDetails.getTransports())
                     .build();
 
             enricher.enrichPlanWithImage(plan, String.join(", ", locationNames));
@@ -169,8 +173,12 @@ public class PlanServiceImpl implements PlanService {
                 .replaceFirst("\\s*```$", "");
     }
 
-    private String generatePrompt(List<String> locationNames, String preferences, int totalDays) {
+    private String generatePrompt(List<String> locationNames, String preferences, int totalDays, List<PartnerShortDTO> transportPartners) {
 
+        String partnerContext = buildPartnerContext(transportPartners);
+        if (partnerContext.isEmpty()) {
+            throw BusinessException.of("Không có đối tác di chuyển nào phù hợp với địa điểm đã chọn");
+        }
         return String.format("""
                             Bạn là một trợ lý AI chuyên xây dựng chương trình du lịch cá nhân hóa.
             
@@ -181,16 +189,30 @@ public class PlanServiceImpl implements PlanService {
                             Hãy tạo nội dung du lịch chi tiết cho cả kế hoach, bao gồm:
                             1. **title**: tiêu đề dễ hiểu, ngắn gọn, thể hiện nội dung chính chuyến đi.
                             2. **description**: mô tả toàn cảnh hoạt động của chuyến đi, ít nhất 100 từ, đầy đủ cảm xúc, mô tả chung một nội dung của kế hoạch.
-                            3. **transportationType**: Một hoặc 2 loại phương tiện di chuyển chính trong chuyến đi ("Flight, "Car").
+                            3. **transports**: danh sách các phương tiện di chuyển phù hợp với ngân sách và địa điểm, mỗi phương tiện gồm: id, name (mô tả chi tiết về phương tiện di chuyển).
+                                - Chỉ sử dụng các đối tác cung cấp dịch vụ di chuyển đã được cung cấp bên dưới.
+                                - Ưu tiên các phương tiện có trả phí, có giá trị trải nghiệm tương xứng và góp phần nâng tổng chi phí ngày lên mức hợp lý (gần mức ngân sách đã đề ra).
+                                - Tránh việc chi tiêu quá tiết kiệm hoặc chọn phương án miễn phí nếu không thật sự cần thiết.
+                                - Tránh tạo ra lịch trình ngày có chi phí quá thấp hoặc quá cao so với phần còn lại của chuyến đi.
+                        
+                            %s
 
                             **Kết quả trả về là một JSON object theo định dạng sau**:
                         
                             {
                                 title: "",
                                 description: "",
-                                transportationType: "Flight, Car"
+                                transports: [
+                                    {
+                                        id: 1
+                                        name: "Tên Nhà Cung Cấp Dịch Vụ Di Chuyển",
+                                        websiteUrl: "https://example.com",
+                                        logoUrl: "https://example.com/logo.png",
+                                        estimatedCost: 500000
+                                    }
+                                ]
                             }
-                        """, totalDays, String.join(", ", locationNames), preferences);
+                        """, totalDays, String.join(", ", locationNames), preferences, partnerContext);
     }
 
     private String generatePrompt(int totalDays, String preferences, double budgetMin, double budgetMax, double totalSpending, String locationName, int dayNumber, List<PartnerShortDTO> relatedPartners) {
@@ -230,6 +252,7 @@ public class PlanServiceImpl implements PlanService {
                                     - Nếu một hoạt động là **miễn phí hoàn toàn** (ví dụ: đi bộ quanh hồ, tham quan đền chùa), hãy đặt `estimatedCost: 0`.
                                     - Với các nhà hàng và khách sạn **không được để estimatedCost = 0**.
                                     - Ước tính theo mặt bằng giá thực tế – ví dụ: bữa ăn phổ thông 50.000–100.000 VNĐ, khách sạn bình dân 300.000–600.000 VNĐ/đêm...
+                                    - Giá dịch vụ của các ngày trước và sau nên tương đương nhau, tránh ngày quá cao hoặc quá thấp.
                                 7. **title**: tiêu đề dễ hiểu, ngắn gọn, thể hiện nội dung chính của ngày hôm nay.
                                 
                                 %s
@@ -239,6 +262,30 @@ public class PlanServiceImpl implements PlanService {
     private String buildPartnerContext(String locationName, List<PartnerShortDTO> partners) {
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("Dưới đây là danh sách các đối tác cung cấp dịch vụ tại %s. Chỉ được sử dụng các đối tác này khi tạo kế hoạch:\n\n", locationName));
+
+        Map<String, List<PartnerShortDTO>> grouped = partners.stream()
+                .collect(Collectors.groupingBy(PartnerShortDTO::getPartnerType));
+
+        grouped.forEach((type, list) -> {
+            sb.append(String.format("**%s:**\n", type));
+            for (PartnerShortDTO p : list) {
+                sb.append(String.format("- %s | %s | %s | logoUrl: %s | website: %s\n",
+                        p.getName(),
+                        Optional.ofNullable(p.getContactPhone()).orElse("Không có SĐT"),
+                        Optional.ofNullable(p.getContactEmail()).orElse("Không có email"),
+                        Optional.ofNullable(p.getLogoUrl()).orElse("Không có logo"),
+                        Optional.ofNullable(p.getWebsiteUrl()).orElse("Không có website"))
+                );
+            }
+            sb.append("\n");
+        });
+
+        return sb.toString();
+    }
+
+    private String buildPartnerContext(List<PartnerShortDTO> partners) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Dưới đây là danh sách các đối tác cung cấp dịch vụ di chuyển. Chỉ được sử dụng các đối tác này khi tạo kế hoạch:\n\n");
 
         Map<String, List<PartnerShortDTO>> grouped = partners.stream()
                 .collect(Collectors.groupingBy(PartnerShortDTO::getPartnerType));

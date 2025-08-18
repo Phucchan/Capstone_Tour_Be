@@ -16,7 +16,7 @@ public interface TourManagementMapper {
     @Mapping(target = "tourStatus", source = "tourStatus", qualifiedByName = "mapTourStatus")
     @Mapping(target = "durationDays", source = "durationDays")
     @Mapping(target = "createdAt", source = "createdAt")
-    @Mapping(target = "createdByName", source = "createdBy.fullName")
+   // @Mapping(target = "createdByName", source = "createdBy.fullName")
     TourResponseManagerDTO toTourResponseDTO(Tour tour);
 
     @Named("mapTourType")

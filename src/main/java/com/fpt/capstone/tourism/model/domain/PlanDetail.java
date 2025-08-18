@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Builder
 @Data
 @AllArgsConstructor
@@ -13,5 +15,5 @@ import lombok.NoArgsConstructor;
 public class PlanDetail {
     private String title;
     private String description;
-    private String transportationType; // e.g., "Flight", "Car Rental"
+    private List<Transport> transports;
 }
