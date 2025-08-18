@@ -134,7 +134,7 @@ public class TourBookingServiceImpl implements TourBookingService {
                     .paymentMethod(bookingRequestDTO.getPaymentMethod())
                     .paymentUrl(paymentUrl)
                     .expiredAt(LocalDateTime.now().plusHours(9))
-                    .totalAmount(bookingRequestDTO.getTotal())
+                    .totalAmount(finalTotal)
                     .needHelp(bookingRequestDTO.isNeedHelp())
                     .adults(bookingRequestDTO.getAdults() != null ? bookingRequestDTO.getAdults().size() : 0)
                     .children(bookingRequestDTO.getChildren() != null ? bookingRequestDTO.getChildren().size() : 0)
