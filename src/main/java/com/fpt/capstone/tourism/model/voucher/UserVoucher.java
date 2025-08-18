@@ -29,11 +29,11 @@ public class UserVoucher extends BaseEntity {
     @JoinColumn(name = "voucher_id", nullable = false)
     private Voucher voucher;
 
+    @Column(name = "quantity", nullable = false)
+    private Integer quantity;
+
     @Column(name = "redeemed_at", nullable = false)
     private LocalDateTime redeemedAt;
-
-    @Column(name = "used", nullable = false)
-    private Boolean used;
 
     @Column(name = "used_at")
     private LocalDateTime usedAt;

@@ -14,4 +14,5 @@ public class UserVoucherSummaryDTO {
     private Long voucherId;
     private String code;
     private double discountAmount;
+    private int quantity;
 }

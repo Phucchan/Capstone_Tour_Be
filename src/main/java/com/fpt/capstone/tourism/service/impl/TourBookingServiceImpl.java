@@ -107,7 +107,7 @@ public class TourBookingServiceImpl implements TourBookingService {
                 appliedVoucher = userVoucherRepository.findById(bookingRequestDTO.getUserVoucherId())
                         .orElseThrow(() -> BusinessException.of(HttpStatus.BAD_REQUEST, "Voucher not found"));
                 if (!appliedVoucher.getUser().getId().equals(bookingRequestDTO.getUserId())
-                        || Boolean.TRUE.equals(appliedVoucher.getUsed())) {
+                        || (appliedVoucher.getQuantity() == null || appliedVoucher.getQuantity() <= 0)) {
                     throw BusinessException.of(HttpStatus.BAD_REQUEST, "Voucher not available");
                 }
                 Voucher voucher = appliedVoucher.getVoucher();
@@ -147,8 +147,11 @@ public class TourBookingServiceImpl implements TourBookingService {
             Booking result = bookingRepository.save(tourBooking);
 
             if (appliedVoucher != null) {
-                appliedVoucher.setUsed(true);
-                appliedVoucher.setUsedAt(LocalDateTime.now());
+                int remaining = (appliedVoucher.getQuantity() != null ? appliedVoucher.getQuantity() : 0) - 1;
+                appliedVoucher.setQuantity(remaining);
+                if (remaining <= 0) {
+                    appliedVoucher.setUsedAt(LocalDateTime.now());
+                }
                 userVoucherRepository.save(appliedVoucher);
                 VoucherUsage usage = VoucherUsage.builder()
                         .voucher(appliedVoucher.getVoucher())

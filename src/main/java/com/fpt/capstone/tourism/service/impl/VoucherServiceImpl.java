@@ -152,7 +152,7 @@ public class VoucherServiceImpl implements VoucherService {
                     .user(user)
                     .voucher(voucher)
                     .redeemedAt(now)
-                    .used(false)
+                    .quantity(1)
                     .build();
             userVoucher.setDeleted(false);
             userVoucherRepository.save(userVoucher);
@@ -171,7 +171,7 @@ public class VoucherServiceImpl implements VoucherService {
             List<UserVoucher> userVouchers = userVoucherRepository.findByUserId(userId);
             LocalDateTime now = LocalDateTime.now();
             List<UserVoucherSummaryDTO> dtos = userVouchers.stream()
-                    .filter(uv -> Boolean.FALSE.equals(uv.getUsed()))
+                    .filter(uv -> uv.getQuantity() != null && uv.getQuantity() > 0)
                     .filter(uv -> {
                         Voucher v = uv.getVoucher();
                         return v.getVoucherStatus() == VoucherStatus.ACTIVE
@@ -184,6 +184,7 @@ public class VoucherServiceImpl implements VoucherService {
                             .voucherId(uv.getVoucher().getId())
                             .code(uv.getVoucher().getCode())
                             .discountAmount(uv.getVoucher().getDiscountAmount())
+                            .quantity(uv.getQuantity() != null ? uv.getQuantity() : 0)
                             .build())
                     .collect(Collectors.toList());
             return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.VOUCHER_LIST_SUCCESS, dtos);
