@@ -1,11 +1,13 @@
 package com.fpt.capstone.tourism.dto.request;
 
+import lombok.Builder;
 import lombok.Data;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 public class TourDiscountRequestDTO {
     @NotNull
     private Long scheduleId;

@@ -18,10 +18,15 @@ import com.fpt.capstone.tourism.model.enums.*;
 import com.fpt.capstone.tourism.model.partner.PartnerService;
 import com.fpt.capstone.tourism.model.payment.*;
 import com.fpt.capstone.tourism.model.tour.*;
+import com.fpt.capstone.tourism.model.voucher.UserVoucher;
+import com.fpt.capstone.tourism.model.voucher.Voucher;
+import com.fpt.capstone.tourism.model.voucher.VoucherUsage;
 import com.fpt.capstone.tourism.repository.BookingCustomerRepository;
 import com.fpt.capstone.tourism.repository.booking.BookingServiceRepository;
 import com.fpt.capstone.tourism.repository.partner.PartnerServiceRepository;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
+import com.fpt.capstone.tourism.repository.user.UserVoucherRepository;
+import com.fpt.capstone.tourism.repository.voucher.VoucherUsageRepository;
 import com.fpt.capstone.tourism.service.VNPayService;
 import com.fpt.capstone.tourism.service.payment.PaymentBillItemRepository;
 import com.fpt.capstone.tourism.service.payment.PaymentBillRepository;
@@ -59,6 +64,8 @@ public class TourBookingServiceImpl implements TourBookingService {
     private final SimpMessagingTemplate messagingTemplate;
     private final com.fpt.capstone.tourism.repository.tour.TourScheduleRepository tourScheduleRepository;
     private final RequestBookingVerificationService verificationService;
+    private final UserVoucherRepository userVoucherRepository;
+    private final VoucherUsageRepository voucherUsageRepository;
 
     @Value("${backend.base-url}")
     private String backendBaseUrl;
@@ -94,7 +101,27 @@ public class TourBookingServiceImpl implements TourBookingService {
 
             String bookingCode = bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), bookingRequestDTO.getScheduleId(), bookingRequestDTO.getUserId());
 
-            String paymentUrl = vnPayService.generatePaymentUrl(bookingRequestDTO.getTotal(), bookingCode, baseUrl, 120);
+            double finalTotal = bookingRequestDTO.getTotal() != null ? bookingRequestDTO.getTotal() : 0;
+            UserVoucher appliedVoucher = null;
+            if (bookingRequestDTO.getUserVoucherId() != null) {
+                appliedVoucher = userVoucherRepository.findById(bookingRequestDTO.getUserVoucherId())
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.BAD_REQUEST, "Voucher not found"));
+                if (!appliedVoucher.getUser().getId().equals(bookingRequestDTO.getUserId())
+                        || (appliedVoucher.getQuantity() == null || appliedVoucher.getQuantity() <= 0)) {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST, "Voucher not available");
+                }
+                Voucher voucher = appliedVoucher.getVoucher();
+                LocalDateTime now = LocalDateTime.now();
+                if (voucher.getVoucherStatus() != VoucherStatus.ACTIVE
+                        || (voucher.getValidFrom() != null && voucher.getValidFrom().isAfter(now))
+                        || (voucher.getValidTo() != null && voucher.getValidTo().isBefore(now))
+                        || (voucher.getMinOrderValue() > 0 && finalTotal < voucher.getMinOrderValue())) {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST, "Voucher not applicable");
+                }
+                finalTotal = Math.max(0, finalTotal - voucher.getDiscountAmount());
+            }
+
+            String paymentUrl = vnPayService.generatePaymentUrl(finalTotal, bookingCode, baseUrl, 120);
 
             Booking tourBooking = Booking.builder()
                     .tourSchedule(TourSchedule.builder().id(bookingRequestDTO.getScheduleId()).build())
@@ -119,6 +146,23 @@ public class TourBookingServiceImpl implements TourBookingService {
 
             Booking result = bookingRepository.save(tourBooking);
 
+            if (appliedVoucher != null) {
+                int remaining = (appliedVoucher.getQuantity() != null ? appliedVoucher.getQuantity() : 0) - 1;
+                appliedVoucher.setQuantity(remaining);
+                if (remaining <= 0) {
+                    appliedVoucher.setUsedAt(LocalDateTime.now());
+                }
+                userVoucherRepository.save(appliedVoucher);
+                VoucherUsage usage = VoucherUsage.builder()
+                        .voucher(appliedVoucher.getVoucher())
+                        .booking(result)
+                        .user(result.getUser())
+                        .usedAt(LocalDateTime.now())
+                        .build();
+                voucherUsageRepository.save(usage);
+            }
+
+
             for (BookingCustomer customer : allCustomers) {
                 customer.setBooking(result);
             }
@@ -138,7 +182,7 @@ public class TourBookingServiceImpl implements TourBookingService {
             bookingCustomerRepository.saveAll(allCustomers);
 
             saveTourBookingService(result, allCustomers.size());
-            createReceiptBookingBill(result, bookingRequestDTO.getTotal(), bookingRequestDTO.getFullName(), bookingRequestDTO.getPaymentMethod());
+            createReceiptBookingBill(result, finalTotal, bookingRequestDTO.getFullName(), bookingRequestDTO.getPaymentMethod());
             notifyNewBooking(result, bookingRequestDTO.getTourName(), bookingRequestDTO.getTourId());
             return bookingCode;
 

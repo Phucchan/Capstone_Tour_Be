@@ -19,4 +19,5 @@ public class TourResponseManagerDTO {
     private String tourStatus;
     private Integer durationDays;
     private LocalDateTime createdAt;
+    private String createdByName;
 }

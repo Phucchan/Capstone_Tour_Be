@@ -38,6 +38,7 @@ public class CheckinController {
         return ResponseEntity.ok(checkInService.addCheckIn(userId, bookingId, file));
     }
     @DeleteMapping("/photos/{checkInId}")
+    // postman http://localhost:8080/v1/customer/1/checkin/photos/123
     public ResponseEntity<GeneralResponse<String>> deleteCheckIn(@PathVariable Long userId,
                                                                  @PathVariable Long checkInId) {
         return ResponseEntity.ok(checkInService.deleteCheckIn(userId, checkInId));

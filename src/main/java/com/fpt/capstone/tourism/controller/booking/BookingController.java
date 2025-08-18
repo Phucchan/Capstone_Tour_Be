@@ -30,6 +30,7 @@ public class BookingController {
     private String frontendBaseUrl;
 
     @PostMapping("/submit")
+    //postman http://localhost:8080/public/booking/submit
     public ResponseEntity<GeneralResponse<String>> submitBooking(@RequestBody BookingRequestDTO bookingRequestDTO){
         return ResponseEntity.ok(GeneralResponse.of(tourBookingService.createBooking(bookingRequestDTO)));
     }
