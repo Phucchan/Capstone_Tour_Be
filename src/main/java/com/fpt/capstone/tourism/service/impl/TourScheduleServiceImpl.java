@@ -12,11 +12,14 @@ import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.UserMapper;
 import com.fpt.capstone.tourism.model.enums.ScheduleRepeatType;
 import com.fpt.capstone.tourism.model.enums.TourType;
+import com.fpt.capstone.tourism.model.partner.PartnerService;
 import com.fpt.capstone.tourism.model.tour.Tour;
+import com.fpt.capstone.tourism.model.tour.TourDay;
 import com.fpt.capstone.tourism.model.tour.TourPax;
 import com.fpt.capstone.tourism.model.tour.TourSchedule;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.repository.TourManagementRepository;
+import com.fpt.capstone.tourism.repository.tour.TourDayRepository;
 import com.fpt.capstone.tourism.repository.tour.TourPaxRepository;
 import com.fpt.capstone.tourism.repository.tour.TourScheduleRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
@@ -29,6 +32,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,6 +45,7 @@ public class TourScheduleServiceImpl implements TourScheduleService {
     private final TourScheduleRepository tourScheduleRepository;
     private final UserMapper userMapper;
     private final EmailService emailService;
+    private final TourDayRepository tourDayRepository;
 
     @Override
     public GeneralResponse<List<TourScheduleManagerDTO>> createTourSchedule(Long tourId, TourScheduleCreateRequestDTO requestDTO) {
@@ -117,12 +122,27 @@ public class TourScheduleServiceImpl implements TourScheduleService {
             if (to != null && !to.isBlank()) {
                 String subject = "Thông báo tour đặt riêng đã được tạo";
                 String customerName = request.getCustomerName() != null ? request.getCustomerName() : "";
-                String content = String.format(
-                        "Xin chào %s,\n\nTour đặt riêng của bạn mã %s đã được tạo với ngày khởi hành %s.Vui lòng vào web của chúng tôi để kiểm tra.\n\n Trân trọng.",
-                        customerName,
-                        tour.getCode(),
-                        firstSchedule.getDepartureDate().toLocalDate());
-                emailService.sendEmail(to, subject, content);
+                StringBuilder content = new StringBuilder();
+                content.append(String.format("Xin chào %s,\n\n", customerName));
+                content.append("Tour đặt riêng của bạn đã được tạo với các thông tin sau:\n");
+                content.append(String.format("Mã tour: %s\n", tour.getCode()));
+                content.append(String.format("Tên tour: %s\n", tour.getName()));
+                content.append(String.format("Ngày khởi hành: %s\n\n", firstSchedule.getDepartureDate().toLocalDate()));
+
+                List<TourDay> tourDays = tourDayRepository.findByTourIdWithServices(tour.getId());
+                for (TourDay day : tourDays) {
+                    content.append(String.format("Ngày %d: %s\n", day.getDayNumber(),
+                            day.getTitle() != null ? day.getTitle() : ""));
+                    for (PartnerService service : day.getServices()) {
+                        content.append(String.format(" - %s: %s VND\n",
+                                service.getName(),
+                                String.format(Locale.US, "%,.0f", service.getSellingPrice())));
+                    }
+                    content.append("\n");
+                }
+                content.append("Vui lòng vào website của chúng tôi để kiểm tra chi tiết.\n\nTrân trọng.");
+
+                emailService.sendEmail(to, subject, content.toString());
             }
         }
 
