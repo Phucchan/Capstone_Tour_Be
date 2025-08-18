@@ -4,6 +4,8 @@ import com.fpt.capstone.tourism.model.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "tour_themes")
 @Data
@@ -20,10 +22,9 @@ public class TourTheme  extends BaseEntity {
     private String name; // Name of the tour theme, e.g., "Adventure", "Cultural", etc.
     private String description; // Description of the tour theme
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tour_id")
+    @ManyToMany(mappedBy = "themes")
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Tour tour; // The tour associated with this theme, if applicable
+    private List<Tour> tours;
 
 }

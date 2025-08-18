@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.specifications;
 
+import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.model.tour.Tour;
@@ -10,6 +11,7 @@ import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class TourSpecification {
     /**
@@ -49,8 +51,14 @@ public class TourSpecification {
      * Lọc các tour theo điểm khởi hành.
      */
     public static Specification<Tour> hasDepartureLocation(Long departId) {
-        return (root, query, criteriaBuilder) ->
-                departId == null ? null : criteriaBuilder.equal(root.get("departLocation").get("id"), departId);
+        return (root, query, criteriaBuilder) -> {
+            if (departId == null) {
+                return null;
+            }
+            Join<Tour, Location> departJoin = root.join("departLocation");
+            query.distinct(true);
+            return criteriaBuilder.equal(departJoin.get("id"), departId);
+        };
     }
 
     /**
@@ -63,8 +71,25 @@ public class TourSpecification {
             }
             // Join với bảng TourDay để lấy điểm đến của từng ngày
             Join<Tour, TourDay> tourDayJoin = root.join("tourDays");
+            Join<TourDay, Location> locationJoin = tourDayJoin.join("location");
             query.distinct(true); // Đảm bảo không trả về tour trùng lặp
-            return criteriaBuilder.equal(tourDayJoin.get("location").get("id"), destId);
+            return criteriaBuilder.and(
+                    criteriaBuilder.equal(locationJoin.get("id"), destId),
+                    criteriaBuilder.isFalse(tourDayJoin.get("deleted")),
+                    criteriaBuilder.isFalse(locationJoin.get("deleted"))
+            );
+        };
+    }
+    public static Specification<Tour> hasUpcomingSchedule() {
+        return (root, query, criteriaBuilder) -> {
+            Join<Tour, TourSchedule> scheduleJoin = root.join("schedules");
+            query.distinct(true);
+            return criteriaBuilder.and(
+                    criteriaBuilder.isFalse(root.get("deleted")),
+                    criteriaBuilder.isFalse(scheduleJoin.get("deleted")),
+                    criteriaBuilder.isTrue(scheduleJoin.get("published")),
+                    criteriaBuilder.greaterThanOrEqualTo(scheduleJoin.get("departureDate"), LocalDateTime.now())
+            );
         };
     }
 

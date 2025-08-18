@@ -9,10 +9,17 @@ import com.fpt.capstone.tourism.dto.request.RegisterRequestDTO;
 import com.fpt.capstone.tourism.dto.response.UserInfoResponseDTO;
 import com.fpt.capstone.tourism.model.Role;
 import com.fpt.capstone.tourism.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
 import java.util.List;
 
@@ -29,6 +36,7 @@ public class AuthController {
         log.info("Login request received for user: {}", userDTO.getUsername());
         return ResponseEntity.ok(authService.login(userDTO));
     }
+
 
     @GetMapping("/confirm-email")
     public ResponseEntity<GeneralResponse<String>> confirmEmail(@RequestParam String token) {

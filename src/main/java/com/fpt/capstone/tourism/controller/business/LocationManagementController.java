@@ -7,8 +7,10 @@ import com.fpt.capstone.tourism.dto.request.LocationRequestDTO;
 import com.fpt.capstone.tourism.service.LocationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -28,9 +30,22 @@ public class LocationManagementController {
         return ResponseEntity.ok(locationService.getListLocation(page, size, keyword));
     }
 
-    @PostMapping("/locations")
-    //        "name","description","image"
-    public ResponseEntity<GeneralResponse<LocationDTO>> createLocation(@RequestBody LocationRequestDTO requestDTO) {
-        return ResponseEntity.ok(locationService.saveLocation(requestDTO));
+    @PostMapping(value = "/locations", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<GeneralResponse<LocationDTO>> createLocation(@RequestParam("file") MultipartFile file,
+                                                                       @ModelAttribute LocationRequestDTO requestDTO) {
+        return ResponseEntity.ok(locationService.saveLocation(requestDTO, file));
+    }
+    @GetMapping("/locations/{id}")
+    //postman http://localhost:8080/v1/business/locations/1
+    public ResponseEntity<GeneralResponse<LocationDTO>>locationDetail(@PathVariable Long id) {
+        return ResponseEntity.ok(locationService.getLocationById(id));
+    }
+
+    @PutMapping(value = "/locations/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    //postman http://localhost:8080/v1/business/locations/1
+    public ResponseEntity<GeneralResponse<LocationDTO>> updateLocation(@PathVariable Long id,
+                                                                       @RequestParam(value = "file", required = false) MultipartFile file,
+                                                                       @ModelAttribute LocationRequestDTO requestDTO) {
+        return ResponseEntity.ok(locationService.updateLocation(id, requestDTO, file));
     }
 }

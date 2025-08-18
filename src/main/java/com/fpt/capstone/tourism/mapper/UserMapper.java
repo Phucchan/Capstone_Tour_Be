@@ -11,6 +11,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
+
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -22,6 +24,7 @@ public interface UserMapper {
     @Mapping(target = "deleted", source = "deleted")
     UserFullInformationResponseDTO toDTO(User user);
 
+    @Mapping(target = "fullName", source = "fullName")
     UserBasicDTO toUserBasicDTO(User user);
 
 

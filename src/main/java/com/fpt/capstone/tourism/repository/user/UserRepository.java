@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,22 +36,31 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     @Query("SELECT f.sender FROM Friendship f WHERE f.receiver.id = :userId AND f.status = 'ACCEPTED'")
     List<User> findFriendsAsReceiver(@Param("userId") Long userId);
 
-    /**
-     * Thống kê số lượng người dùng mới đăng ký theo từng tháng của một năm.
-     *
-     * @param year năm cần thống kê
-     * @return Danh sách Object[] gồm: year, month, userCount
-     */
+
+    // SỬA LỖI: Thêm CAST(... AS timestamp)
     @Query(value = "SELECT EXTRACT(YEAR FROM u.created_at) AS yr, " +
             "EXTRACT(MONTH FROM u.created_at) AS mon, " +
             "COUNT(*) AS user_count " +
             "FROM users u " +
             "WHERE u.is_deleted = FALSE " +
-            "AND EXTRACT(YEAR FROM u.created_at) = :year " +
+            "AND (CAST(:startDate AS timestamp) IS NULL OR u.created_at >= :startDate) " +
+            "AND (CAST(:endDate AS timestamp) IS NULL OR u.created_at <= :endDate) " +
             "GROUP BY yr, mon " +
             "ORDER BY mon",
             nativeQuery = true)
-    List<Object[]> countNewUsersByMonth(@Param("year") int year);
+    List<Object[]> countNewUsersByMonth(@Param("startDate") LocalDateTime startDate,
+                                        @Param("endDate") LocalDateTime endDate);
 
+    // SỬA LỖI: Thêm CAST(... AS timestamp)
+    @Query(value = "SELECT COUNT(*) FROM users u " +
+            "WHERE u.is_deleted = FALSE " +
+            "AND (CAST(:startDate AS timestamp) IS NULL OR u.created_at >= :startDate) " +
+            "AND (CAST(:endDate AS timestamp) IS NULL OR u.created_at <= :endDate)",
+            nativeQuery = true)
+    Long countNewUsers(@Param("startDate") LocalDateTime startDate,
+                       @Param("endDate") LocalDateTime endDate);
 
+    @Query("SELECT u FROM User u JOIN u.userRoles ur JOIN ur.role r " +
+            "WHERE r.roleName = :roleName AND u.deleted = FALSE")
+    List<User> findByRoleName(@Param("roleName") String roleName);
 }

@@ -1,10 +1,13 @@
 package com.fpt.capstone.tourism.service.impl;
 
+import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.SaleTourDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourScheduleDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.TourMarkupResponseDTO;
 import com.fpt.capstone.tourism.mapper.TourMapper;
+import com.fpt.capstone.tourism.model.enums.TourType;
 import com.fpt.capstone.tourism.model.tour.*;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
 import com.fpt.capstone.tourism.repository.tour.*;
@@ -27,6 +30,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 
+import static com.fpt.capstone.tourism.constants.Constants.Message.*;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -43,11 +48,12 @@ public class TourServiceImpl implements TourService {
     private final TourDetailMapper tourDetailMapper;
 
     @Override
-    public PagingDTO<TourSummaryDTO> filterTours(Double priceMin, Double priceMax, Long departId, Long destId, LocalDate date, Pageable pageable) {
+    public PagingDTO<TourSummaryDTO> filterTours(Double priceMin, Double priceMax, Long departId, Long destId, LocalDate date, String name, Pageable pageable) {
 
         // 1. Bắt đầu với một Specification cơ sở (luôn lọc các tour đã publish)
         // KHÔNG DÙNG .where() nữa
-        Specification<Tour> spec = TourSpecification.isPublished();
+        Specification<Tour> spec = TourSpecification.isPublished()
+                .and(TourSpecification.hasUpcomingSchedule());
 
         // 2. Tuần tự thêm các điều kiện lọc nếu tham số của chúng tồn tại
         if (priceMin != null || priceMax != null) {
@@ -61,6 +67,9 @@ public class TourServiceImpl implements TourService {
         }
         if (date != null) {
             spec = spec.and(TourSpecification.hasDepartureDate(date));
+        }
+        if (name != null && !name.isBlank()) {
+            spec = spec.and(TourSpecification.hasNameLike(name));
         }
 
         // 3. Gọi repository với specification đã được xây dựng hoàn chỉnh
@@ -105,7 +114,9 @@ public class TourServiceImpl implements TourService {
         log.info("Finished feedbacks for tour ID: {}", tourId);
 
         log.info("Fetching schedules for tour ID: {}", tourId);
-        List<TourSchedule> schedules = tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(tourId, LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        List<TourSchedule> schedules = tourScheduleRepository
+                .findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(tourId, now);
         log.info("Finished schedules for tour ID: {}", tourId);
 
         log.info("Fetching Average Rating for tour ID: {}", tourId);
@@ -139,10 +150,20 @@ public class TourServiceImpl implements TourService {
             // Tính toán số chỗ trống
             int totalSlots = schedule.getTourPax().getMaxQuantity();
             int bookedSlots = bookingRepository.sumGuestsByTourScheduleId(schedule.getId());
-            int availableSeats = totalSlots - bookedSlots;
+            int availableSeats = Math.max(totalSlots - bookedSlots, 0);
 
             // Gán số chỗ trống vào DTO
             dto.setAvailableSeats(availableSeats);
+
+            // Áp dụng giảm giá nếu có
+            tourDiscountRepository
+                    .findFirstByTourSchedule_IdAndStartDateLessThanEqualAndEndDateGreaterThanEqualAndDeletedFalse(
+                            schedule.getId(), now, now)
+                    .ifPresent(discount -> {
+                        dto.setDiscountPercent(discount.getDiscountPercent());
+                    });
+
+
 
             return dto;
         }).collect(Collectors.toList());
@@ -153,6 +174,16 @@ public class TourServiceImpl implements TourService {
         return tourDetailDTO;
     }
 
+    @Override
+    public PagingDTO<TourSummaryDTO> getCustomToursByUser(Long userId, String search, Pageable pageable) {
+        Page<Tour> tourPage;
+        if (search != null && !search.isBlank()) {
+            tourPage = tourRepository.searchCustomToursByUser(userId, TourType.CUSTOM, search.trim().toLowerCase(), pageable);
+        } else {
+            tourPage = tourRepository.findCustomToursByUserWithSchedules(userId, TourType.CUSTOM, pageable);
+        }
+        return mapTourPageToPagingDTO(tourPage);
+    }
 
     // Phương thức helper để map danh sách tour tóm tắt
     private PagingDTO<TourSummaryDTO> mapTourPageToPagingDTO(Page<Tour> tourPage) {
@@ -199,19 +230,15 @@ public class TourServiceImpl implements TourService {
         TourSchedule schedule = discount.getTourSchedule();
         Tour tour = schedule.getTour();
         Double averageRating = feedbackRepository.findAverageRatingByTourId(tour.getId());
-        Double startingPrice = tourPaxRepository.findStartingPriceByTourId(tour.getId());
+        Double startingPrice = schedule.getTourPax() != null ? schedule.getTourPax().getSellingPrice() : null;
 
-        List<TourSchedule> futureSchedules = tourScheduleRepository.findByTourIdAndDepartureDateAfterOrderByDepartureDateAsc(
-                tour.getId(),
-                LocalDateTime.now()
-        );
-
-        List<LocalDateTime> departureDates = futureSchedules.stream()
-                .map(TourSchedule::getDepartureDate)
-                .collect(Collectors.toList());
-
+        List<LocalDateTime> departureDates = List.of(schedule.getDepartureDate());
+        int totalSlots = schedule.getTourPax().getMaxQuantity();
+        int bookedSlots = bookingRepository.sumGuestsByTourScheduleId(schedule.getId());
+        int availableSeats = Math.max(totalSlots - bookedSlots, 0);
         return SaleTourDTO.builder()
-                .id(tour.getId())
+                .scheduleId(schedule.getId())
+                .tourId(tour.getId())
                 .name(tour.getName())
                 .thumbnailUrl(tour.getThumbnailUrl())
                 .durationDays(tour.getDurationDays())
@@ -223,6 +250,8 @@ public class TourServiceImpl implements TourService {
                 .tourTransport(tour.getTourTransport() != null ? tour.getTourTransport().name() : null)
                 .departureDates(departureDates)
                 .discountPercent(discount.getDiscountPercent())
+                .availableSeats(availableSeats)
                 .build();
     }
+
 }

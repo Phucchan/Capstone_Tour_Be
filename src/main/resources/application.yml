@@ -120,8 +120,7 @@ backend:
 serpapi:
   api:
     key: ${SERPAPI_KEY}
-
-    aws:
+aws:
       s3:
         access-key-id: ${AWS_ACCESS_KEY_ID}
         secret-access-key: ${AWS_SECRET_ACCESS_KEY}

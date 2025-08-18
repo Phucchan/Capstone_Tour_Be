@@ -19,12 +19,9 @@ public interface LocationRepository extends JpaRepository<Location, Long>, JpaSp
     @Query(value = """
             SELECT l.* FROM location l
             JOIN (
-                SELECT t.location_id AS loc_id, COUNT(b.booking_id) AS cnt
-                FROM bookings b
-                JOIN tour_schedules ts ON b.tour_schedule_id = ts.schedule_id
-                JOIN tours t ON ts.tour_id = t.tour_id
-                WHERE b.booking_status <> 'CANCELLED'
-                  AND t.is_deleted = false
+                SELECT t.location_id AS loc_id, COUNT(t.tour_id) AS cnt
+                FROM tours t
+                WHERE t.is_deleted = false
                 GROUP BY t.location_id
                 ORDER BY cnt DESC
                 LIMIT :limit
@@ -33,10 +30,11 @@ public interface LocationRepository extends JpaRepository<Location, Long>, JpaSp
             ORDER BY sub.cnt DESC
             """,
             nativeQuery = true)
-    List<Location> findTopVisitedLocations(@Param("limit") int limit);
-    List<Location> findByNameContainingIgnoreCase(String name);
+    List<Location> findLocationsWithMostTours(@Param("limit") int limit);
     Page<Location> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
     @Query(value = "SELECT * FROM location WHERE is_deleted = FALSE", nativeQuery = true)
     List<Location> findAllLocations();
+
+    List<Location> findByDeletedFalseOrderByNameAsc();
 }

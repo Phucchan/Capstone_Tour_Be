@@ -1,22 +1,29 @@
 package com.fpt.capstone.tourism.controller.business;
 
+import com.fpt.capstone.tourism.dto.common.PartnerServiceShortDTO;
 import com.fpt.capstone.tourism.dto.common.ServiceTypeShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 
+import com.fpt.capstone.tourism.dto.request.RejectRequestDTO;
+import com.fpt.capstone.tourism.dto.request.RequestBookingDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.TourCreateManagerRequestDTO;
+import com.fpt.capstone.tourism.dto.response.RequestBookingNotificationDTO;
 import com.fpt.capstone.tourism.dto.response.ServiceInfoDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourOptionsDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.*;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
+import com.fpt.capstone.tourism.service.RequestBookingService;
 import com.fpt.capstone.tourism.service.TourManagementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -28,6 +35,7 @@ public class TourManagementController {
 
     @Autowired
     private final TourManagementService tourManagementService;
+    private final RequestBookingService requestBookingService;
 
     // danh sách tour
     // postman http://localhost:8080/v1/business/tours?page=1&size=6
@@ -49,10 +57,40 @@ public class TourManagementController {
         return ResponseEntity.ok(tourManagementService.changeStatus(id, changeStatusDTO));
     }
 
-    @PostMapping("/tours")
+    @PostMapping(value = "/tours", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     // postman http://localhost:8080/v1/business/tours
-    public ResponseEntity<GeneralResponse<TourDetailManagerDTO>> createTour(@RequestBody TourCreateManagerRequestDTO requestDTO) {
-        return ResponseEntity.ok(tourManagementService.createTour(requestDTO));
+    // body: form-data
+    public ResponseEntity<GeneralResponse<TourDetailManagerDTO>> createTour(
+            // Dùng @RequestPart để đọc phần dữ liệu JSON có tên là "tourData"
+            @RequestPart("tourData") TourCreateManagerRequestDTO requestDTO,
+            // Dùng @RequestPart để đọc file có tên là "thumbnailFile"
+            @RequestPart(value = "thumbnailFile", required = false) MultipartFile file
+    ) {
+        // Gọi service, không cần thay đổi gì ở đây
+        return ResponseEntity.ok(tourManagementService.createTour(requestDTO, file));
+    }
+
+    @GetMapping("/request-bookings")
+    // postman http://localhost:8080/v1/business/request-bookings?page=0&size=10
+    public ResponseEntity<GeneralResponse<PagingDTO<RequestBookingNotificationDTO>>> getListRequests(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(requestBookingService.getRequests(page, size));
+    }
+    @GetMapping("/request-bookings/{id}")
+    public ResponseEntity<GeneralResponse<RequestBookingDTO>> getDetailRequest(@PathVariable Long id) {
+        return ResponseEntity.ok(requestBookingService.getRequest(id));
+    }
+    @PatchMapping("/request-bookings/{id}/reject")
+    public ResponseEntity<GeneralResponse<RequestBookingDTO>> rejectRequest(@PathVariable Long id,
+                                                                            @RequestBody RejectRequestDTO dto) {
+        return ResponseEntity.ok(requestBookingService.rejectRequest(id, dto.getReason()));
+    }
+
+    @PatchMapping("/request-bookings/{id}/status")
+    public ResponseEntity<GeneralResponse<RequestBookingDTO>> updateRequestStatus(@PathVariable Long id,
+                                                                                  @RequestBody ChangeStatusDTO changeStatusDTO) {
+        return ResponseEntity.ok(requestBookingService.updateStatus(id, changeStatusDTO));
     }
 
     @GetMapping("/tours/options")
@@ -60,6 +98,12 @@ public class TourManagementController {
     public ResponseEntity<GeneralResponse<TourOptionsDTO>> getTourOptions() {
         return ResponseEntity.ok(tourManagementService.getTourOptions());
     }
-
+    @GetMapping("/partner-services")
+    public ResponseEntity<GeneralResponse<List<PartnerServiceShortDTO>>> getPartnerServices(
+            // Thêm @RequestParam để nhận ID loại dịch vụ
+            @RequestParam(value = "serviceTypeId", required = false) Long serviceTypeId
+    ) {
+        return ResponseEntity.ok(tourManagementService.getPartnerServices(serviceTypeId));
+    }
 
 }

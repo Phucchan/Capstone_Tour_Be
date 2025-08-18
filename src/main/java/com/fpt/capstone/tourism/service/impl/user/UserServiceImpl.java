@@ -4,6 +4,7 @@ import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangePasswordRequestDTO;
+import com.fpt.capstone.tourism.dto.request.RefundRequestDTO;
 import com.fpt.capstone.tourism.dto.request.UpdateProfileRequestDTO;
 import com.fpt.capstone.tourism.dto.response.BookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
@@ -12,20 +13,25 @@ import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.UserMapper;
 import com.fpt.capstone.tourism.model.User;
+import com.fpt.capstone.tourism.model.enums.BookingStatus;
+import com.fpt.capstone.tourism.model.payment.Refund;
 import com.fpt.capstone.tourism.model.tour.Booking;
-import com.fpt.capstone.tourism.repository.user.UserPointRepository;
+import com.fpt.capstone.tourism.repository.RefundRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
+import com.fpt.capstone.tourism.service.S3Service;
 import com.fpt.capstone.tourism.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +50,11 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final BookingRepository bookingRepository;
-    private final UserPointRepository userPointRepository;
+    private final RefundRepository refundRepository;
+    private final S3Service s3Service;
+
+    @Value("${aws.s3.bucket-url}")
+    private String bucketUrl;
 
 
     @Override
@@ -118,29 +128,35 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND_MESSAGE));
         UserProfileResponseDTO dto = userMapper.toUserProfileResponseDTO(user);
         dto.setTotalToursBooked(Math.toIntExact(bookingRepository.countByUser_Id(userId)));
-        Integer points = userPointRepository.sumPointsByUserId(userId);
-        dto.setPoints(points != null ? points : 0);
         return GeneralResponse.of(dto);
     }
 
     @Override
-    public GeneralResponse<UserProfileResponseDTO> updateUserProfile(Long userId, UpdateProfileRequestDTO requestDTO) {
+    public GeneralResponse<UserProfileResponseDTO> updateUserProfile(Long userId, UpdateProfileRequestDTO requestDTO, MultipartFile avatarFile) {
         User user = userRepository.findUserById(userId)
                 .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND_MESSAGE));
 
         if (requestDTO.getFullName() != null) user.setFullName(requestDTO.getFullName());
-        if (requestDTO.getEmail() != null) user.setEmail(requestDTO.getEmail());
+        if (requestDTO.getEmail() != null && !requestDTO.getEmail().equals(user.getEmail())) {
+            if (userRepository.existsByEmail(requestDTO.getEmail())) {
+                throw BusinessException.of(EMAIL_ALREADY_EXISTS_MESSAGE);
+            }
+            user.setEmail(requestDTO.getEmail());
+        }
         if (requestDTO.getGender() != null) user.setGender(requestDTO.getGender());
         if (requestDTO.getPhone() != null) user.setPhone(requestDTO.getPhone());
         if (requestDTO.getAddress() != null) user.setAddress(requestDTO.getAddress());
-        if (requestDTO.getAvatarImg() != null) user.setAvatarImage(requestDTO.getAvatarImg());
+        if (avatarFile != null && !avatarFile.isEmpty()) {
+            String key = s3Service.uploadFile(avatarFile, "avatars");
+            user.setAvatarImage(bucketUrl + "/" + key);
+        } else if (requestDTO.getAvatarImg() != null) {
+            user.setAvatarImage(requestDTO.getAvatarImg());
+        }
         if (requestDTO.getDateOfBirth() != null) user.setDateOfBirth(requestDTO.getDateOfBirth());
 
         User saved = userRepository.save(user);
         UserProfileResponseDTO dto = userMapper.toUserProfileResponseDTO(saved);
         dto.setTotalToursBooked(Math.toIntExact(bookingRepository.countByUser_Id(userId)));
-        Integer points = userPointRepository.sumPointsByUserId(userId);
-        dto.setPoints(points != null ? points : 0);
         return GeneralResponse.of(dto);
     }
 
@@ -171,22 +187,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public GeneralResponse<PagingDTO<BookingSummaryDTO>> getUserBookings(Long userId, Pageable pageable) {
+    public GeneralResponse<PagingDTO<BookingSummaryDTO>> getBookingHistory(Long userId, Pageable pageable) {
         userRepository.findUserById(userId)
                 .orElseThrow(() -> BusinessException.of(USER_NOT_FOUND_MESSAGE));
 
-        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                Sort.by(Sort.Direction.ASC, "bookingStatus"));
-
-        Page<Booking> bookings = bookingRepository.findByUser_Id(userId, sortedPageable);
+        Page<Booking> bookings = bookingRepository.findByUser_Id(userId, pageable);
 
         List<BookingSummaryDTO> dtos = bookings.getContent().stream()
                 .map(b -> BookingSummaryDTO.builder()
+                        .id(b.getId())
+                        .tourId(b.getTourSchedule().getTour().getId())
                         .bookingCode(b.getBookingCode())
                         .tourName(b.getTourSchedule().getTour().getName())
                         .status(b.getBookingStatus() != null ? b.getBookingStatus().name() : null)
                         .totalAmount(b.getTotalAmount())
                         .createdAt(b.getCreatedAt())
+                        .departureDate(b.getTourSchedule().getDepartureDate())
+                        .hasRefundInfo(refundRepository.findByBooking_Id(b.getId()).isPresent())
                         .build())
                 .toList();
 
@@ -198,5 +215,55 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.GET_BOOKING_LIST_SUCCESS, pagingDTO);
+    }
+    @Override
+    @Transactional
+    public GeneralResponse<String> requestBookingCancellation(Long userId, Long bookingId) {
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                .orElseThrow(() -> BusinessException.of(Constants.Message.BOOKING_NOT_FOUND));
+
+        if (booking.getUser() == null || !booking.getUser().getId().equals(userId)) {
+            throw BusinessException.of(Constants.Message.BOOKING_NOT_FOUND);
+        }
+
+        if (booking.getBookingStatus() != BookingStatus.PENDING &&
+                booking.getBookingStatus() != BookingStatus.CONFIRMED) {
+            throw BusinessException.of("Chỉ có thể yêu cầu hủy cho đặt tour đang chờ xác nhận hoặc đã xác nhận");
+        }
+
+        booking.setBookingStatus(BookingStatus.CANCEL_REQUESTED);
+        bookingRepository.save(booking);
+
+        return GeneralResponse.of("Yêu cầu hủy đặt tour thành công");
+    }
+    @Override
+    @Transactional
+    public GeneralResponse<String> submitRefundInfo(Long userId, Long bookingId, RefundRequestDTO requestDTO) {
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                .orElseThrow(() -> BusinessException.of(Constants.Message.BOOKING_NOT_FOUND));
+
+        if (booking.getUser() == null || !booking.getUser().getId().equals(userId)) {
+            throw BusinessException.of(Constants.Message.BOOKING_NOT_FOUND);
+        }
+
+        if (booking.getBookingStatus() != BookingStatus.CANCEL_REQUESTED) {
+            throw BusinessException.of("Chỉ có thể gửi thông tin hoàn tiền cho đặt tour đã yêu cầu hủy");
+        }
+
+        Refund refund = refundRepository.findByBooking_Id(bookingId).orElse(null);
+        if (refund == null) {
+            refund = Refund.builder()
+                    .booking(booking)
+                    .build();
+        }
+
+        refund.setBankAccountNumber(requestDTO.getBankAccountNumber());
+        refund.setBankAccountHolder(requestDTO.getBankAccountHolder());
+        refund.setBankName(requestDTO.getBankName());
+        refund.setRefundAmount(BigDecimal.valueOf(booking.getTotalAmount()));
+
+        refundRepository.save(refund);
+
+        return GeneralResponse.of("Cập nhật thông tin hoàn tiền thành công");
     }
 }

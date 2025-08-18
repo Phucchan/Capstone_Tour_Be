@@ -55,6 +55,10 @@ public class User extends BaseEntity implements UserDetails {
 
     private String address;
 
+    @Builder.Default
+    @Column(name = "points", nullable = false, columnDefinition = "integer default 0")
+    private Integer points = 0;
+
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 

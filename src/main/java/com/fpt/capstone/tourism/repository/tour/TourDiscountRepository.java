@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TourDiscountRepository extends JpaRepository<TourDiscount, Long> {
@@ -27,6 +28,7 @@ public interface TourDiscountRepository extends JpaRepository<TourDiscount, Long
             "ORDER BY td.discountPercent DESC")
     List<TourDiscount> findTopDiscountedTours(@Param("now") LocalDateTime now, Pageable pageable);
 
+
     @Query("SELECT td FROM TourDiscount td " +
             "JOIN td.tourSchedule ts " +
             "WHERE td.startDate <= :now AND td.endDate >= :now " +
@@ -37,4 +39,24 @@ public interface TourDiscountRepository extends JpaRepository<TourDiscount, Long
             "AND ts.tour.tourStatus = com.fpt.capstone.tourism.model.enums.TourStatus.PUBLISHED " +
             "AND ts.tour.deleted = false")
     Page<TourDiscount> findActiveDiscountedTours(@Param("now") LocalDateTime now, Pageable pageable);
+
+    // === SỬA LỖI CUỐI CÙNG TẠI ĐÂY ===
+    // Chuyển sang Native Query để sử dụng cú pháp SQL thuần của PostgreSQL
+    // Thêm `nativeQuery = true` và viết lại câu lệnh theo cú pháp SQL
+    @Query(value = "SELECT td.* FROM tour_discounts td " +
+            "JOIN tour_schedules ts ON td.schedule_id = ts.schedule_id " +
+            "JOIN tours t ON ts.tour_id = t.tour_id " +
+            "WHERE td.is_deleted = false " +
+            "AND ts.is_deleted = false " +
+            "AND t.is_deleted = false " +
+            "AND (CAST(:keyword AS text) IS NULL OR LOWER(CAST(t.name AS TEXT)) LIKE LOWER(CONCAT('%', :keyword, '%')))",
+            nativeQuery = true)
+    Page<TourDiscount> searchActiveDiscounts(@Param("keyword") String keyword,
+                                             Pageable pageable);
+
+    Optional<TourDiscount> findFirstByTourSchedule_IdAndStartDateLessThanEqualAndEndDateGreaterThanEqualAndDeletedFalse(
+            Long scheduleId,
+            LocalDateTime startDate,
+            LocalDateTime endDate
+    );
 }

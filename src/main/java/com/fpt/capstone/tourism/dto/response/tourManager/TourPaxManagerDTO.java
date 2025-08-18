@@ -13,4 +13,5 @@ public class TourPaxManagerDTO {
     private Long id;
     private int minQuantity;
     private int maxQuantity;
+    private Double sellingPrice;
 }

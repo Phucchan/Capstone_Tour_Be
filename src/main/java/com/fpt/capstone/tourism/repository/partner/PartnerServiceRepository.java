@@ -1,7 +1,10 @@
 package com.fpt.capstone.tourism.repository.partner;
 
 import com.fpt.capstone.tourism.model.domain.projection.PartnerServiceWithDayDTO;
+import com.fpt.capstone.tourism.model.enums.PartnerServiceStatus;
 import com.fpt.capstone.tourism.model.partner.PartnerService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,6 +27,13 @@ public interface PartnerServiceRepository extends JpaRepository<PartnerService, 
     """, nativeQuery = true)
     List<PartnerServiceWithDayDTO> findServicesWithDayNumberByScheduleId(@Param("scheduleId") Long scheduleId);
 
+    @Query("SELECT ps FROM PartnerService ps WHERE ps.deleted = FALSE")
+    List<PartnerService> findByDeletedFalse();
 
+        // Tìm tất cả dịch vụ theo ID của loại dịch vụ
+        List<PartnerService> findByServiceTypeId(Long serviceTypeId);
+
+    Page<PartnerService> findByStatus(PartnerServiceStatus status, Pageable pageable);
+    Page<PartnerService> findByStatusAndNameContainingIgnoreCase(PartnerServiceStatus status, String name, Pageable pageable);
 
 }

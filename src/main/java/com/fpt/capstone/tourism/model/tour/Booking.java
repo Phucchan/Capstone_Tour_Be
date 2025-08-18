@@ -56,22 +56,22 @@ public class Booking extends BaseEntity {
     private LocalDateTime expiredAt;
 
     @Column(name = "adults")
-    private int adults;
+    private Integer adults;
 
     @Column(name = "children")
-    private int children;
+    private Integer children;
 
     @Column(name = "infants")
-    private int infants;
+    private Integer infants;
 
     @Column(name = "toddlers")
-    private int toddlers;
+    private Integer toddlers;
 
     @Column(name = "singleRooms")
-    private int singleRooms;
+    private Integer singleRooms;
 
     @Column(name = "needHelp")
-    private boolean needHelp;
+    private Boolean needHelp;
 
     @Column(name = "total_amount")
     private double totalAmount;

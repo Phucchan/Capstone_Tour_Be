@@ -1,9 +1,8 @@
 package com.fpt.capstone.tourism.controller;
 
-import com.fpt.capstone.tourism.dto.common.location.LocationDTO;
-import com.fpt.capstone.tourism.dto.common.location.LocationShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.response.PublicLocationDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.SaleTourDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.TourSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.tour.SearchTourResponseDTO;
@@ -36,56 +35,11 @@ public class TourController {
     private final LocationService locationService;
 
     @GetMapping("/{id}")
+    //postman http://localhost:8080/v1/public/tours/1
     public ResponseEntity<GeneralResponse<TourDetailDTO>> getTourDetailById(@PathVariable Long id) {
         TourDetailDTO result = tourService.getTourDetailById(id);
         return ResponseEntity.ok(GeneralResponse.of(result, "Tour detail loaded successfully."));
     }
-
-    @GetMapping("/filter")
-    // postman http://localhost:8080/v1/public/tours/filter?priceMin=1000000&priceMax=5000000&departId=1&destId=2&date=2023-10-01&page=0&size=12&sortField=createdAt&sortDirection=desc
-    public ResponseEntity<GeneralResponse<SearchTourResponseDTO>> filterTours(
-            // Các tham số cho việc lọc, không bắt buộc
-            @RequestParam(required = false) Double priceMin,
-            @RequestParam(required = false) Double priceMax,
-            @RequestParam(required = false) Long departId,
-            @RequestParam(required = false) Long destId,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-
-            // Các tham số cho việc phân trang
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size,
-            @RequestParam(defaultValue = "createdAt") String sortField,
-            @RequestParam(defaultValue = "desc") String sortDirection) {
-
-        Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
-
-        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, departId, destId, date, pageable);
-        List<LocationShortDTO> departures = locationService.getAllDepartures().stream()
-                .map(d -> LocationShortDTO.builder()
-                        .id(d.getId())
-                        .name(d.getName())
-                        .build())
-                .collect(Collectors.toList());
-        List<LocationShortDTO> destinations = locationService.getAllDestinations().stream()
-                .map(d -> LocationShortDTO.builder()
-                        .id(d.getId())
-                        .name(d.getName())
-                        .build())
-                .collect(Collectors.toList());
-        TourLocationOptionsDTO options = TourLocationOptionsDTO.builder()
-                .departures(departures)
-                .destinations(destinations)
-                .build();
-
-        SearchTourResponseDTO dto = SearchTourResponseDTO.builder()
-                .tours(result)
-                .options(options)
-                .build();
-
-        return ResponseEntity.ok(GeneralResponse.of(dto, "Tours filtered successfully."));
-    }
-
 
     @GetMapping("/discounts")
     //postman http://localhost:8080/v1/public/tours/discounts?page=0&size=6
@@ -99,7 +53,7 @@ public class TourController {
         return ResponseEntity.ok(GeneralResponse.of(result, "Discount tours loaded successfully."));
     }
     @GetMapping("/destinations/{destId}/search")
-    //postman http://localhost:8080/v1/public/tours/destinations/1/search?destId=2&page=0&size=6&sortField=createdAt&sortDirection=desc
+    //postman http://localhost:8080/v1/public/tours/destinations/1/search?priceMin=1000000&priceMax=5000000&departId=2&date=2023-10-01&page=0&size=6&sortField=createdAt&sortDirection=desc
     public ResponseEntity<GeneralResponse<SearchTourResponseDTO>> searchToursByDestination(
             @PathVariable("destId") Long destIdPath,
             @RequestParam(required = false) Double priceMin,
@@ -107,6 +61,7 @@ public class TourController {
             @RequestParam(required = false) Long departId,
             @RequestParam(required = false) Long destId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) String name,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "6") int size,
             @RequestParam(defaultValue = "createdAt") String sortField,
@@ -115,25 +70,29 @@ public class TourController {
         Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
-        Long effectiveDestId = destId != null ? destId : destIdPath;
-
-        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, departId, effectiveDestId, date, pageable);
-        if (effectiveDestId != null) {
-            String destinationName = locationService.getLocationById(effectiveDestId)
-                    .getData()
-                    .getName();
-            result.getItems().forEach(t -> t.setLocationName(destinationName));
+        Long effectiveDestId = null;
+        if (destId != null && destId > 0) {
+            effectiveDestId = destId;
+        } else if (destIdPath != null && destIdPath > 0) {
+            effectiveDestId = destIdPath;
         }
-        List<LocationShortDTO> departures = locationService.getAllDepartures().stream()
-                .map(d -> LocationShortDTO.builder()
+
+        PagingDTO<TourSummaryDTO> result = tourService.filterTours(priceMin, priceMax, departId, effectiveDestId, date, name, pageable);
+
+        List<PublicLocationDTO> departures = locationService.getAllDepartures().stream()
+                .map(d -> PublicLocationDTO.builder()
                         .id(d.getId())
                         .name(d.getName())
+                        .description(d.getDescription())
+                        .image(d.getImage())
                         .build())
                 .collect(Collectors.toList());
-        List<LocationShortDTO> destinations = locationService.getAllDestinations().stream()
-                .map(d -> LocationShortDTO.builder()
+        List<PublicLocationDTO> destinations = locationService.getAllDestinations().stream()
+                .map(d -> PublicLocationDTO.builder()
                         .id(d.getId())
                         .name(d.getName())
+                        .description(d.getDescription())
+                        .image(d.getImage())
                         .build())
                 .collect(Collectors.toList());
         TourLocationOptionsDTO options = TourLocationOptionsDTO.builder()

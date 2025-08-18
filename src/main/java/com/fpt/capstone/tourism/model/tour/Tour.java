@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.model.tour;
 
 import com.fpt.capstone.tourism.model.BaseEntity;
 import com.fpt.capstone.tourism.model.Location;
+import com.fpt.capstone.tourism.model.RequestBooking;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.enums.Region;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
@@ -20,8 +21,8 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true, exclude = {"departLocation", "createdBy", "tourTheme"})
-@ToString(exclude = {"departLocation", "createdBy", "tourTheme"})
+@EqualsAndHashCode(callSuper = true, exclude = {"departLocation", "createdBy", "themes", "requestBooking"})
+@ToString(exclude = {"departLocation", "createdBy", "themes", "requestBooking"})
 public class Tour extends BaseEntity {
 
     @Id
@@ -47,9 +48,13 @@ public class Tour extends BaseEntity {
     @Column(name = "tour_type", length = 50)
     private TourType tourType; // e.g., FIXED, CUSTOM
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tour_theme_id")
-    private TourTheme tourTheme; // Consider using Enum if validation needed
+    @ManyToMany
+    @JoinTable(
+            name = "tour_theme_mapping",
+            joinColumns = @JoinColumn(name = "tour_id"),
+            inverseJoinColumns = @JoinColumn(name = "tour_theme_id")
+    )
+    private List<TourTheme> themes;
 
     @Column(name = "description", columnDefinition = "text")
     private String description;
@@ -60,6 +65,9 @@ public class Tour extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "tour_status", length = 50)
     private TourStatus tourStatus;
+
+    @OneToOne(mappedBy = "tour", fetch = FetchType.LAZY)
+    private RequestBooking requestBooking;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 50)
@@ -82,7 +90,6 @@ public class Tour extends BaseEntity {
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TourPax> tourPaxes;
 
-    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TourDiscount> tourDiscounts;
+    
 }
 

@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.helper;
 
 import com.fpt.capstone.tourism.helper.IHelper.JwtHelper;
 import com.fpt.capstone.tourism.model.User;
+import com.fpt.capstone.tourism.model.enums.RoleName;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,6 +14,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -39,8 +41,32 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
         // Tạo JWT token
         String token = jwtHelper.generateToken(user);
-
-        String redirectUrl = frontendBaseUrl + "/login?token=" + token + "&email=" + email;
+        String path = resolvePath(user);
+        String redirectUrl = frontendBaseUrl + path + "?token=" + token + "&email=" + email;
         response.sendRedirect(redirectUrl);
+    }
+    private String resolvePath(User user) {
+        return user.getAuthorities().stream()
+                .map(auth -> auth.getAuthority())
+                .map(this::mapRoleToPath)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse("/login");
+    }
+
+    private String mapRoleToPath(String role) {
+        try {
+            return switch (RoleName.valueOf(role)) {
+                case ADMIN -> "/admin";
+                case SELLER -> "/seller";
+                case MARKETING_MANAGER -> "/marketing";
+                case BUSINESS_DEPARTMENT -> "/business";
+                case SERVICE_COORDINATOR -> "/coordinator";
+                case ACCOUNTANT -> "/accountant";
+                default -> null;
+            };
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 }

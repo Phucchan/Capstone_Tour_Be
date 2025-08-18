@@ -1,20 +1,20 @@
 package com.fpt.capstone.tourism.service;
 
+import com.fpt.capstone.tourism.dto.common.PartnerServiceShortDTO;
 import com.fpt.capstone.tourism.dto.common.ServiceTypeShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
-import com.fpt.capstone.tourism.dto.request.tourManager.TourCreateManagerRequestDTO;
-import com.fpt.capstone.tourism.dto.request.tourManager.TourDayManagerCreateRequestDTO;
-import com.fpt.capstone.tourism.dto.request.tourManager.TourPaxManagerCreateRequestDTO;
+import com.fpt.capstone.tourism.dto.request.PartnerServiceCreateDTO;
+import com.fpt.capstone.tourism.dto.request.tourManager.*;
 import com.fpt.capstone.tourism.dto.response.ServiceInfoDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourOptionsDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxManagerDTO;
-import com.fpt.capstone.tourism.dto.request.tourManager.TourUpdateManagerRequestDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.*;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,13 +24,14 @@ public interface TourManagementService {
     GeneralResponse<PagingDTO<TourResponseManagerDTO>> getListTours(int page, int size, String keyword,
                                                                     TourType tourType, TourStatus tourStatus);
 
-    GeneralResponse<TourDetailManagerDTO> createTour(TourCreateManagerRequestDTO requestDTO);
+    GeneralResponse<TourDetailManagerDTO> createTour(TourCreateManagerRequestDTO requestDTO, MultipartFile file);
 
-    public GeneralResponse<Object> changeStatus(Long id, ChangeStatusDTO changeStatusDTO);
+
+    GeneralResponse<Object> changeStatus(Long id, ChangeStatusDTO changeStatusDTO);
 
     GeneralResponse<TourDetailOptionsDTO> getTourDetail(Long id);
 
-    GeneralResponse<TourDetailManagerDTO> updateTour(Long id, TourUpdateManagerRequestDTO requestDTO);
+    GeneralResponse<TourDetailManagerDTO> updateTour(Long id, TourUpdateManagerRequestDTO requestDTO, MultipartFile file);
 
     GeneralResponse<List<TourDayManagerDTO>> getTourDays(Long tourId);
 
@@ -46,17 +47,12 @@ public interface TourManagementService {
 
     GeneralResponse<TourDayManagerDTO> removeServiceFromTourDay(Long tourId, Long dayId, Long serviceId);
 
-    GeneralResponse<List<ServiceBreakdownDTO>> getServiceBreakdown(Long tourId);
-
-    GeneralResponse<TourPaxManagerDTO> createTourPax(Long tourId, TourPaxManagerCreateRequestDTO requestDTO);
-
-    GeneralResponse<TourPaxManagerDTO> getTourPax(Long tourId, Long paxId);
-
-    GeneralResponse<TourPaxManagerDTO> updateTourPax(Long tourId, Long paxId, TourPaxManagerCreateRequestDTO requestDTO);
-
-    GeneralResponse<String> deleteTourPax(Long tourId, Long paxId);
+    GeneralResponse<ServiceInfoDTO> createService(Long tourId, Long dayId, PartnerServiceCreateDTO dto);
 
     GeneralResponse<TourOptionsDTO> getTourOptions();
 
     GeneralResponse<List<ServiceTypeShortDTO>> getServiceTypes();
+
+    GeneralResponse<List<PartnerServiceShortDTO>> getPartnerServices(Long serviceTypeId);
 }
+

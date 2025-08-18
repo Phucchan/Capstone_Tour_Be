@@ -6,6 +6,7 @@ import com.fpt.capstone.tourism.dto.common.user.BookedPersonDTO;
 import com.fpt.capstone.tourism.dto.common.user.TourCustomerDTO;
 import com.fpt.capstone.tourism.dto.request.booking.BookingRequestCustomerDTO;
 import com.fpt.capstone.tourism.dto.request.booking.BookingRequestDTO;
+import com.fpt.capstone.tourism.dto.response.BookingSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.booking.BookingConfirmResponse;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.BookingHelper;
@@ -17,10 +18,15 @@ import com.fpt.capstone.tourism.model.enums.*;
 import com.fpt.capstone.tourism.model.partner.PartnerService;
 import com.fpt.capstone.tourism.model.payment.*;
 import com.fpt.capstone.tourism.model.tour.*;
+import com.fpt.capstone.tourism.model.voucher.UserVoucher;
+import com.fpt.capstone.tourism.model.voucher.Voucher;
+import com.fpt.capstone.tourism.model.voucher.VoucherUsage;
 import com.fpt.capstone.tourism.repository.BookingCustomerRepository;
 import com.fpt.capstone.tourism.repository.booking.BookingServiceRepository;
 import com.fpt.capstone.tourism.repository.partner.PartnerServiceRepository;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
+import com.fpt.capstone.tourism.repository.user.UserVoucherRepository;
+import com.fpt.capstone.tourism.repository.voucher.VoucherUsageRepository;
 import com.fpt.capstone.tourism.service.VNPayService;
 import com.fpt.capstone.tourism.service.payment.PaymentBillItemRepository;
 import com.fpt.capstone.tourism.service.payment.PaymentBillRepository;
@@ -28,6 +34,8 @@ import com.fpt.capstone.tourism.service.tourbooking.TourBookingService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -35,6 +43,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -52,6 +61,11 @@ public class TourBookingServiceImpl implements TourBookingService {
     private final PaymentBillRepository paymentBillRepository;
     private final PaymentBillItemRepository paymentBillItemRepository;
     private final TourDetailMapper tourDetailMapper;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final com.fpt.capstone.tourism.repository.tour.TourScheduleRepository tourScheduleRepository;
+    private final RequestBookingVerificationService verificationService;
+    private final UserVoucherRepository userVoucherRepository;
+    private final VoucherUsageRepository voucherUsageRepository;
 
     @Value("${backend.base-url}")
     private String backendBaseUrl;
@@ -60,10 +74,26 @@ public class TourBookingServiceImpl implements TourBookingService {
     @Transactional
     public String createBooking(BookingRequestDTO bookingRequestDTO) {
         try {
+            if (bookingRequestDTO.getEmail() == null || bookingRequestDTO.getEmail().isBlank()
+                    || bookingRequestDTO.getVerificationCode() == null || bookingRequestDTO.getVerificationCode().isBlank()
+                    || !verificationService.verifyCode(bookingRequestDTO.getEmail(), bookingRequestDTO.getVerificationCode())) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Invalid verification code");
+            }
             List<BookingRequestCustomerDTO> allCustomersDTO = Stream.of(bookingRequestDTO.getAdults(), bookingRequestDTO.getChildren(), bookingRequestDTO.getInfants(), bookingRequestDTO.getToddlers())
                     .filter(Objects::nonNull)           // lọc ra list null
                     .flatMap(List::stream)              // gộp các list thành stream duy nhất
                     .toList();      // thu về một danh sách
+
+            // Kiểm tra số ghế còn trống trước khi tạo booking
+            TourSchedule schedule = tourScheduleRepository.findById(bookingRequestDTO.getScheduleId())
+                    .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Schedule not found"));
+            int passengers = allCustomersDTO.size() + 1; // +1 cho người đặt tour
+            int totalSlots = schedule.getTourPax().getMaxQuantity();
+            int bookedSlots = Optional.ofNullable(bookingRepository.sumGuestsByTourScheduleId(schedule.getId())).orElse(0);
+            int availableSeats = totalSlots - bookedSlots;
+            if (availableSeats < passengers) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Not enough available seats");
+            }
 
             List<BookingCustomer> allCustomers = bookingCustomerMapper.toEntity(allCustomersDTO);
 
@@ -71,7 +101,27 @@ public class TourBookingServiceImpl implements TourBookingService {
 
             String bookingCode = bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), bookingRequestDTO.getScheduleId(), bookingRequestDTO.getUserId());
 
-            String paymentUrl = vnPayService.generatePaymentUrl(bookingRequestDTO.getTotal(), bookingCode, baseUrl, 120);
+            double finalTotal = bookingRequestDTO.getTotal() != null ? bookingRequestDTO.getTotal() : 0;
+            UserVoucher appliedVoucher = null;
+            if (bookingRequestDTO.getUserVoucherId() != null) {
+                appliedVoucher = userVoucherRepository.findById(bookingRequestDTO.getUserVoucherId())
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.BAD_REQUEST, "Voucher not found"));
+                if (!appliedVoucher.getUser().getId().equals(bookingRequestDTO.getUserId())
+                        || (appliedVoucher.getQuantity() == null || appliedVoucher.getQuantity() <= 0)) {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST, "Voucher not available");
+                }
+                Voucher voucher = appliedVoucher.getVoucher();
+                LocalDateTime now = LocalDateTime.now();
+                if (voucher.getVoucherStatus() != VoucherStatus.ACTIVE
+                        || (voucher.getValidFrom() != null && voucher.getValidFrom().isAfter(now))
+                        || (voucher.getValidTo() != null && voucher.getValidTo().isBefore(now))
+                        || (voucher.getMinOrderValue() > 0 && finalTotal < voucher.getMinOrderValue())) {
+                    throw BusinessException.of(HttpStatus.BAD_REQUEST, "Voucher not applicable");
+                }
+                finalTotal = Math.max(0, finalTotal - voucher.getDiscountAmount());
+            }
+
+            String paymentUrl = vnPayService.generatePaymentUrl(finalTotal, bookingCode, baseUrl, 120);
 
             Booking tourBooking = Booking.builder()
                     .tourSchedule(TourSchedule.builder().id(bookingRequestDTO.getScheduleId()).build())
@@ -96,6 +146,23 @@ public class TourBookingServiceImpl implements TourBookingService {
 
             Booking result = bookingRepository.save(tourBooking);
 
+            if (appliedVoucher != null) {
+                int remaining = (appliedVoucher.getQuantity() != null ? appliedVoucher.getQuantity() : 0) - 1;
+                appliedVoucher.setQuantity(remaining);
+                if (remaining <= 0) {
+                    appliedVoucher.setUsedAt(LocalDateTime.now());
+                }
+                userVoucherRepository.save(appliedVoucher);
+                VoucherUsage usage = VoucherUsage.builder()
+                        .voucher(appliedVoucher.getVoucher())
+                        .booking(result)
+                        .user(result.getUser())
+                        .usedAt(LocalDateTime.now())
+                        .build();
+                voucherUsageRepository.save(usage);
+            }
+
+
             for (BookingCustomer customer : allCustomers) {
                 customer.setBooking(result);
             }
@@ -115,14 +182,73 @@ public class TourBookingServiceImpl implements TourBookingService {
             bookingCustomerRepository.saveAll(allCustomers);
 
             saveTourBookingService(result, allCustomers.size());
-            createReceiptBookingBill(result, bookingRequestDTO.getTotal(), bookingRequestDTO.getFullName(), bookingRequestDTO.getPaymentMethod());
-
+            createReceiptBookingBill(result, finalTotal, bookingRequestDTO.getFullName(), bookingRequestDTO.getPaymentMethod());
+            notifyNewBooking(result, bookingRequestDTO.getTourName(), bookingRequestDTO.getTourId());
             return bookingCode;
 
         } catch (Exception ex) {
             throw BusinessException.of("Tạo Tour Booking Thất Bại", ex);
         }
     }
+
+    @Override
+    @Transactional
+    public void addCustomersToSchedule(Long bookingId, Long scheduleId, java.util.List<BookingRequestCustomerDTO> customers) {
+        try {
+            Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                    .orElseThrow(() -> BusinessException.of("Booking not found"));
+
+            if (!booking.getTourSchedule().getId().equals(scheduleId)) {
+                throw BusinessException.of("Schedule mismatch");
+            }
+
+            List<BookingCustomer> entities = bookingCustomerMapper.toEntity(customers);
+            for (BookingCustomer bc : entities) {
+                bc.setBooking(booking);
+            }
+            int totalSlots = booking.getTourSchedule().getTourPax().getMaxQuantity();
+            int bookedSlots = Optional.ofNullable(bookingRepository.sumGuestsByTourScheduleId(scheduleId)).orElse(0);
+            int availableSeats = totalSlots - bookedSlots;
+            if (availableSeats < entities.size()) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Not enough available seats");
+            }
+            bookingCustomerRepository.saveAll(entities);
+
+            long adults = entities.stream().filter(c -> c.getPaxType() == PaxType.ADULT).count();
+            long children = entities.stream().filter(c -> c.getPaxType() == PaxType.CHILD).count();
+            long infants = entities.stream().filter(c -> c.getPaxType() == PaxType.INFANT).count();
+            long toddlers = entities.stream().filter(c -> c.getPaxType() == PaxType.TODDLER).count();
+
+            booking.setAdults((int) adults + (booking.getAdults() != null ? booking.getAdults() : 0));
+            booking.setChildren((int) children + (booking.getChildren() != null ? booking.getChildren() : 0));
+            booking.setInfants((int) infants + (booking.getInfants() != null ? booking.getInfants() : 0));
+            booking.setToddlers((int) toddlers + (booking.getToddlers() != null ? booking.getToddlers() : 0));
+
+            int singleRooms = (int) entities.stream().filter(BookingCustomer::isSingleRoom).count();
+            booking.setSingleRooms((booking.getSingleRooms() != null ? booking.getSingleRooms() : 0) + singleRooms);
+
+            double pricePerPerson = booking.getSellingPrice() != null ? booking.getSellingPrice()
+                    : booking.getTourSchedule().getTourPax().getSellingPrice();
+            double extraHotel = booking.getExtraHotelCost() != null ? booking.getExtraHotelCost()
+                    : booking.getTourSchedule().getTourPax().getExtraHotelCost();
+
+            double totalAdded = pricePerPerson * adults
+                    + pricePerPerson * 0.75 * children
+                    + pricePerPerson * 0.5 * toddlers;
+
+            booking.setSellingPrice(pricePerPerson);
+            booking.setExtraHotelCost(extraHotel);
+            booking.setTotalAmount(booking.getTotalAmount() + totalAdded
+                    + extraHotel * singleRooms);
+
+            bookingRepository.save(booking);
+        } catch (Exception ex) {
+            throw BusinessException.of("Thêm khách hàng thất bại", ex);
+        }
+    }
+
+
+
 
     @Override
     @Transactional
@@ -248,12 +374,39 @@ public class TourBookingServiceImpl implements TourBookingService {
                     .paymentMethod(tourBooking.getPaymentMethod())
                     .paymentUrl(tourBooking.getPaymentUrl())
                     .status(tourBooking.getBookingStatus())
-                    .needHelp(tourBooking.isNeedHelp())
-                    .singleRooms(tourBooking.getSingleRooms())
+                    .needHelp(Boolean.TRUE.equals(tourBooking.getNeedHelp()))
+                    .singleRooms(tourBooking.getSingleRooms() != null ? tourBooking.getSingleRooms() : 0)
                     .build();
         } catch (Exception ex) {
             throw BusinessException.of("Lấy Thông Tin Tour Thất Bại", ex);
         }
+    }
+    private void notifyNewBooking(Booking booking) {
+        BookingSummaryDTO dto = BookingSummaryDTO.builder()
+                .id(booking.getId())
+                .tourId(booking.getTourSchedule().getTour().getId())
+                .bookingCode(booking.getBookingCode())
+                .tourName(booking.getTourSchedule().getTour().getName())
+                .status(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
+                .totalAmount(booking.getTotalAmount())
+                .createdAt(booking.getCreatedAt())
+                .departureDate(booking.getTourSchedule().getDepartureDate())
+                .build();
+        messagingTemplate.convertAndSend("/topic/bookings", dto);
+    }
+
+    private void notifyNewBooking(Booking booking, String tourName, Long tourId) {
+        BookingSummaryDTO dto = BookingSummaryDTO.builder()
+                .id(booking.getId())
+                .tourId(tourId)
+                .bookingCode(booking.getBookingCode())
+                .tourName(tourName)
+                .status(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
+                .totalAmount(booking.getTotalAmount())
+                .createdAt(booking.getCreatedAt())
+                .departureDate(booking.getTourSchedule().getDepartureDate())
+                .build();
+        messagingTemplate.convertAndSend("/topic/bookings", dto);
     }
 
 }

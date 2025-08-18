@@ -55,4 +55,7 @@ public class BookingCustomer extends BaseEntity {
 
     @Column(name = "booked_person")
     private boolean bookedPerson;
+
+    @Column(name = "note", columnDefinition = "text")
+    private String note;
 }

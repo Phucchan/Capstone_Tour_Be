@@ -22,6 +22,7 @@ import com.fpt.capstone.tourism.service.UserService;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,8 +36,10 @@ import org.springframework.data.domain.Sort;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class UserManagementServiceImpl implements UserManagementService {
 
     @Autowired
@@ -101,6 +104,11 @@ public class UserManagementServiceImpl implements UserManagementService {
         try {
             UserStatus newStatus = UserStatus.valueOf(statusValue.toUpperCase());
             user.setUserStatus(newStatus);
+            if (newStatus == UserStatus.INACTIVE) {
+                user.setDeleted(true);
+            } else if (newStatus == UserStatus.ACTIVE) {
+                user.setDeleted(false);
+            }
             userRepository.save(user);
         } catch (IllegalArgumentException e) {
             throw BusinessException.of(HttpStatus.BAD_REQUEST,
@@ -139,6 +147,15 @@ public class UserManagementServiceImpl implements UserManagementService {
     @Override
     @Transactional
     public GeneralResponse<UserManagementDTO> createUser(UserManagementRequestDTO requestDTO) {
+        // 1. Kiểm tra username đã tồn tại chưa
+        if (userRepository.existsByUsername(requestDTO.getUsername())) {
+            throw BusinessException.of(HttpStatus.CONFLICT, "Username already exists");
+        }
+
+        // 2. Kiểm tra email đã tồn tại chưa
+        if (userRepository.existsByEmail(requestDTO.getEmail())) {
+            throw BusinessException.of(HttpStatus.CONFLICT, "Email already exists");
+        }
         User user = User.builder()
                 .username(requestDTO.getUsername())
                 .fullName(requestDTO.getFullName())
@@ -221,8 +238,8 @@ public class UserManagementServiceImpl implements UserManagementService {
                 .toList();
         return new UserManagementDTO(
                 user.getId(),
-                user.getEmail(),
                 user.getFullName(),
+                user.getEmail(),
                 user.getGender(),
                 user.getPhone(),
                 roleNames,
@@ -265,5 +282,22 @@ public class UserManagementServiceImpl implements UserManagementService {
         };
     }
 
-
+    /**
+     * Kiểm tra xem một giá trị (username hoặc email) đã được sử dụng hay chưa.
+     * @param type loại cần kiểm tra ('username' hoặc 'email')
+     * @param value giá trị cần kiểm tra
+     * @return Map chứa key "isTaken" với giá trị true/false
+     */
+    @Override
+    public Map<String, Boolean> checkUniqueness(String type, String value) {
+        boolean isTaken;
+        if ("username".equalsIgnoreCase(type)) {
+            isTaken = userRepository.existsByUsername(value);
+        } else if ("email".equalsIgnoreCase(type)) {
+            isTaken = userRepository.existsByEmail(value);
+        } else {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Invalid uniqueness check type");
+        }
+        return Map.of("isTaken", isTaken);
+    }
 }

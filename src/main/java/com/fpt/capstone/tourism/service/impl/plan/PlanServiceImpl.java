@@ -5,12 +5,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.common.partner.PartnerShortDTO;
+import com.fpt.capstone.tourism.dto.general.GeneralResponse;
+import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.plan.PlanDayDTO;
 import com.fpt.capstone.tourism.dto.request.plan.PlanGenerationRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PublicLocationDTO;
 import com.fpt.capstone.tourism.enrich.Enricher;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
-import com.fpt.capstone.tourism.helper.IHelper.AiPlanParserHelper;
 import com.fpt.capstone.tourism.mapper.LocationMapper;
 import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.model.domain.PlanDay;
@@ -23,7 +24,12 @@ import com.fpt.capstone.tourism.repository.partner.PartnerRepository;
 import com.fpt.capstone.tourism.service.GeminiApiService;
 import com.fpt.capstone.tourism.service.plan.PlanService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -41,9 +47,9 @@ public class PlanServiceImpl implements PlanService {
     private final LocationMapper locationMapper;
     private final GeminiApiService geminiApiService;
     private final PartnerRepository partnerRepository;
-    private final AiPlanParserHelper aiPlanParserHelper;
     private final Enricher enricher;
     private final PlanRepository planRepository;
+
 
     @Override
     public List<PublicLocationDTO> getLocations() {
@@ -77,10 +83,17 @@ public class PlanServiceImpl implements PlanService {
                 throw BusinessException.of("Không có đối tác nào phù hợp với địa điểm đã chọn");
             }
 
-            Map<Integer, List<PartnerShortDTO>> partnersByLocation = partners.stream()
+            Map<Integer, List<PartnerShortDTO>> partnersByLocation = partners.stream().filter(partner -> !partner.getPartnerType().equalsIgnoreCase("Phương tiện di chuyển"))
                     .collect(Collectors.groupingBy(partner -> Math.toIntExact(partner.getLocationId())));
 
+            List<PartnerShortDTO> transportPartners = partners.stream()
+                    .filter(partner -> partner.getPartnerType().equalsIgnoreCase("Phương tiện di chuyển"))
+                    .toList();
+
             double totalSpending = 0;
+
+            double budgetMin = dto.getBudget().getMin();
+            double budgetMax = dto.getBudget().getMax();
 
             List<PlanDay> planDays = new ArrayList<>();
 
@@ -92,7 +105,9 @@ public class PlanServiceImpl implements PlanService {
                 List<PartnerShortDTO> relatedPartners = partnersByLocation.get(locationId);
 
 
-                String prompt = generatePrompt(totalDays, preferences, totalSpending, locationName, dayNumber, relatedPartners);
+
+
+                String prompt = generatePrompt(totalDays, preferences, budgetMin, budgetMax, totalSpending, locationName, dayNumber, relatedPartners);
 
                 String response = geminiApiService.getGeminiResponse(prompt);
 
@@ -114,7 +129,7 @@ public class PlanServiceImpl implements PlanService {
                 planDays.add(planDay);
             }
 
-            String planDetailsPrompt = generatePrompt(locationNames, preferences, totalDays);
+            String planDetailsPrompt = generatePrompt(locationNames, preferences, totalDays, transportPartners);
             String planDetailsResponse = geminiApiService.getGeminiResponse(planDetailsPrompt);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -130,7 +145,8 @@ public class PlanServiceImpl implements PlanService {
                     .days(planDays)
                     .planType(dto.getPlanType())
                     .createdAt(LocalDateTime.now())
-                    .planStatus(PlanStatus.CREATED)
+                    .planStatus(PlanStatus.PENDING)
+                    .transports(planDetails.getTransports())
                     .build();
 
             enricher.enrichPlanWithImage(plan, String.join(", ", locationNames));
@@ -157,8 +173,12 @@ public class PlanServiceImpl implements PlanService {
                 .replaceFirst("\\s*```$", "");
     }
 
-    private String generatePrompt(List<String> locationNames, String preferences, int totalDays) {
+    private String generatePrompt(List<String> locationNames, String preferences, int totalDays, List<PartnerShortDTO> transportPartners) {
 
+        String partnerContext = buildPartnerContext(transportPartners);
+        if (partnerContext.isEmpty()) {
+            throw BusinessException.of("Không có đối tác di chuyển nào phù hợp với địa điểm đã chọn");
+        }
         return String.format("""
                             Bạn là một trợ lý AI chuyên xây dựng chương trình du lịch cá nhân hóa.
             
@@ -168,18 +188,34 @@ public class PlanServiceImpl implements PlanService {
             
                             Hãy tạo nội dung du lịch chi tiết cho cả kế hoach, bao gồm:
                             1. **title**: tiêu đề dễ hiểu, ngắn gọn, thể hiện nội dung chính chuyến đi.
-                            2. **description**: mô tả toàn cảnh hoạt động của chuyến đi, ít nhất 250 từ, đầy đủ cảm xúc, mô tả chung một nội dung của kế hoạch.
+                            2. **description**: mô tả toàn cảnh hoạt động của chuyến đi, ít nhất 100 từ, đầy đủ cảm xúc, mô tả chung một nội dung của kế hoạch.
+                            3. **transports**: danh sách các phương tiện di chuyển phù hợp với ngân sách và địa điểm, mỗi phương tiện gồm: id, name (mô tả chi tiết về phương tiện di chuyển).
+                                - Chỉ sử dụng các đối tác cung cấp dịch vụ di chuyển đã được cung cấp bên dưới.
+                                - Ưu tiên các phương tiện có trả phí, có giá trị trải nghiệm tương xứng và góp phần nâng tổng chi phí ngày lên mức hợp lý (gần mức ngân sách đã đề ra).
+                                - Tránh việc chi tiêu quá tiết kiệm hoặc chọn phương án miễn phí nếu không thật sự cần thiết.
+                                - Tránh tạo ra lịch trình ngày có chi phí quá thấp hoặc quá cao so với phần còn lại của chuyến đi.
+                        
+                            %s
 
                             **Kết quả trả về là một JSON object theo định dạng sau**:
                         
                             {
                                 title: "",
-                                description: ""
+                                description: "",
+                                transports: [
+                                    {
+                                        id: 1
+                                        name: "Tên Nhà Cung Cấp Dịch Vụ Di Chuyển",
+                                        websiteUrl: "https://example.com",
+                                        logoUrl: "https://example.com/logo.png",
+                                        estimatedCost: 500000
+                                    }
+                                ]
                             }
-                        """, totalDays, String.join(", ", locationNames), preferences);
+                        """, totalDays, String.join(", ", locationNames), preferences, partnerContext);
     }
 
-    private String generatePrompt(int totalDays, String preferences, double totalSpending, String locationName, int dayNumber, List<PartnerShortDTO> relatedPartners) {
+    private String generatePrompt(int totalDays, String preferences, double budgetMin, double budgetMax, double totalSpending, String locationName, int dayNumber, List<PartnerShortDTO> relatedPartners) {
         String partnerContext = buildPartnerContext(locationName, relatedPartners);
         return String.format("""
                                 Bạn là một trợ lý AI chuyên xây dựng chương trình du lịch cá nhân hóa.
@@ -187,28 +223,40 @@ public class PlanServiceImpl implements PlanService {
                                 Người dùng đang trong hành trình kéo dài tổng cộng %d ngày.
                                 Hôm nay là **ngày thứ %d**, họ sẽ ở tại **%s**.
                                 Sở thích chính của người dùng bao gồm: %s.
-                                Ngân sách cho ngày hôm nay là khoảng %.0f VNĐ.
+                                Tổng chi phí mong muốn cho chuyến đi đến nay là khoảng %.0f - %.0f VNĐ.
+                                Tổng tiền đã chi tiêu đến nay là %.0f VNĐ.
+                            
+                            
+                                Hãy cố gắng thiết kế lịch trình có chi phí hợp lý và xứng đáng với mức ngân sách đã đề ra.
+                                Đồng thời, hãy phân bổ chi tiêu hợp lý cho từng ngày.
+                                
+                                Cụ thể:
+                                - Trong mỗi ngày, hãy ưu tiên xây dựng các hoạt động có chất lượng tốt tương xứng với ngân sách tổng.
+                                - Tổng ngân sách sẽ được chia đều tương đối theo số ngày trong hành trình, nhưng có thể linh hoạt điều chỉnh theo từng ngày.
+                                - Tổng chi phí của tất cả chuyến đi nên đạt **tối thiểu khoảng 80-90%% ngân sách**, để đảm bảo người dùng tận hưởng trọn vẹn trải nghiệm, đồng thời vẫn giữ lại một phần dự phòng nhỏ cho các trường hợp phát sinh.
+                                - Tránh việc chi tiêu quá tiết kiệm hoặc chọn phương án miễn phí nếu không thật sự cần thiết.
+                                - Tránh tạo ra lịch trình ngày có chi phí quá thấp hoặc quá cao so với phần còn lại của chuyến đi.
                         
                                 %s
                             
                                 Hãy tạo nội dung du lịch chi tiết cho ngày hôm nay, bao gồm:
                         
-                                1. **longDescription**: mô tả toàn cảnh hoạt động của ngày, ít nhất 250 từ, đầy đủ cảm xúc, mô tả cụ thể các hoạt động sẽ diễn ra từ sáng đến tối theo trình tự thời gian hợp lý.
-                                2. **activities**: từ 1–3 hoạt động phù hợp với sở thích (mỗi hoạt động gồm: title, content ≥ 50 từ, category, estimatedCost, duration, startTime, endTime)
+                                1. **longDescription**: mô tả toàn cảnh hoạt động của ngày, ít nhất 50 từ, đầy đủ cảm xúc, mô tả cụ thể các hoạt động sẽ diễn ra từ sáng đến tối theo trình tự thời gian hợp lý.
+                                2. **activities**: từ 3-4 hoạt động phù hợp với sở thích (mỗi hoạt động gồm: title, content <=30 từ ngắn gọn và dễ hiểu, category, estimatedCost, duration, startTime, endTime)
+                                    - Ưu tiên các hoạt động có trả phí, có giá trị trải nghiệm tương xứng và góp phần nâng tổng chi phí ngày lên mức hợp lý (gần mức ngân sách đã đề ra).
+                                    - Chỉ chọn hoạt động miễn phí nếu thật sự nổi bật và phù hợp sở thích. Tránh đưa ra nhiều hoạt động miễn phí khiến tổng chi tiêu bị thấp.
                                 3. **restaurants**: 1 nhà hàng địa phương phù hợp với khẩu vị, mỗi nơi có tên, địa chỉ, menu gợi ý, estimatedCost và useDate
                                 4. **hotels**: chọn 1 khách sạn phù hợp ngân sách, cung cấp tên, địa chỉ, roomDetails, checkInDate, checkOutDate, estimatedCost, total
                                 5. **totalSpend**: tổng chi phí dự kiến cho cả ngày, không vượt quá ngân sách %.0f VNĐ.
                                 6. **estimatedCost**: Với mỗi hoạt động, nhà hàng và khách sạn, hãy đánh giá chi phí phù hợp theo mặt bằng Việt Nam và ghi vào trường `estimatedCost` (đơn vị VNĐ). Nếu miễn phí, để giá trị là `0`.
                                     - Nếu một hoạt động là **miễn phí hoàn toàn** (ví dụ: đi bộ quanh hồ, tham quan đền chùa), hãy đặt `estimatedCost: 0`.
-                                    - Với các nhà hàng và khách sản hoặc hoạt động có trả phí (cáp treo, vé vào cổng, lớp học, tour, bữa ăn, lưu trú...), **không được để estimatedCost = 0**.
+                                    - Với các nhà hàng và khách sạn **không được để estimatedCost = 0**.
                                     - Ước tính theo mặt bằng giá thực tế – ví dụ: bữa ăn phổ thông 50.000–100.000 VNĐ, khách sạn bình dân 300.000–600.000 VNĐ/đêm...
-                            
-                                **Không thêm bất kỳ thông tin nào ngoài định dạng JSON kết quả.**
-                                Chỉ được chọn nội dung sát với các sở thích đã cung cấp. Tuyệt đối không đưa ra hoạt động không liên quan, dù có vẻ thú vị.
-                        
-                                **Kết quả trả về là một JSON object theo định dạng sau**:
+                                    - Giá dịch vụ của các ngày trước và sau nên tương đương nhau, tránh ngày quá cao hoặc quá thấp.
+                                7. **title**: tiêu đề dễ hiểu, ngắn gọn, thể hiện nội dung chính của ngày hôm nay.
+                                
                                 %s
-                            """, totalDays, dayNumber, locationName, preferences, totalSpending, partnerContext, totalSpending, Constants.AI.PROMPT_DAY_END);
+                            """, totalDays, dayNumber, locationName, preferences, budgetMin, budgetMax, totalSpending, partnerContext, totalSpending, Constants.AI.PROMPT_DAY_END);
     }
 
     private String buildPartnerContext(String locationName, List<PartnerShortDTO> partners) {
@@ -234,4 +282,72 @@ public class PlanServiceImpl implements PlanService {
 
         return sb.toString();
     }
+
+    private String buildPartnerContext(List<PartnerShortDTO> partners) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Dưới đây là danh sách các đối tác cung cấp dịch vụ di chuyển. Chỉ được sử dụng các đối tác này khi tạo kế hoạch:\n\n");
+
+        Map<String, List<PartnerShortDTO>> grouped = partners.stream()
+                .collect(Collectors.groupingBy(PartnerShortDTO::getPartnerType));
+
+        grouped.forEach((type, list) -> {
+            sb.append(String.format("**%s:**\n", type));
+            for (PartnerShortDTO p : list) {
+                sb.append(String.format("- %s | %s | %s | logoUrl: %s | website: %s\n",
+                        p.getName(),
+                        Optional.ofNullable(p.getContactPhone()).orElse("Không có SĐT"),
+                        Optional.ofNullable(p.getContactEmail()).orElse("Không có email"),
+                        Optional.ofNullable(p.getLogoUrl()).orElse("Không có logo"),
+                        Optional.ofNullable(p.getWebsiteUrl()).orElse("Không có website"))
+                );
+            }
+            sb.append("\n");
+        });
+
+        return sb.toString();
+    }
+
+
+    @Override
+    public GeneralResponse<PagingDTO<Plan>>  getPlans(int page, int size, String sortField, String sortDirection, Integer userId) {
+        try {
+            // chuẩn hoá & fallback
+            int safePage = Math.max(page, 0);                // Spring page 0-based
+            int safeSize = Math.max(size, 1);
+            String safeSortField = StringUtils.hasText(sortField) ? sortField : "createdAt";
+            Sort.Direction direction = "asc".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
+            Pageable pageable = PageRequest.of(safePage, safeSize, Sort.by(direction, safeSortField));
+
+            // query mongo
+            Page<Plan> result = (userId == null)
+                    ? planRepository.findAll(pageable)
+                    : planRepository.findByCreatorIdAndPlanStatus(userId, PlanStatus.CREATED, pageable);
+
+            // build paging dto
+            PagingDTO<Plan> paging = new PagingDTO<>();
+            paging.setItems(result.getContent());
+            paging.setPage(result.getNumber());
+            paging.setSize(result.getSize());
+            paging.setTotal(result.getTotalElements());
+
+            return GeneralResponse.of(paging);
+
+        } catch (IllegalArgumentException iae) {
+            // ví dụ khi sortField không hợp lệ hoặc sortDirection sai format
+            throw BusinessException.of("Tham số sắp xếp không hợp lệ", iae);
+        } catch (Exception ex) {
+            throw BusinessException.of("Lấy dữ liệu thất bại", ex);
+        }
+    }
+
+    @Override
+    public String savePlan(String id) {
+        try {
+            planRepository.updatePlanStatusById(id, PlanStatus.CREATED);
+            return id;
+        } catch (Exception e){
+            throw BusinessException.of("Lấy dữ liệu thất bại", e);
+        }
+    }
+
 }

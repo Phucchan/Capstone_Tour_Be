@@ -11,4 +11,5 @@ import java.util.List;
 public interface PaymentBillItemRepository extends JpaRepository<PaymentBillItem, Long> {
     @Query("SELECT pbi FROM PaymentBillItem pbi WHERE pbi.paymentBill.bookingCode = ?1")
     List<PaymentBillItem> findAllByBookingCode(String bookingCode);
+    List<PaymentBillItem> findAllByPaymentBill_Id(Long billId);
 }

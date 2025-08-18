@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -19,4 +20,9 @@ public class BookingRequestCustomerDTO {
     private Date dateOfBirth;
     private boolean singleRoom;
     private PaxType paxType;
+    private String email;
+    private String phoneNumber;
+    private String address;
+    private String pickUpAddress;
+    private String note;
 }

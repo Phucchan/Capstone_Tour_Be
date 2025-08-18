@@ -11,8 +11,10 @@ import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.repository.LocationRepository;
 import com.fpt.capstone.tourism.repository.tour.TourRepository;
 import com.fpt.capstone.tourism.service.LocationService;
+import com.fpt.capstone.tourism.service.S3Service;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +22,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -34,28 +37,50 @@ public class LocationServiceImpl implements LocationService {
     private final LocationRepository locationRepository;
     private final LocationMapper locationMapper;
     private final TourRepository tourRepository;
+    private final S3Service s3Service;
+
+    @Value("${aws.s3.bucket-url}")
+    private String bucketUrl;
 
     @Override
     public List<LocationDTO> getAllDepartures() {
-        List<Location> locations = tourRepository.findDistinctDepartLocations();
-        return locations.stream()
+        return locationRepository.findByDeletedFalseOrderByNameAsc()
+                .stream()
                 .map(locationMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<LocationDTO> getAllDestinations() {
-        List<Location> locations = tourRepository.findDistinctDestinations();
-        return locations.stream()
+        return locationRepository.findByDeletedFalseOrderByNameAsc()
+                .stream()
                 .map(locationMapper::toDTO)
                 .collect(Collectors.toList());
     }
+
+    private GeneralResponse<PagingDTO<LocationDTO>> buildPagedResponse(Page<Location> locationPage) {
+        List<LocationDTO> locationDTOS = locationPage.getContent().stream()
+                .map(locationMapper::toDTO)
+                .collect(Collectors.toList());
+
+        PagingDTO<LocationDTO> pagingDTO = PagingDTO.<LocationDTO>builder()
+                .page(locationPage.getNumber())
+                .size(locationPage.getSize())
+                .total(locationPage.getTotalElements())
+                .items(locationDTOS)
+                .build();
+
+        return new GeneralResponse<>(HttpStatus.OK.value(), GET_LOCATIONS_SUCCESS, pagingDTO);
+    }
+
     @Override
-    public GeneralResponse<LocationDTO> saveLocation(LocationRequestDTO locationRequestDTO) {
+    public GeneralResponse<LocationDTO> saveLocation(LocationRequestDTO locationRequestDTO, MultipartFile file) {
         try {
             //Validate input data
             Validator.validateLocation(locationRequestDTO);
-
+            if (file == null || file.isEmpty()) {
+                throw BusinessException.of(EMPTY_LOCATION_IMAGE);
+            }
             //Check duplicate location
             if (locationRepository.findByName(locationRequestDTO.getName()) != null) {
                 throw BusinessException.of(EXISTED_LOCATION);
@@ -63,6 +88,8 @@ public class LocationServiceImpl implements LocationService {
 
             //Save date to database
             Location location = locationMapper.toEntity(locationRequestDTO);
+            String key = s3Service.uploadFile(file, "locations");
+            location.setImage(bucketUrl + "/" + key);
             location.setCreatedAt(LocalDateTime.now());
             location.setDeleted(false);
             locationRepository.save(location);
@@ -115,8 +142,8 @@ public class LocationServiceImpl implements LocationService {
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
             Page<Location> locationPage;
-            if (keyword != null && !keyword.trim().isEmpty()) {
-                locationPage = locationRepository.findByNameContainingIgnoreCase(keyword.trim(), pageable);
+            if (keyword != null && !keyword.isEmpty()) {
+                locationPage = locationRepository.findByNameContainingIgnoreCase(keyword, pageable);
             } else {
                 locationPage = locationRepository.findAll(pageable);
             }
@@ -128,39 +155,31 @@ public class LocationServiceImpl implements LocationService {
         }
     }
 
-    private Specification<Location> buildSearchSpecification(String keyword, Boolean isDeleted) {
-        return (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
 
-            if (keyword != null && !keyword.isEmpty()) {
-                Predicate namePredicate = cb.like(root.get("name"), "%" + keyword + "%");
-                predicates.add(namePredicate);
+
+    @Override
+    public GeneralResponse<LocationDTO> updateLocation(Long id, LocationRequestDTO locationRequestDTO, MultipartFile file) {
+        try {
+            Validator.validateLocation(locationRequestDTO);
+            Location location = locationRepository.findById(id).orElseThrow();
+            location.setName(locationRequestDTO.getName());
+            location.setDescription(locationRequestDTO.getDescription());
+            if (file != null && !file.isEmpty()) {
+                String key = s3Service.uploadFile(file, "locations");
+                location.setImage(bucketUrl + "/" + key);
             }
-
-            if (isDeleted != null) {
-                predicates.add(cb.equal(root.get("deleted"), isDeleted));
-            }
-
-            return cb.and(predicates.toArray(new Predicate[0]));
-        };
+            location.setUpdatedAt(LocalDateTime.now());
+            locationRepository.save(location);
+            LocationDTO locationDTO = locationMapper.toDTO(location);
+            return new GeneralResponse<>(HttpStatus.OK.value(), GENERAL_SUCCESS_MESSAGE, locationDTO);
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception ex) {
+            throw BusinessException.of(GENERAL_FAIL_MESSAGE, ex);
+        }
     }
 
 
-    // SỬA LẠI TOÀN BỘ PHƯƠNG THỨC NÀY
-    private GeneralResponse<PagingDTO<LocationDTO>> buildPagedResponse(Page<Location> locationPage) {
-        // Chuyển đổi List<Location> sang List<LocationDTO>
-        List<LocationDTO> locationDTOS = locationPage.getContent().stream()
-                .map(locationMapper::toDTO)
-                .collect(Collectors.toList());
 
-        // Xây dựng PagingDTO với kiểu đúng là <LocationDTO>
-        PagingDTO<LocationDTO> pagingDTO = PagingDTO.<LocationDTO>builder()
-                .page(locationPage.getNumber())
-                .size(locationPage.getSize())
-                .total(locationPage.getTotalElements())
-                .items(locationDTOS) // Bây giờ sẽ không còn lỗi
-                .build();
 
-        return new GeneralResponse<>(HttpStatus.OK.value(), "ok", pagingDTO);
-    }
 }
