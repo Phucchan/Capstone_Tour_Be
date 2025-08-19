@@ -10,10 +10,16 @@ import com.fpt.capstone.tourism.dto.response.seller.SellerBookingSummaryDTO;
 import com.fpt.capstone.tourism.model.enums.BookingStatus;
 import com.fpt.capstone.tourism.model.tour.Booking;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface SellerBookingService {
-    GeneralResponse<PagingDTO<SellerBookingSummaryDTO>> getAvailableBookings(int page, int size);
+    GeneralResponse<PagingDTO<SellerBookingSummaryDTO>> getAvailableBookings(
+            int page,
+            int size,
+            LocalDate bookingDate,
+            String bookingCode,
+            BookingStatus status);
 
     GeneralResponse<PagingDTO<SellerBookingSummaryDTO>> getEditedTours(String sellerUsername, int page, int size);
 

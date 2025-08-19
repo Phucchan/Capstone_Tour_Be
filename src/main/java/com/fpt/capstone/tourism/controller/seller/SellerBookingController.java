@@ -10,9 +10,11 @@ import com.fpt.capstone.tourism.service.SellerBookingService;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.service.tourbooking.TourBookingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -27,8 +29,12 @@ public class SellerBookingController {
     //postman http://localhost:8080/v1/seller/bookings/available?page=0&size=10
     public ResponseEntity<GeneralResponse<PagingDTO<SellerBookingSummaryDTO>>> getAvailableBookings(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(sellerBookingService.getAvailableBookings(page, size));
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate bookingDate,
+            @RequestParam(required = false) String bookingCode,
+            @RequestParam(required = false) BookingStatus status) {
+        return ResponseEntity.ok(
+                sellerBookingService.getAvailableBookings(page, size, bookingDate, bookingCode, status));
     }
 
     @GetMapping("/edited")
