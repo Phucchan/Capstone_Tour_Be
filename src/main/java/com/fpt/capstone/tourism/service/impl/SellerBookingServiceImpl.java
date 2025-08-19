@@ -29,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.LinkedHashSet;
@@ -49,9 +50,14 @@ public class SellerBookingServiceImpl implements SellerBookingService {
 
 
     @Override
-    public GeneralResponse<PagingDTO<SellerBookingSummaryDTO>> getAvailableBookings(int page, int size) {
+    public GeneralResponse<PagingDTO<SellerBookingSummaryDTO>> getAvailableBookings(int page, int size,
+                                                                                    LocalDate bookingDate,
+                                                                                    String bookingCode,
+                                                                                    BookingStatus status) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<Booking> bookingPage = bookingRepository.findBySellerIsNull(pageable);
+        LocalDateTime start = bookingDate != null ? bookingDate.atStartOfDay() : null;
+        LocalDateTime end = bookingDate != null ? bookingDate.plusDays(1).atStartOfDay() : null;
+        Page<Booking> bookingPage = bookingRepository.searchAvailableBookings(start, end, bookingCode, status, pageable);
 
         List<SellerBookingSummaryDTO> dtos = bookingPage.getContent().stream()
                 .map(this::toSummaryDTO)
