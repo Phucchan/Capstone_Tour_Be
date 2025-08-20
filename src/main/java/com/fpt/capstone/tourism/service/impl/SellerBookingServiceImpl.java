@@ -50,14 +50,9 @@ public class SellerBookingServiceImpl implements SellerBookingService {
 
 
     @Override
-    public GeneralResponse<PagingDTO<SellerBookingSummaryDTO>> getAvailableBookings(int page, int size,
-                                                                                    LocalDate bookingDate,
-                                                                                    String bookingCode,
-                                                                                    BookingStatus status) {
+    public GeneralResponse<PagingDTO<SellerBookingSummaryDTO>> getAvailableBookings(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        LocalDateTime start = bookingDate != null ? bookingDate.atStartOfDay() : null;
-        LocalDateTime end = bookingDate != null ? bookingDate.plusDays(1).atStartOfDay() : null;
-        Page<Booking> bookingPage = bookingRepository.searchAvailableBookings(start, end, bookingCode, status, pageable);
+        Page<Booking> bookingPage = bookingRepository.findBySellerIsNull(pageable);
 
         List<SellerBookingSummaryDTO> dtos = bookingPage.getContent().stream()
                 .map(this::toSummaryDTO)

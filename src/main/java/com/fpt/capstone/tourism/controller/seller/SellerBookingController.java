@@ -29,12 +29,8 @@ public class SellerBookingController {
     //postman http://localhost:8080/v1/seller/bookings/available?page=0&size=10
     public ResponseEntity<GeneralResponse<PagingDTO<SellerBookingSummaryDTO>>> getAvailableBookings(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate bookingDate,
-            @RequestParam(required = false) String bookingCode,
-            @RequestParam(required = false) BookingStatus status) {
-        return ResponseEntity.ok(
-                sellerBookingService.getAvailableBookings(page, size, bookingDate, bookingCode, status));
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(sellerBookingService.getAvailableBookings(page, size));
     }
 
     @GetMapping("/edited")
