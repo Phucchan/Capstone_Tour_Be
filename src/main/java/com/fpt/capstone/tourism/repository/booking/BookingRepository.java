@@ -83,16 +83,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     long countByUser_Id(Long userId);
 
-    @Query("SELECT b FROM Booking b WHERE b.seller IS NULL " +
-            "AND (:bookingCode IS NULL OR LOWER(b.bookingCode) LIKE LOWER(CONCAT('%', :bookingCode, '%'))) " +
-            "AND (:status IS NULL OR b.bookingStatus = :status) " +
-            "AND (:startDate IS NULL OR b.createdAt >= :startDate) " +
-            "AND (:endDate IS NULL OR b.createdAt < :endDate)")
-    Page<Booking> searchAvailableBookings(@Param("startDate") LocalDateTime startDate,
-                                          @Param("endDate") LocalDateTime endDate,
-                                          @Param("bookingCode") String bookingCode,
-                                          @Param("status") BookingStatus status,
-                                          Pageable pageable);
 
     Booking findByBookingCode(String bookingCode);
     // SỬA LỖI: Thêm CAST(... AS timestamp)

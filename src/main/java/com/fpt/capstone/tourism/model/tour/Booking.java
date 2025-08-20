@@ -67,10 +67,10 @@ public class Booking extends BaseEntity {
     @Column(name = "toddlers")
     private Integer toddlers;
 
-    @Column(name = "singleRooms")
+    @Column(name = "single_rooms")
     private Integer singleRooms;
 
-    @Column(name = "needHelp")
+    @Column(name = "need_help")
     private Boolean needHelp;
 
     @Column(name = "total_amount")
