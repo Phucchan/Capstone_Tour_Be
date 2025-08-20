@@ -193,7 +193,7 @@ public class PlanServiceImpl implements PlanService {
                                 - Chỉ sử dụng các đối tác cung cấp dịch vụ di chuyển đã được cung cấp bên dưới.
                                 - Ưu tiên các phương tiện có trả phí, có giá trị trải nghiệm tương xứng và góp phần nâng tổng chi phí ngày lên mức hợp lý (gần mức ngân sách đã đề ra).
                                 - Tránh việc chi tiêu quá tiết kiệm hoặc chọn phương án miễn phí nếu không thật sự cần thiết.
-                                - Tránh tạo ra lịch trình ngày có chi phí quá thấp hoặc quá cao so với phần còn lại của chuyến đi.
+                            4. **Tránh tạo ra lịch trình ngày có chi phí quá thấp hoặc quá cao so với phần còn lại của chuyến đi**.
                         
                             %s
 
