@@ -18,5 +18,8 @@ public interface PlanService {
 
     GeneralResponse<PagingDTO<Plan>>  getPlans(int page, int size, String sortField, String sortDirection, Integer userId);
 
-    String savePlan(String id); 
+    String savePlan(String id);
+
+
+    String updatePlan(String id, Plan plan);
 }

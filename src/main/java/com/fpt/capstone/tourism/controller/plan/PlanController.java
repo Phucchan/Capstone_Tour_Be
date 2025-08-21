@@ -38,6 +38,12 @@ public class PlanController {
         return ResponseEntity.ok(GeneralResponse.of(planService.savePlan(id)));
     }
 
+    @PostMapping("/update/{planId}")
+    public ResponseEntity<GeneralResponse<String>> update(@PathVariable String planId, @RequestBody Plan plan) {
+
+        return ResponseEntity.ok(GeneralResponse.of(planService.updatePlan(planId, plan)));
+    }
+
     @GetMapping("/details/{planId}")
     public ResponseEntity<GeneralResponse<Plan>> getPlanDetails(@PathVariable String planId) {
         return ResponseEntity.ok(GeneralResponse.of(planService.getPlanById(planId)));
