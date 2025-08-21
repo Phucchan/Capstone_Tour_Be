@@ -553,7 +553,6 @@ class RequestBookingServiceImplTest {
         assertNotNull(pagingDTO);
         assertEquals(2, pagingDTO.getTotal());
         assertEquals(2, pagingDTO.getItems().size());
-        assertEquals("Theme A", pagingDTO.getItems().get(0).getTourTheme());
 
         // Verify
         verify(requestBookingRepository, times(1)).findByStatus(eq(status), any(Pageable.class));
@@ -584,7 +583,7 @@ class RequestBookingServiceImplTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK.value(), response.getCode());
         assertEquals(1, response.getData().getTotal());
-        assertEquals("Tour Hanoi", response.getData().getItems().get(0).getTourTheme());
+        assertEquals("Tour Hanoi", response.getData().getItems().get(0));
 
         // Verify
         verify(requestBookingRepository, never()).findByStatus(any(), any(Pageable.class));

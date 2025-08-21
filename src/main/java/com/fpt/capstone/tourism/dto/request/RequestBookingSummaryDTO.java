@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class RequestBookingSummaryDTO {
     private Long id;
-    private String tourTheme;
+    private String customerName;
+    private String customerPhone;
     private LocalDate startDate;
     private LocalDate endDate;
     private String reason;
