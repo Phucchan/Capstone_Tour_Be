@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TourPaxRepository extends JpaRepository<TourPax, Long> {
@@ -26,4 +27,6 @@ public interface TourPaxRepository extends JpaRepository<TourPax, Long> {
      * @return A list of active TourPax configurations.
      */
     List<TourPax> findByTourIdAndDeletedIsFalse(Long tourId);
+
+    Optional<TourPax> findByIdAndDeletedIsFalse(Long id);
 }

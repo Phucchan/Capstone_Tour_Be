@@ -57,7 +57,7 @@ public class TourScheduleServiceImpl implements TourScheduleService {
         if (tour.getTourStatus() != TourStatus.PUBLISHED) {
             throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.TOUR_NOT_PUBLISHED);
         }
-        TourPax tourPax = tourPaxRepository.findById(requestDTO.getTourPaxId())
+        TourPax tourPax = tourPaxRepository.findByIdAndDeletedIsFalse(requestDTO.getTourPaxId())
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.TOUR_PAX_NOT_FOUND));
         if (!tourPax.getTour().getId().equals(tourId)) {
             throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.TOUR_PAX_MISMATCH);
