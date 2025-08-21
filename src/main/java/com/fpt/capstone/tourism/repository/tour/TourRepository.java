@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import com.fpt.capstone.tourism.model.Location;
 import org.springframework.data.jpa.repository.Query;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificationExecutor<Tour>{
@@ -50,5 +51,6 @@ public interface TourRepository extends JpaRepository<Tour, Long>, JpaSpecificat
                                        @Param("tourType") TourType tourType,
                                        @Param("keyword") String keyword,
                                        Pageable pageable);
+    Optional<Tour> findByIdAndDeletedFalse(Long tourId);
 
 }

@@ -100,13 +100,13 @@ public class TourServiceImpl implements TourService {
     public TourDetailDTO getTourDetailById(Long tourId) {
         log.info("Fetching tour details for tour ID: {}", tourId);
         // 1. Lấy entity Tour chính
-        Tour tour = tourRepository.findById(tourId)
+        Tour tour = tourRepository.findByIdAndDeletedFalse(tourId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found" ));
         log.info("Finished tour details for tour ID: {}", tourId);
 
         // 2. Lấy các thông tin liên quan
         log.info("Fetching tour days for tour ID: {}", tourId);
-        List<TourDay> tourDays = tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId);
+        List<TourDay> tourDays = tourDayRepository.findByTourIdAndDeletedIsFalseOrderByDayNumberAsc(tourId);
         log.info("Finished tour details for tour ID: {}", tourId);
 
         log.info("Fetching feedbacks for tour ID: {}", tourId);
