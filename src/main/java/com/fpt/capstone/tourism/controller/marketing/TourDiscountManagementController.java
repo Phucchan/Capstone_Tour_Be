@@ -5,11 +5,17 @@ import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.TourDiscountRequestDTO;
 import com.fpt.capstone.tourism.dto.response.TourDiscountSummaryDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.TourResponseManagerDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.TourScheduleManagerDTO;
+import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.service.TourDiscountService;
+import com.fpt.capstone.tourism.service.TourScheduleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -17,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class TourDiscountManagementController {
 
     private final TourDiscountService tourDiscountService;
+    private final TourScheduleService tourScheduleService;
 
     @PostMapping
     //postman http://localhost:8080/v1/marketing/discounts
@@ -31,5 +38,21 @@ public class TourDiscountManagementController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String keyword) {
         return ResponseEntity.ok(tourDiscountService.getDiscounts(keyword, page, size));
+    }
+    @GetMapping("/tours")
+    //postman http://localhost:8080/v1/marketing/discounts/tours?page=0&size=10
+    public ResponseEntity<GeneralResponse<PagingDTO<TourResponseManagerDTO>>> getTours(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Boolean hasDiscount,
+            @RequestParam(required = false) TourStatus status) {
+        return ResponseEntity.ok(tourDiscountService.getToursForDiscount(keyword, page, size, hasDiscount, status));
+    }
+
+    @GetMapping("/tours/{tourId}/schedules")
+    //postman http://localhost:8080/v1/marketing/discounts/tours/1/schedules
+    public ResponseEntity<GeneralResponse<List<TourScheduleManagerDTO>>> getSchedules(@PathVariable Long tourId) {
+        return ResponseEntity.ok(tourScheduleService.getTourSchedules(tourId));
     }
 }

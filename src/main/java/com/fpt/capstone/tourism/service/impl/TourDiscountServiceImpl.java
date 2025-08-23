@@ -6,10 +6,14 @@ import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.TourDiscountRequestDTO;
 import com.fpt.capstone.tourism.dto.response.TourDiscountSummaryDTO;
+import com.fpt.capstone.tourism.dto.response.tourManager.TourResponseManagerDTO;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.TourDiscountMapper;
+import com.fpt.capstone.tourism.mapper.tourManager.TourManagementMapper;
+import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.tour.TourDiscount;
 import com.fpt.capstone.tourism.model.tour.TourSchedule;
+import com.fpt.capstone.tourism.repository.TourManagementRepository;
 import com.fpt.capstone.tourism.repository.tour.TourDiscountRepository;
 import com.fpt.capstone.tourism.repository.tour.TourScheduleRepository;
 import com.fpt.capstone.tourism.service.TourDiscountService;
@@ -30,6 +34,9 @@ public class TourDiscountServiceImpl implements TourDiscountService {
     private final TourDiscountRepository tourDiscountRepository;
     private final TourScheduleRepository tourScheduleRepository;
     private final TourDiscountMapper tourDiscountMapper;
+    private final TourManagementRepository tourRepository;
+    private final TourManagementMapper tourManagementMapper;
+
 
     @Override
     public GeneralResponse<TourDiscountDTO> createDiscount(TourDiscountRequestDTO requestDTO) {
@@ -92,5 +99,22 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             // ==========================================
             throw BusinessException.of(Constants.Message.TOUR_DISCOUNT_LIST_FAIL, ex);
         }
+    }
+    @Override
+    public GeneralResponse<PagingDTO<TourResponseManagerDTO>> getToursForDiscount(String keyword,
+                                                                                  int page,
+                                                                                  int size,
+                                                                                  Boolean hasDiscount,
+                                                                                  TourStatus status) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Page<com.fpt.capstone.tourism.model.tour.Tour> tourPage =
+                tourRepository.findToursForDiscount(keyword, status, hasDiscount, pageable);
+        PagingDTO<TourResponseManagerDTO> pagingDTO = PagingDTO.<TourResponseManagerDTO>builder()
+                .page(tourPage.getNumber())
+                .size(tourPage.getSize())
+                .total(tourPage.getTotalElements())
+                .items(tourPage.getContent().stream().map(tourManagementMapper::toTourResponseDTO).toList())
+                .build();
+        return GeneralResponse.of(pagingDTO);
     }
 }
