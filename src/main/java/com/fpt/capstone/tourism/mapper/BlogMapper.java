@@ -2,24 +2,33 @@ package com.fpt.capstone.tourism.mapper;
 
 import com.fpt.capstone.tourism.dto.common.BlogManagerDTO;
 import com.fpt.capstone.tourism.dto.response.BlogDetailDTO;
+import com.fpt.capstone.tourism.dto.response.BlogDetailManagerDTO;
 import com.fpt.capstone.tourism.dto.response.homepage.BlogSummaryDTO;
 import com.fpt.capstone.tourism.model.blog.Blog;
 import com.fpt.capstone.tourism.model.blog.Tag;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface BlogMapper {
     @Mapping(source = "author.fullName", target = "authorName")
     BlogSummaryDTO blogToBlogSummaryDTO(Blog blog);
 
+    @Mapping(source = "id", target = "id") // Thêm các mapping còn thiếu
+    @Mapping(source = "title", target = "title")
+    @Mapping(source = "description", target = "description")
+    @Mapping(source = "content", target = "content")
+    @Mapping(source = "thumbnailImageUrl", target = "thumbnailImageUrl")
+    @Mapping(source = "deleted", target = "deleted")
     @Mapping(source = "author.fullName", target = "authorName")
     @Mapping(target = "tags", expression = "java(mapTags(blog.getBlogTags()))")
-    com.fpt.capstone.tourism.dto.response.BlogDetailManagerDTO blogToBlogDetailDTO(Blog blog);
+    BlogDetailManagerDTO blogToBlogDetailDTO(Blog blog);
+
 
     @Mapping(source = "author.fullName", target = "authorName")
     @Mapping(target = "tags", expression = "java(mapTags(blog.getBlogTags()))")

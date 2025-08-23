@@ -6,7 +6,7 @@ import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.TourDiscountRequestDTO;
 import com.fpt.capstone.tourism.dto.response.TourDiscountSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourResponseManagerDTO;
-import com.fpt.capstone.tourism.model.enums.TourStatus;
+import jakarta.validation.Valid;
 
 public interface TourDiscountService {
     GeneralResponse<TourDiscountDTO> createDiscount(TourDiscountRequestDTO requestDTO);
@@ -18,4 +18,10 @@ public interface TourDiscountService {
                                                                            int size,
                                                                            Boolean hasDiscount
                                                                            );
+
+    GeneralResponse<Void> deleteDiscount(Long id);
+
+    GeneralResponse<TourDiscountDTO> updateDiscount(Long id, @Valid TourDiscountRequestDTO dto);
+
+    GeneralResponse<TourDiscountDTO> getDiscountById(Long id);
 }

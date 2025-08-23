@@ -271,6 +271,10 @@ public class Constants {
         public static final String GENERAL_FAIL_MESSAGE = "Thất bại";
         public static final String SUCCESS = "Thành công";
         public static final String FAILED = "Thất bại";
+        public static final String TOUR_DISCOUNT_UPDATE_SUCCESS = "Thành công";
+        public static final String TOUR_DISCOUNT_NOT_FOUND = "Thất bại";
+        public static final String TOUR_DISCOUNT_DELETE_SUCCESS = "Thành công";
+        public static final String TOUR_DISCOUNT_END_DATE_AFTER_DEPARTURE = "Thất bại";
     }
 
 
