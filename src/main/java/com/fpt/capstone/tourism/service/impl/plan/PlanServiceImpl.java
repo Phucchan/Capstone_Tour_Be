@@ -24,6 +24,7 @@ import com.fpt.capstone.tourism.repository.partner.PartnerRepository;
 import com.fpt.capstone.tourism.service.GeminiApiService;
 import com.fpt.capstone.tourism.service.plan.PlanService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PlanServiceImpl implements PlanService {
 
 
@@ -343,7 +345,19 @@ public class PlanServiceImpl implements PlanService {
     @Override
     public String savePlan(String id) {
         try {
+            log.info("Plan with ID {} has been saved successfully.", id);
             planRepository.updatePlanStatusById(id, PlanStatus.CREATED);
+            return id;
+        } catch (Exception e){
+            throw BusinessException.of("Lấy dữ liệu thất bại", e);
+        }
+    }
+
+    @Override
+    public String updatePlan(String id, Plan plan) {
+        try {
+
+            planRepository.save(plan);
             return id;
         } catch (Exception e){
             throw BusinessException.of("Lấy dữ liệu thất bại", e);
