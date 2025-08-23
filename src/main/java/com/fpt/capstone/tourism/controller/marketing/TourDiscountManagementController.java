@@ -45,9 +45,8 @@ public class TourDiscountManagementController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Boolean hasDiscount,
-            @RequestParam(required = false) TourStatus status) {
-        return ResponseEntity.ok(tourDiscountService.getToursForDiscount(keyword, page, size, hasDiscount, status));
+            @RequestParam(required = false) Boolean hasDiscount) {
+        return ResponseEntity.ok(tourDiscountService.getToursForDiscount(keyword, page, size, hasDiscount));
     }
 
     @GetMapping("/tours/{tourId}/schedules")

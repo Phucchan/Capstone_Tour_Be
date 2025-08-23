@@ -16,15 +16,14 @@ public interface TourManagementRepository extends JpaRepository<Tour, Long>, Jpa
     boolean existsByCode(String code);
 
     @Query("SELECT t FROM Tour t WHERE t.deleted = false " +
-            "AND (:keyword IS NULL OR LOWER(t.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-            "AND (:status IS NULL OR t.tourStatus = :status) " +
+            "AND t.tourStatus = com.fpt.capstone.tourism.model.enums.TourStatus.PUBLISHED " +
+            "AND (:keyword IS NULL OR LOWER(t.name) LIKE :keyword) " +
             "AND ((:hasDiscount IS NULL) OR " +
             "(:hasDiscount = TRUE AND EXISTS (SELECT 1 FROM TourDiscount td JOIN td.tourSchedule ts " +
             "WHERE td.deleted = false AND ts.tour = t)) OR " +
             "(:hasDiscount = FALSE AND NOT EXISTS (SELECT 1 FROM TourDiscount td JOIN td.tourSchedule ts " +
             "WHERE td.deleted = false AND ts.tour = t)))")
     Page<Tour> findToursForDiscount(@Param("keyword") String keyword,
-                                    @Param("status") TourStatus status,
                                     @Param("hasDiscount") Boolean hasDiscount,
                                     Pageable pageable);
     }

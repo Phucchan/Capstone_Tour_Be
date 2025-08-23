@@ -104,11 +104,11 @@ public class TourDiscountServiceImpl implements TourDiscountService {
     public GeneralResponse<PagingDTO<TourResponseManagerDTO>> getToursForDiscount(String keyword,
                                                                                   int page,
                                                                                   int size,
-                                                                                  Boolean hasDiscount,
-                                                                                  TourStatus status) {
+                                                                                  Boolean hasDiscount) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        String keywordPattern = (keyword == null || keyword.isBlank()) ? null : "%" + keyword.toLowerCase() + "%";
         Page<com.fpt.capstone.tourism.model.tour.Tour> tourPage =
-                tourRepository.findToursForDiscount(keyword, status, hasDiscount, pageable);
+                tourRepository.findToursForDiscount(keywordPattern, hasDiscount, pageable);
         PagingDTO<TourResponseManagerDTO> pagingDTO = PagingDTO.<TourResponseManagerDTO>builder()
                 .page(tourPage.getNumber())
                 .size(tourPage.getSize())

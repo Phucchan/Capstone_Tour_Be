@@ -16,6 +16,6 @@ public interface TourDiscountService {
     GeneralResponse<PagingDTO<TourResponseManagerDTO>> getToursForDiscount(String keyword,
                                                                            int page,
                                                                            int size,
-                                                                           Boolean hasDiscount,
-                                                                           TourStatus status);
+                                                                           Boolean hasDiscount
+                                                                           );
 }
