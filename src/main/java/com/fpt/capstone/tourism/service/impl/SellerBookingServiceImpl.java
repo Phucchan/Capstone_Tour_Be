@@ -52,7 +52,7 @@ public class SellerBookingServiceImpl implements SellerBookingService {
     @Override
     public GeneralResponse<PagingDTO<SellerBookingSummaryDTO>> getAvailableBookings(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<Booking> bookingPage = bookingRepository.findBySellerIsNull(pageable);
+        Page<Booking> bookingPage = bookingRepository.findBySellerIsNullAndBookingStatus(BookingStatus.PENDING, pageable);
 
         List<SellerBookingSummaryDTO> dtos = bookingPage.getContent().stream()
                 .map(this::toSummaryDTO)
