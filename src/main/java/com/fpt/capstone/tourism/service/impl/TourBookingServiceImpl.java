@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.service.impl;
 
+import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.common.tour.TourScheduleShortInfoDTO;
 import com.fpt.capstone.tourism.dto.common.tour.TourShortInfoDTO;
 import com.fpt.capstone.tourism.dto.common.user.BookedPersonDTO;
@@ -77,10 +78,10 @@ public class TourBookingServiceImpl implements TourBookingService {
             if (bookingRequestDTO.getEmail() == null || bookingRequestDTO.getEmail().isBlank()
                     || bookingRequestDTO.getVerificationCode() == null
                     || bookingRequestDTO.getVerificationCode().isBlank()) {
-                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Email and verification code are required");
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.EMAIL_AND_VERIFICATION_CODE_REQUIRED);
             }
             if (!verificationService.verifyCode(bookingRequestDTO.getEmail(), bookingRequestDTO.getVerificationCode())) {
-                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Invalid verification code");
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.INVALID_VERIFICATION_CODE);
             }
             List<BookingRequestCustomerDTO> allCustomersDTO = Stream.of(bookingRequestDTO.getAdults(), bookingRequestDTO.getChildren(), bookingRequestDTO.getInfants(), bookingRequestDTO.getToddlers())
                     .filter(Objects::nonNull)           // lọc ra list null
@@ -190,7 +191,7 @@ public class TourBookingServiceImpl implements TourBookingService {
             return bookingCode;
 
         } catch (Exception ex) {
-            throw BusinessException.of("Tạo Tour Booking Thất Bại", ex);
+            throw BusinessException.of(Constants.Message.CREATE_BOOKING_FAILED, ex);
         }
     }
 
@@ -367,6 +368,7 @@ public class TourBookingServiceImpl implements TourBookingService {
                     .adults(adults)
                     .sellingPrice(tourBooking.getSellingPrice())
                     .extraHotelCost(tourBooking.getExtraHotelCost())
+                    .totalAmount(tourBooking.getTotalAmount())
                     .children(children)
                     .infants(infants)
                     .toddlers(toddlers)

@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.service.impl;
 
+import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
@@ -71,7 +72,7 @@ public class RequestBookingServiceImpl implements RequestBookingService {
         }
         if (requestBookingDTO.getVerificationCode() == null || requestBookingDTO.getVerificationCode().isBlank() ||
                 !verificationService.verifyCode(requestBookingDTO.getCustomerEmail(), requestBookingDTO.getVerificationCode())) {
-            return new GeneralResponse<>(HttpStatus.BAD_REQUEST.value(), "Invalid verification code", null);
+            return new GeneralResponse<>(HttpStatus.BAD_REQUEST.value(), Constants.Message.INVALID_VERIFICATION_CODE, null);
         }
         var user = userRepository.findUserById(requestBookingDTO.getUserId()).orElse(null);
         if (user == null) {
