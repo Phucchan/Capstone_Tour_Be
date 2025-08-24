@@ -7,7 +7,6 @@ import com.fpt.capstone.tourism.dto.request.TourDiscountRequestDTO;
 import com.fpt.capstone.tourism.dto.response.TourDiscountSummaryDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourResponseManagerDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourScheduleManagerDTO;
-import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.service.TourDiscountService;
 import com.fpt.capstone.tourism.service.TourScheduleService;
 import jakarta.validation.Valid;
@@ -24,6 +23,21 @@ public class TourDiscountManagementController {
 
     private final TourDiscountService tourDiscountService;
     private final TourScheduleService tourScheduleService;
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<GeneralResponse<Void>> deleteDiscount(@PathVariable Long id) {
+        return ResponseEntity.ok(tourDiscountService.deleteDiscount(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<GeneralResponse<TourDiscountDTO>> updateDiscount(@PathVariable Long id, @Valid @RequestBody TourDiscountRequestDTO dto) {
+        return ResponseEntity.ok(tourDiscountService.updateDiscount(id, dto));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<GeneralResponse<TourDiscountDTO>> getDiscountById(@PathVariable Long id) {
+        return ResponseEntity.ok(tourDiscountService.getDiscountById(id));
+    }
 
     @PostMapping
     //postman http://localhost:8080/v1/marketing/discounts
