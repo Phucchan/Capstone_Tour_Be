@@ -99,7 +99,9 @@ public class TourBookingServiceImpl implements TourBookingService {
 
             String baseUrl = backendBaseUrl + "/public/booking";
 
-            String bookingCode = bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), bookingRequestDTO.getScheduleId(), bookingRequestDTO.getUserId());
+            String tourCode = schedule.getTour().getCode() != null ? schedule.getTour().getCode() : "XXXX";
+
+            String bookingCode = bookingHelper.generateBookingCode(bookingRequestDTO.getTourId(), tourCode);
 
             double finalTotal = bookingRequestDTO.getTotal() != null ? bookingRequestDTO.getTotal() : 0;
             UserVoucher appliedVoucher = null;
