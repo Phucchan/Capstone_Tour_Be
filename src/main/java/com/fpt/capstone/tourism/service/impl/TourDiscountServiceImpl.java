@@ -104,20 +104,6 @@ public class TourDiscountServiceImpl implements TourDiscountService {
     }
 
     @Override
-    public GeneralResponse<PagingDTO<TourDiscountSummaryDTO>> getDiscounts(String keyword, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<TourDiscount> discountPage = tourDiscountRepository
-                .searchActiveDiscounts(keyword, pageable);
-        PagingDTO<TourDiscountSummaryDTO> pagingDTO = PagingDTO.<TourDiscountSummaryDTO>builder()
-                .page(discountPage.getNumber())
-                .size(discountPage.getSize())
-                .total(discountPage.getTotalElements())
-                .items(discountPage.getContent().stream().map(tourDiscountMapper::toSummaryDTO).toList())
-                .build();
-        return GeneralResponse.of(pagingDTO, Constants.Message.TOUR_DISCOUNT_LIST_SUCCESS);
-    }
-
-    @Override
     public GeneralResponse<PagingDTO<TourResponseManagerDTO>> getToursForDiscount(String keyword, int page, int size, Boolean hasDiscount) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
         String keywordPattern = (keyword == null || keyword.isBlank()) ? null : "%" + keyword.toLowerCase() + "%";
