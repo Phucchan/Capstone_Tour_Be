@@ -5,6 +5,7 @@ import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.accountatn.CreateBillRequestDTO;
 import com.fpt.capstone.tourism.dto.response.accountant.BookingRefundDTO;
 import com.fpt.capstone.tourism.dto.response.accountant.BookingRefundDetailDTO;
+import com.fpt.capstone.tourism.model.enums.BookingStatus;
 import com.fpt.capstone.tourism.service.AccountantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +22,10 @@ public class AccountantRefundController {
     //postman http://localhost:8080/v1/accountant/refunds?search=keyword&page=0&size=10
     public ResponseEntity<GeneralResponse<PagingDTO<BookingRefundDTO>>> getRefundRequests(
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) BookingStatus status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(accountantService.getRefundRequests(search, page, size));
+        return ResponseEntity.ok(accountantService.getRefundRequests(search, status, page, size));
     }
     @GetMapping("/{bookingId}")
     //postman http://localhost:8080/v1/accountant/refunds/1

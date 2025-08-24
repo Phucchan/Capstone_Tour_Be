@@ -7,9 +7,10 @@ import com.fpt.capstone.tourism.dto.response.accountant.BookingListDTO;
 import com.fpt.capstone.tourism.dto.response.accountant.BookingRefundDTO;
 import com.fpt.capstone.tourism.dto.response.accountant.BookingRefundDetailDTO;
 import com.fpt.capstone.tourism.dto.response.accountant.BookingSettlementDTO;
+import com.fpt.capstone.tourism.model.enums.BookingStatus;
 
 public interface AccountantService {
-    GeneralResponse<PagingDTO<BookingRefundDTO>> getRefundRequests(String search, int page, int size);
+    GeneralResponse<PagingDTO<BookingRefundDTO>> getRefundRequests(String search, BookingStatus status, int page, int size);
     GeneralResponse<BookingRefundDetailDTO> getRefundRequestDetail(Long bookingId);
     GeneralResponse<BookingRefundDetailDTO> cancelRefundRequest(Long bookingId);
     GeneralResponse<BookingRefundDetailDTO> createRefundBill(Long bookingId, CreateBillRequestDTO request);

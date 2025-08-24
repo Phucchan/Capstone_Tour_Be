@@ -44,9 +44,9 @@ public class AccountantServiceImpl implements AccountantService {
     private final BookingServiceRepository bookingServiceRepository;
 
     @Override
-    public GeneralResponse<PagingDTO<BookingRefundDTO>> getRefundRequests(String search, int page, int size) {
+    public GeneralResponse<PagingDTO<BookingRefundDTO>> getRefundRequests(String search, BookingStatus status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("start_date").descending());
-        Page<Object[]> resultPage = bookingRepository.findRefundRequests(search, pageable);
+        Page<Object[]> resultPage = bookingRepository.findRefundRequests(search, status != null ? status.name() : null, pageable);
 
         List<BookingRefundDTO> items = resultPage.getContent().stream()
                 .map(this::mapToDto)
