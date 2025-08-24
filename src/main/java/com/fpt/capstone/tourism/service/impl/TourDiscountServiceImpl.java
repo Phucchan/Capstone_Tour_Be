@@ -152,6 +152,12 @@ public class TourDiscountServiceImpl implements TourDiscountService {
             throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.TOUR_DISCOUNT_END_DATE_AFTER_DEPARTURE);
         }
         // 4. Check for overlapping discounts on the same schedule
+        tourDiscountRepository.findByTourSchedule_IdAndDeletedFalse(schedule.getId())
+                .ifPresent(existing -> {
+                    if (currentDiscountId == null || !existing.getId().equals(currentDiscountId)) {
+                        throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.TOUR_DISCOUNT_EXISTS);
+                    }
+                });
         tourDiscountRepository
                 .findOverlappingDiscounts(
                         schedule.getId(),
