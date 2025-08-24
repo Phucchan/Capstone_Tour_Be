@@ -14,7 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -54,6 +56,11 @@ public class TourDiscountManagementController {
     @GetMapping("/tours/{tourId}/schedules")
     //postman http://localhost:8080/v1/marketing/discounts/tours/1/schedules
     public ResponseEntity<GeneralResponse<List<TourScheduleManagerDTO>>> getSchedules(@PathVariable Long tourId) {
-        return ResponseEntity.ok(tourScheduleService.getTourSchedules(tourId));
+        GeneralResponse<List<TourScheduleManagerDTO>> response = tourScheduleService.getTourSchedules(tourId);
+        List<TourScheduleManagerDTO> upcomingSchedules = response.getData().stream()
+                .filter(s -> s.getDepartureDate() != null && !s.getDepartureDate().isBefore(LocalDateTime.now()))
+                .collect(Collectors.toList());
+        response.setData(upcomingSchedules);
+        return ResponseEntity.ok(response);
     }
 }
