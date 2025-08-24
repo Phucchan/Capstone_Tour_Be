@@ -96,12 +96,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
                 .build();
     }
 
-    @Override
-    public GeneralResponse<TourDiscountDTO> getDiscountById(Long id) {
-        TourDiscount discount = tourDiscountRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.TOUR_DISCOUNT_NOT_FOUND));
-        return GeneralResponse.of(tourDiscountMapper.toDTO(discount));
-    }
+
 
     @Override
     public GeneralResponse<PagingDTO<TourResponseManagerDTO>> getToursForDiscount(String keyword, int page, int size, Boolean hasDiscount) {

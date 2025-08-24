@@ -21,5 +21,4 @@ public interface TourDiscountService {
 
     GeneralResponse<TourDiscountDTO> updateDiscount(Long id, @Valid TourDiscountRequestDTO dto);
 
-    GeneralResponse<TourDiscountDTO> getDiscountById(Long id);
 }

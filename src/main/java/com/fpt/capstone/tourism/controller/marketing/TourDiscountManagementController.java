@@ -34,11 +34,6 @@ public class TourDiscountManagementController {
         return ResponseEntity.ok(tourDiscountService.updateDiscount(id, dto));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<GeneralResponse<TourDiscountDTO>> getDiscountById(@PathVariable Long id) {
-        return ResponseEntity.ok(tourDiscountService.getDiscountById(id));
-    }
-
     @PostMapping
     //postman http://localhost:8080/v1/marketing/discounts
     public ResponseEntity<GeneralResponse<TourDiscountDTO>> createDiscount(@Valid @RequestBody TourDiscountRequestDTO dto) {
