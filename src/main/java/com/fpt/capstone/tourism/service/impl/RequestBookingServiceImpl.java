@@ -66,11 +66,11 @@ public class RequestBookingServiceImpl implements RequestBookingService {
                 requestBookingDTO.getRoomCategory() == null ||
                 requestBookingDTO.getCustomerName() == null || requestBookingDTO.getCustomerName().isBlank() ||
                 requestBookingDTO.getCustomerEmail() == null || requestBookingDTO.getCustomerEmail().isBlank() ||
-                requestBookingDTO.getCustomerPhone() == null || requestBookingDTO.getCustomerPhone().isBlank() ||
-                requestBookingDTO.getVerificationCode() == null || requestBookingDTO.getVerificationCode().isBlank()) {
+                requestBookingDTO.getCustomerPhone() == null || requestBookingDTO.getCustomerPhone().isBlank()) {
             return new GeneralResponse<>(HttpStatus.BAD_REQUEST.value(), "Missing required fields", null);
         }
-        if (!verificationService.verifyCode(requestBookingDTO.getCustomerEmail(), requestBookingDTO.getVerificationCode())) {
+        if (requestBookingDTO.getVerificationCode() == null || requestBookingDTO.getVerificationCode().isBlank() ||
+                !verificationService.verifyCode(requestBookingDTO.getCustomerEmail(), requestBookingDTO.getVerificationCode())) {
             return new GeneralResponse<>(HttpStatus.BAD_REQUEST.value(), "Invalid verification code", null);
         }
         var user = userRepository.findUserById(requestBookingDTO.getUserId()).orElse(null);

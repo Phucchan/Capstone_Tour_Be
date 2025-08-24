@@ -80,6 +80,9 @@ public class TourSpecification {
             );
         };
     }
+    /**
+     * Lọc các tour có lịch trình khởi hành trong tương lai và đã được xuất bản.
+     */
     public static Specification<Tour> hasUpcomingSchedule() {
         return (root, query, criteriaBuilder) -> {
             Join<Tour, TourSchedule> scheduleJoin = root.join("schedules");

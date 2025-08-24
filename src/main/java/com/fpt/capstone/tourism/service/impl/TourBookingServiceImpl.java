@@ -75,8 +75,11 @@ public class TourBookingServiceImpl implements TourBookingService {
     public String createBooking(BookingRequestDTO bookingRequestDTO) {
         try {
             if (bookingRequestDTO.getEmail() == null || bookingRequestDTO.getEmail().isBlank()
-                    || bookingRequestDTO.getVerificationCode() == null || bookingRequestDTO.getVerificationCode().isBlank()
-                    || !verificationService.verifyCode(bookingRequestDTO.getEmail(), bookingRequestDTO.getVerificationCode())) {
+                    || bookingRequestDTO.getVerificationCode() == null
+                    || bookingRequestDTO.getVerificationCode().isBlank()) {
+                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Email and verification code are required");
+            }
+            if (!verificationService.verifyCode(bookingRequestDTO.getEmail(), bookingRequestDTO.getVerificationCode())) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, "Invalid verification code");
             }
             List<BookingRequestCustomerDTO> allCustomersDTO = Stream.of(bookingRequestDTO.getAdults(), bookingRequestDTO.getChildren(), bookingRequestDTO.getInfants(), bookingRequestDTO.getToddlers())
