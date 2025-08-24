@@ -154,4 +154,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByBookingStatusAndTourSchedule_DepartureDateBefore(
             com.fpt.capstone.tourism.model.enums.BookingStatus status,
             LocalDateTime departureDate);
+    List<Booking> findByBookingStatusAndExpiredAtBefore(
+            com.fpt.capstone.tourism.model.enums.BookingStatus status,
+            LocalDateTime expiredAt);
 }

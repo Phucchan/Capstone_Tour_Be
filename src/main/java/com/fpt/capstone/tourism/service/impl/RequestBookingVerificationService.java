@@ -76,11 +76,7 @@ public class RequestBookingVerificationService {
             codes.remove(email);
             return false;
         }
-        boolean match = info.code.equals(code);
-        if (match) {
-            codes.remove(email);
-        }
-        return match;
+        return info.code.equals(code);
     }
 
     private static class VerificationInfo {

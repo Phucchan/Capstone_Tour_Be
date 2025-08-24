@@ -19,6 +19,7 @@ public class BookingConfirmResponse {
     private LocalDateTime createdAt;
     private BookedPersonDTO bookedPerson;
     private Double sellingPrice;
+    private Double totalAmount;
     private Double extraHotelCost;
     private PaymentMethod paymentMethod;
     private TourShortInfoDTO tour;
