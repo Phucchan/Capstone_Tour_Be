@@ -22,6 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -42,6 +43,11 @@ public class AccountantServiceImpl implements AccountantService {
     private final PaymentBillRepository paymentBillRepository;
     private final PaymentBillItemRepository paymentBillItemRepository;
     private final BookingServiceRepository bookingServiceRepository;
+
+
+    private User getCurrentUser() {
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
 
     @Override
     public GeneralResponse<PagingDTO<BookingRefundDTO>> getRefundRequests(String search, BookingStatus status, int page, int size) {
@@ -161,22 +167,23 @@ public class AccountantServiceImpl implements AccountantService {
         }
 
         // Ensure refund information exists for booking
-        refundRepository.findByBooking_Id(bookingId)
+        Refund refund = refundRepository.findByBooking_Id(bookingId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.BAD_REQUEST, "Refund info not found"));
 
-        String bookingCode = getRefundRequestDetail(bookingId).getData().getBookingCode();
+        String bookingCode = booking.getBookingCode();
+        BigDecimal refundAmount = refund.getRefundAmount();
 
         PaymentBill bill = PaymentBill.builder()
                 .billNumber("PB-" + java.util.UUID.randomUUID().toString().substring(0, 8))
                 .paymentForType(PaymentForType.CUSTOMER)
                 .bookingCode(bookingCode)
                 .paidBy(request.getPaidBy())
-                .creator(User.builder().id(booking.getUser().getId()).build())
+                .creator(User.builder().id(getCurrentUser().getId()).build())
                 .receiverAddress(booking.getUser().getAddress())
                 .payTo(request.getPayTo())
                 .paymentType(request.getPaymentType())
                 .paymentMethod(request.getPaymentMethod())
-                .totalAmount(request.getAmount())
+                .totalAmount(refundAmount)
                 .note(request.getNote())
                 .build();
         bill.setCreatedAt(request.getCreatedDate());
@@ -187,11 +194,11 @@ public class AccountantServiceImpl implements AccountantService {
         PaymentBillItem item = PaymentBillItem.builder()
                 .paymentBill(savedBill)
                 .content(request.getContent())
-                .quantity(request.getQuantity())
-                .unitPrice(request.getUnitPrice())
-                .discount(request.getDiscount())
-                .amount(request.getAmount())
-                .paymentBillItemStatus(PaymentBillItemStatus.PENDING)
+                .quantity(1)
+                .unitPrice(refundAmount != null ? refundAmount.intValue() : 0)
+                .discount(0)
+                .amount(refundAmount)
+                .paymentBillItemStatus(PaymentBillItemStatus.PAID)
                 .build();
 
         paymentBillItemRepository.save(item);
@@ -322,7 +329,7 @@ public class AccountantServiceImpl implements AccountantService {
                 .paymentForType(PaymentForType.COMPANY)
                 .bookingCode(booking.getBookingCode())
                 .paidBy(request.getPaidBy())
-                .creator(User.builder().id(booking.getUser().getId()).build())
+                .creator(User.builder().id(getCurrentUser().getId()).build())
                 .receiverAddress(booking.getUser().getAddress())
                 .payTo(request.getPayTo())
                 .paymentType(request.getPaymentType())
@@ -363,7 +370,7 @@ public class AccountantServiceImpl implements AccountantService {
                 .paymentForType(PaymentForType.PARTNER)
                 .bookingCode(booking.getBookingCode())
                 .paidBy(request.getPaidBy())
-                .creator(User.builder().id(booking.getUser().getId()).build())
+                .creator(User.builder().id(getCurrentUser().getId()).build())
                 .receiverAddress(booking.getUser().getAddress())
                 .payTo(request.getPayTo())
                 .paymentType(request.getPaymentType())

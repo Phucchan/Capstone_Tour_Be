@@ -17,6 +17,7 @@ public interface TourManagementRepository extends JpaRepository<Tour, Long>, Jpa
 
     @Query("SELECT t FROM Tour t WHERE t.deleted = false " +
             "AND t.tourStatus = com.fpt.capstone.tourism.model.enums.TourStatus.PUBLISHED " +
+            "AND t.tourType = com.fpt.capstone.tourism.model.enums.TourType.FIXED " +
             "AND (:keyword IS NULL OR LOWER(t.name) LIKE :keyword) " +
             "AND ((:hasDiscount IS NULL) OR " +
             "(:hasDiscount = TRUE AND EXISTS (SELECT 1 FROM TourDiscount td JOIN td.tourSchedule ts " +

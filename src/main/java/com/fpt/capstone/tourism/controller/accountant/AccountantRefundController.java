@@ -33,7 +33,7 @@ public class AccountantRefundController {
             @PathVariable Long bookingId) {
         return ResponseEntity.ok(accountantService.getRefundRequestDetail(bookingId));
     }
-    @PatchMapping("/{bookingId}/cancel")
+    @PatchMapping("/{bookingId}/approve-cancellation")
     //postman http://localhost:8080/v1/accountant/refunds/1/cancel
     public ResponseEntity<GeneralResponse<BookingRefundDetailDTO>> cancelRefundRequest(
             @PathVariable Long bookingId) {
