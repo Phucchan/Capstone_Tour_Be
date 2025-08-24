@@ -125,7 +125,7 @@ public class TourBookingServiceImpl implements TourBookingService {
                 finalTotal = Math.max(0, finalTotal - voucher.getDiscountAmount());
             }
 
-            String paymentUrl = vnPayService.generatePaymentUrl(finalTotal, bookingCode, baseUrl, 120);
+            String paymentUrl = vnPayService.generatePaymentUrl(finalTotal, bookingCode, baseUrl, 60);
 
             Booking tourBooking = Booking.builder()
                     .tourSchedule(TourSchedule.builder().id(bookingRequestDTO.getScheduleId()).build())
@@ -137,7 +137,7 @@ public class TourBookingServiceImpl implements TourBookingService {
                     .extraHotelCost(bookingRequestDTO.getExtraHotelCost())
                     .paymentMethod(bookingRequestDTO.getPaymentMethod())
                     .paymentUrl(paymentUrl)
-                    .expiredAt(LocalDateTime.now().plusHours(9))
+                    .expiredAt(LocalDateTime.now().plusHours(1))
                     .totalAmount(finalTotal)
                     .needHelp(bookingRequestDTO.isNeedHelp())
                     .adults(bookingRequestDTO.getAdults() != null ? bookingRequestDTO.getAdults().size() : 0)
