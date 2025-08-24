@@ -11,8 +11,6 @@ import jakarta.validation.Valid;
 public interface TourDiscountService {
     GeneralResponse<TourDiscountDTO> createDiscount(TourDiscountRequestDTO requestDTO);
 
-    GeneralResponse<PagingDTO<TourDiscountSummaryDTO>> getDiscounts(String keyword, int page, int size);
-
     GeneralResponse<PagingDTO<TourResponseManagerDTO>> getToursForDiscount(String keyword,
                                                                            int page,
                                                                            int size,

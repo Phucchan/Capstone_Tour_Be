@@ -45,14 +45,7 @@ public class TourDiscountManagementController {
         return ResponseEntity.ok(tourDiscountService.createDiscount(dto));
     }
 
-    @GetMapping
-    //postman http://localhost:8080/v1/marketing/discounts?page=0&size=10&keyword=tour
-    public ResponseEntity<GeneralResponse<PagingDTO<TourDiscountSummaryDTO>>> getDiscounts(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String keyword) {
-        return ResponseEntity.ok(tourDiscountService.getDiscounts(keyword, page, size));
-    }
+
     @GetMapping("/tours")
     //postman http://localhost:8080/v1/marketing/discounts/tours?page=0&size=10
     public ResponseEntity<GeneralResponse<PagingDTO<TourResponseManagerDTO>>> getTours(

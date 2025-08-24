@@ -58,6 +58,9 @@ public interface TourDiscountRepository extends JpaRepository<TourDiscount, Long
             LocalDateTime endDate
     );
 
+    Optional<TourDiscount> findByTourSchedule_IdAndDeletedFalse(Long scheduleId);
+
+
     Optional<TourDiscount> findByIdAndDeletedFalse(Long id);
 
     @Query("SELECT td FROM TourDiscount td " +

@@ -21,8 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.*;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,7 +51,7 @@ public class TourController {
         return ResponseEntity.ok(GeneralResponse.of(result, "Discount tours loaded successfully."));
     }
     @GetMapping("/destinations/{destId}/search")
-    //postman http://localhost:8080/v1/public/tours/destinations/1/search?priceMin=1000000&priceMax=5000000&departId=2&date=2023-10-01&page=0&size=6&sortField=createdAt&sortDirection=desc
+    //postman http://localhost:8080/v1/public/tours/destinations/2/search?priceMin=1000000&priceMax=5000000&departId=1&date=2023-12-20&name=Tour&page=0&size=6&sortField=createdAt&sortDirection=desc
     public ResponseEntity<GeneralResponse<SearchTourResponseDTO>> searchToursByDestination(
             @PathVariable("destId") Long destIdPath,
             @RequestParam(required = false) Double priceMin,
