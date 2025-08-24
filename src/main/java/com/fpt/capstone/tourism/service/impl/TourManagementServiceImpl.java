@@ -322,7 +322,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         tourRepository.findById(tourId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Tour not found"));
 
-        List<TourDay> days = tourDayRepository.findByTourIdAndDeletedIsFalseOrderByDayNumberAsc(tourId);
+        List<TourDay> days = tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId);
 
         // Map thủ công để đảm bảo dữ liệu services được load
         List<TourDayManagerDTO> dtos = days.stream()
@@ -471,13 +471,11 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
             throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.TOUR_DAY_NOT_BELONG);
         }
 
-        // 4. Thực hiện xóa MỀM (soft delete)
-        dayToDelete.softDelete();
-        tourDayRepository.save(dayToDelete);
+        // 4. Thực hiện xóa TRỰC TIẾP (hard delete)
+        tourDayRepository.delete(dayToDelete);
 
         // 5. Tải lại danh sách các ngày trong tour, đã được sắp xếp theo dayNumber
-        // Lấy lại danh sách TẤT CẢ các ngày còn lại (chưa bị xóa mềm), đã được sắp xếp
-        List<TourDay> remainingDays = tourDayRepository.findByTourIdAndDeletedIsFalseOrderByDayNumberAsc(tourId);
+        List<TourDay> remainingDays = tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId);
 
         // Đánh số lại (re-number) các ngày còn lại
         int currentDayNumber = 1;
