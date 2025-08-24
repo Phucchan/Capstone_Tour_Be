@@ -60,16 +60,16 @@ class AccountantServiceImplTest { // Đổi tên class để bao quát toàn b�
         Object[] r2 = new Object[]{
                 101L, "TC02", "Tour Da Nang",
                 TourType.FIXED, Timestamp.valueOf(LocalDateTime.of(2025,2,2,8,0)),
-                BookingStatus.CANCELLED, "Le Thi B"
+                BookingStatus.REFUNDED, "Le Thi B"
         };
         Page<Object[]> mockPage = new PageImpl<>(List.of(r1, r2), PageRequest.of(page, size), 2);
 
-        when(bookingRepository.findRefundRequests(eq(search), any(Pageable.class)))
+        when(bookingRepository.findRefundRequests(eq(search), eq(BookingStatus.CANCEL_REQUESTED.name()), any(Pageable.class)))
                 .thenReturn(mockPage);
 
         // Act
         GeneralResponse<PagingDTO<BookingRefundDTO>> res =
-                service.getRefundRequests(search, page, size);
+                service.getRefundRequests(search, BookingStatus.CANCEL_REQUESTED, page, size);
 
         // Assert: status/message
         assertNotNull(res);
@@ -94,7 +94,7 @@ class AccountantServiceImplTest { // Đổi tên class để bao quát toàn b�
         assertEquals("Nguyen Van A", d1.getCustomerName());
 
         // Verify: repository được gọi với search & pageable đúng (page/size/sort)
-        verify(bookingRepository).findRefundRequests(eq(search), pageableCaptor.capture());
+        verify(bookingRepository).findRefundRequests(eq(search), eq(BookingStatus.CANCEL_REQUESTED.name()), pageableCaptor.capture());
         Pageable used = pageableCaptor.getValue();
         assertEquals(page, used.getPageNumber());
         assertEquals(size, used.getPageSize());
@@ -114,12 +114,12 @@ class AccountantServiceImplTest { // Đổi tên class để bao quát toàn b�
         int page = 1, size = 5;
         Page<Object[]> mockPage = new PageImpl<>(List.of(), PageRequest.of(page, size), 0);
 
-        when(bookingRepository.findRefundRequests(eq(search), any(Pageable.class)))
+        when(bookingRepository.findRefundRequests(eq(search), isNull(), any(Pageable.class)))
                 .thenReturn(mockPage);
 
         // Act
         GeneralResponse<PagingDTO<BookingRefundDTO>> res =
-                service.getRefundRequests(search, page, size);
+                service.getRefundRequests(search, null, page, size);
 
         // Assert
         assertEquals(HttpStatus.OK.value(), res.getStatus());
@@ -130,7 +130,7 @@ class AccountantServiceImplTest { // Đổi tên class để bao quát toàn b�
         assertEquals(page, res.getData().getPage());
         assertEquals(size, res.getData().getSize());
 
-        verify(bookingRepository).findRefundRequests(eq(search), any(Pageable.class));
+        verify(bookingRepository).findRefundRequests(eq(search), isNull(), any(Pageable.class));
         verifyNoMoreInteractions(bookingRepository);
     }
 

@@ -20,6 +20,7 @@ import com.fpt.capstone.tourism.model.tour.TourSchedule;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.repository.TourManagementRepository;
 import com.fpt.capstone.tourism.repository.tour.TourDayRepository;
+import com.fpt.capstone.tourism.repository.tour.TourDiscountRepository;
 import com.fpt.capstone.tourism.repository.tour.TourPaxRepository;
 import com.fpt.capstone.tourism.repository.tour.TourScheduleRepository;
 import com.fpt.capstone.tourism.repository.user.UserRepository;
@@ -46,6 +47,7 @@ public class TourScheduleServiceImpl implements TourScheduleService {
     private final UserMapper userMapper;
     private final EmailService emailService;
     private final TourDayRepository tourDayRepository;
+    private final TourDiscountRepository tourDiscountRepository;
 
     @Override
     public GeneralResponse<List<TourScheduleManagerDTO>> createTourSchedule(Long tourId, TourScheduleCreateRequestDTO requestDTO) {
@@ -99,7 +101,7 @@ public class TourScheduleServiceImpl implements TourScheduleService {
             schedule.setAvailableSeats(tourPax.getMaxQuantity());
             schedule.setDepartureDate(departureDate);
             schedule.setEndDate(endDate);
-            schedule.setPublished(false);
+            schedule.setPublished(true);
 
             TourSchedule saved = tourScheduleRepository.save(schedule);
             if (i == 0) {
@@ -195,14 +197,19 @@ public class TourScheduleServiceImpl implements TourScheduleService {
         List<TourScheduleManagerDTO> schedules = tourScheduleRepository.findByTourId(tourId)
                 .stream()
                 .filter(s -> !Boolean.TRUE.equals(s.getDeleted()))
-                .map(s -> TourScheduleManagerDTO.builder()
-                        .id(s.getId())
-                        .coordinatorId(s.getCoordinator() != null ? s.getCoordinator().getId() : null)
-                        .tourPaxId(s.getTourPax() != null ? s.getTourPax().getId() : null)
-                        .departureDate(s.getDepartureDate())
-                        .endDate(s.getEndDate())
-                        .price(s.getTourPax().getSellingPrice())
-                        .build())
+                .map(s -> {
+                    var discountOpt = tourDiscountRepository.findByTourSchedule_IdAndDeletedFalse(s.getId());
+                    return TourScheduleManagerDTO.builder()
+                            .id(s.getId())
+                            .coordinatorId(s.getCoordinator() != null ? s.getCoordinator().getId() : null)
+                            .tourPaxId(s.getTourPax() != null ? s.getTourPax().getId() : null)
+                            .departureDate(s.getDepartureDate())
+                            .endDate(s.getEndDate())
+                            .price(s.getTourPax().getSellingPrice())
+                            .discountId(discountOpt.map(d -> d.getId()).orElse(null))
+                            .discountPercent(discountOpt.map(d -> d.getDiscountPercent()).orElse(null))
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         return GeneralResponse.of(schedules);

@@ -2,11 +2,13 @@ package com.fpt.capstone.tourism.controller.plan;
 
 
 import com.fpt.capstone.tourism.dto.common.PlanDTO;
+import com.fpt.capstone.tourism.dto.common.partner.PartnerShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.plan.PlanGenerationRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PublicLocationDTO;
 import com.fpt.capstone.tourism.model.mongo.Plan;
+import com.fpt.capstone.tourism.service.PartnerManagementService;
 import com.fpt.capstone.tourism.service.plan.PlanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ import java.util.List;
 public class PlanController {
 
     private final PlanService planService;
+    private final PartnerManagementService partnerManagementService;
 
 
     @GetMapping("/locations")
@@ -57,6 +60,14 @@ public class PlanController {
             @RequestParam(defaultValue = "id") String sortField,
             @RequestParam(defaultValue = "desc") String sortDirection) {
         return ResponseEntity.ok(planService.getPlans(page, size, sortField, sortDirection, userId));
+    }
+
+
+    @GetMapping("/partner/list/{planId}")
+    public ResponseEntity<GeneralResponse<List<PartnerShortDTO>>> getPlanByPartner(@PathVariable String planId,
+                                                                                   @RequestParam String categoryName,
+                                                                                   @RequestParam List<Integer> locationIds) {
+        return ResponseEntity.ok(partnerManagementService.getPartners(planId, categoryName, locationIds));
     }
 
 

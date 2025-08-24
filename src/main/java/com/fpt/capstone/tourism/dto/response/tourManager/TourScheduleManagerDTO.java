@@ -18,4 +18,6 @@ public class TourScheduleManagerDTO {
     private LocalDateTime departureDate;
     private LocalDateTime endDate;
     private Double price;
+    private Long discountId;
+    private Double discountPercent;
 }

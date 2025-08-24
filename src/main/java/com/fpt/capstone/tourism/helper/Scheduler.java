@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Component
@@ -20,6 +21,17 @@ public class Scheduler {
         LocalDateTime cutoff = LocalDateTime.now().plusDays(3);
         List<Booking> bookings = bookingRepository
                 .findByBookingStatusAndTourSchedule_DepartureDateBefore(BookingStatus.PENDING, cutoff);
+
+        if (!bookings.isEmpty()) {
+            bookings.forEach(b -> b.setBookingStatus(BookingStatus.CANCELLED));
+            bookingRepository.saveAll(bookings);
+        }
+    }
+    @Scheduled(fixedRate = 60 * 1000)
+    void cancelUnpaidBookings() {
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        List<Booking> bookings = bookingRepository
+                .findByBookingStatusAndExpiredAtBefore(BookingStatus.PENDING, now);
 
         if (!bookings.isEmpty()) {
             bookings.forEach(b -> b.setBookingStatus(BookingStatus.CANCELLED));

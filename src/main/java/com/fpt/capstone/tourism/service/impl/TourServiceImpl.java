@@ -106,7 +106,7 @@ public class TourServiceImpl implements TourService {
 
         // 2. Lấy các thông tin liên quan
         log.info("Fetching tour days for tour ID: {}", tourId);
-        List<TourDay> tourDays = tourDayRepository.findByTourIdAndDeletedIsFalseOrderByDayNumberAsc(tourId);
+        List<TourDay> tourDays = tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId);
         log.info("Finished tour details for tour ID: {}", tourId);
 
         log.info("Fetching feedbacks for tour ID: {}", tourId);

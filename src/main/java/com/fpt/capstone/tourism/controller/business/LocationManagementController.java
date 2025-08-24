@@ -3,6 +3,7 @@ package com.fpt.capstone.tourism.controller.business;
 import com.fpt.capstone.tourism.dto.common.location.LocationDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.request.ChangeDeleteStatusDTO;
 import com.fpt.capstone.tourism.dto.request.LocationRequestDTO;
 import com.fpt.capstone.tourism.service.LocationService;
 import lombok.RequiredArgsConstructor;
@@ -47,5 +48,10 @@ public class LocationManagementController {
                                                                        @RequestParam(value = "file", required = false) MultipartFile file,
                                                                        @ModelAttribute LocationRequestDTO requestDTO) {
         return ResponseEntity.ok(locationService.updateLocation(id, requestDTO, file));
+    }
+    @PatchMapping("/locations/{id}/status")
+    public ResponseEntity<GeneralResponse<LocationDTO>> changeLocationStatus(@PathVariable Long id,
+                                                                             @RequestBody ChangeDeleteStatusDTO changeStatusDTO) {
+        return ResponseEntity.ok(locationService.deleteLocation(id, changeStatusDTO.getDeleted()));
     }
 }

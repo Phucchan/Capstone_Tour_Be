@@ -76,7 +76,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     Page<Booking> findByTourSchedule_Tour_NameContainingIgnoreCase(String name, Pageable pageable);
 
-    Page<Booking> findBySellerIsNull(Pageable pageable);
+    Page<Booking> findBySellerIsNullAndBookingStatus(BookingStatus bookingStatus, Pageable pageable);
 
 
     Page<Booking> findBySeller_UsernameOrderByUpdatedAtDesc(String username, Pageable pageable);
@@ -128,7 +128,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "LEFT JOIN tour_schedules ts ON b.tour_schedule_id = ts.schedule_id " +
             "LEFT JOIN tours t ON ts.tour_id = t.tour_id " +
             "LEFT JOIN users u ON b.user_id = u.id " +
-            "WHERE b.booking_status = 'CANCEL_REQUESTED' " +
+            "WHERE b.booking_status IN ('CANCEL_REQUESTED','REFUNDED') " +
+            "AND (:status IS NULL OR b.booking_status = :status) " +
             "AND (:search IS NULL OR LOWER(t.code) LIKE LOWER(CONCAT('%', :search, '%')) " +
             "OR LOWER(t.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
             "OR LOWER(u.full_name) LIKE LOWER(CONCAT('%', :search, '%'))) ",
@@ -136,12 +137,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                     "LEFT JOIN tour_schedules ts ON b.tour_schedule_id = ts.schedule_id " +
                     "LEFT JOIN tours t ON ts.tour_id = t.tour_id " +
                     "LEFT JOIN users u ON b.user_id = u.id " +
-                    "WHERE b.booking_status = 'CANCEL_REQUESTED' " +
+                    "WHERE b.booking_status IN ('CANCEL_REQUESTED','REFUNDED') " +
+                    "AND (:status IS NULL OR b.booking_status = :status) " +
                     "AND (:search IS NULL OR LOWER(t.code) LIKE LOWER(CONCAT('%', :search, '%')) " +
                     "OR LOWER(t.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
                     "OR LOWER(u.full_name) LIKE LOWER(CONCAT('%', :search, '%'))) ",
             nativeQuery = true)
-    Page<Object[]> findRefundRequests(@Param("search") String search, Pageable pageable);
+    Page<Object[]> findRefundRequests(@Param("search") String search, @Param("status") String status, Pageable pageable);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select b from Booking b where b.id = :id")
@@ -154,4 +156,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByBookingStatusAndTourSchedule_DepartureDateBefore(
             com.fpt.capstone.tourism.model.enums.BookingStatus status,
             LocalDateTime departureDate);
+    List<Booking> findByBookingStatusAndExpiredAtBefore(
+            com.fpt.capstone.tourism.model.enums.BookingStatus status,
+            LocalDateTime expiredAt);
 }

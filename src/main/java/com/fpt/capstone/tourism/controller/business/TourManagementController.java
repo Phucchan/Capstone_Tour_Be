@@ -52,7 +52,7 @@ public class TourManagementController {
 
     // thay đổi trạng thái tour
     // postman http://localhost:8080/v1/business/tours/1/status
-    @PatchMapping("/{id}/status")
+    @PatchMapping("/tours/{id}/status")
     public ResponseEntity<GeneralResponse<Object>> changeStatus(@PathVariable Long id, @RequestBody ChangeStatusDTO changeStatusDTO) {
         return ResponseEntity.ok(tourManagementService.changeStatus(id, changeStatusDTO));
     }

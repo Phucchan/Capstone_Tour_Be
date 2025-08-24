@@ -207,6 +207,8 @@ public class Constants {
         public static final String INVALID_PRICE = "Giá phải là một số hợp lệ";
         public static final String CONFIG_UPDATED = "Cập nhật cấu hình giá thành công";
         public static final String CREATE_BOOKING_FAILED = "Tạo Tour Booking Thất Bại";
+        public static final String EMAIL_AND_VERIFICATION_CODE_REQUIRED = "Email và mã xác thực là bắt buộc";
+        public static final String INVALID_VERIFICATION_CODE = "Mã Code không hợp lệ, vui lòng thử lại";
 
         //===================================================
         // Wishlist Related Messages
@@ -271,6 +273,10 @@ public class Constants {
         public static final String GENERAL_FAIL_MESSAGE = "Thất bại";
         public static final String SUCCESS = "Thành công";
         public static final String FAILED = "Thất bại";
+        public static final String TOUR_DISCOUNT_UPDATE_SUCCESS = "Thành công";
+        public static final String TOUR_DISCOUNT_NOT_FOUND = "Thất bại";
+        public static final String TOUR_DISCOUNT_DELETE_SUCCESS = "Thành công";
+        public static final String TOUR_DISCOUNT_END_DATE_AFTER_DEPARTURE = "Thất bại";
     }
 
 

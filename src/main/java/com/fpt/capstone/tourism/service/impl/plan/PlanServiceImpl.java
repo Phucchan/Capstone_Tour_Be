@@ -122,6 +122,8 @@ public class PlanServiceImpl implements PlanService {
                 mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
                 PlanDay planDay = mapper.readValue(cleanJson(response), PlanDay.class);
 
+                planDay.setLocationId(locationId);
+
                 planDay.getActivities()
                         .parallelStream()
                         .forEach(enricher::enrichActivityWithImage);

@@ -1,6 +1,7 @@
 package com.fpt.capstone.tourism.service.impl;
 
 import com.fpt.capstone.tourism.constants.Constants;
+import com.fpt.capstone.tourism.dto.common.partner.PartnerShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
 import com.fpt.capstone.tourism.dto.request.ChangeDeleteStatusDTO;
@@ -20,6 +21,7 @@ import com.fpt.capstone.tourism.repository.partner.ServiceTypeRepository;
 import com.fpt.capstone.tourism.repository.partner.PartnerRepository;
 import com.fpt.capstone.tourism.service.PartnerManagementService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +37,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PartnerManagementServiceImpl implements PartnerManagementService {
 
     private final PartnerRepository partnerRepository;
@@ -254,6 +257,26 @@ public class PartnerManagementServiceImpl implements PartnerManagementService {
             throw be;
         } catch (Exception ex) {
             throw BusinessException.of(Constants.Message.PARTNER_UPDATE_FAIL, ex);
+        }
+    }
+
+    @Override
+    public GeneralResponse<List<PartnerShortDTO>> getPartners(String planId, String categoryName, List<Integer> locationIds) {
+        try {
+            List<PartnerShortDTO> partners;
+
+            log.info("Fetching partners for planId: {}, categoryName: {}, locationIds: {}", planId, categoryName, locationIds);
+
+            if (categoryName == null || categoryName.isEmpty()) {
+                partners = partnerRepository.findAllShortByLocationIds(locationIds);
+            } else {
+                partners = partnerRepository.findPartners(categoryName, locationIds);
+            }
+            return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.PARTNER_LIST_SUCCESS, partners);
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception ex) {
+            throw BusinessException.of(Constants.Message.PARTNER_LIST_FAIL, ex);
         }
     }
 }
