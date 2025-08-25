@@ -14,6 +14,8 @@ import com.fpt.capstone.tourism.helper.validator.Validator;
 import com.fpt.capstone.tourism.mapper.UserMapper;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.enums.BookingStatus;
+import com.fpt.capstone.tourism.model.payment.PaymentBill;
+import com.fpt.capstone.tourism.model.payment.PaymentType;
 import com.fpt.capstone.tourism.model.payment.Refund;
 import com.fpt.capstone.tourism.model.tour.Booking;
 import com.fpt.capstone.tourism.repository.RefundRepository;
@@ -21,6 +23,7 @@ import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.repository.booking.BookingRepository;
 import com.fpt.capstone.tourism.service.S3Service;
 import com.fpt.capstone.tourism.service.UserService;
+import com.fpt.capstone.tourism.service.payment.PaymentBillRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -32,6 +35,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,6 +57,7 @@ public class UserServiceImpl implements UserService {
     private final BookingRepository bookingRepository;
     private final RefundRepository refundRepository;
     private final S3Service s3Service;
+    private final PaymentBillRepository paymentBillRepository;
 
     @Value("${aws.s3.bucket-url}")
     private String bucketUrl;
@@ -249,6 +255,26 @@ public class UserServiceImpl implements UserService {
         if (booking.getBookingStatus() != BookingStatus.CANCEL_REQUESTED) {
             throw BusinessException.of("Chỉ có thể gửi thông tin hoàn tiền cho đặt tour đã yêu cầu hủy");
         }
+        List<PaymentBill> bills = paymentBillRepository.findPaymentBillsByBookingCode(booking.getBookingCode());
+        BigDecimal paidAmount = bills.stream()
+                .filter(pb -> pb.getPaymentType() == PaymentType.RECEIPT)
+                .map(PaymentBill::getTotalAmount)
+                .filter(java.util.Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (paidAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw BusinessException.of("Bạn chưa thanh toán nên không thể yêu cầu hoàn tiền");
+        }
+
+        LocalDateTime departure = booking.getTourSchedule().getDepartureDate();
+        long daysBefore = ChronoUnit.DAYS.between(LocalDateTime.now(), departure);
+        BigDecimal refundAmount;
+        if (daysBefore >= 15) {
+            refundAmount = paidAmount;
+        } else if (daysBefore >= 10) {
+            refundAmount = paidAmount.multiply(BigDecimal.valueOf(0.5));
+        } else {
+            refundAmount = BigDecimal.ZERO;
+        }
 
         Refund refund = refundRepository.findByBooking_Id(bookingId).orElse(null);
         if (refund == null) {
@@ -260,7 +286,7 @@ public class UserServiceImpl implements UserService {
         refund.setBankAccountNumber(requestDTO.getBankAccountNumber());
         refund.setBankAccountHolder(requestDTO.getBankAccountHolder());
         refund.setBankName(requestDTO.getBankName());
-        refund.setRefundAmount(BigDecimal.valueOf(booking.getTotalAmount()));
+        refund.setRefundAmount(refundAmount);
 
         refundRepository.save(refund);
 

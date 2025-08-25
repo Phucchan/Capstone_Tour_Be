@@ -26,8 +26,4 @@ public class CreateBillRequestDTO {
 
     // Fields for PaymentBillItem
     private String content;
-    private int unitPrice;
-    private Integer quantity;
-    private double discount;
-    private BigDecimal amount;
 }

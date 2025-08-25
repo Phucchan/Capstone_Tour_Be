@@ -77,6 +77,7 @@ public class AccountantServiceImpl implements AccountantService {
         List<PaymentBill> payments = paymentBillRepository.findPaymentBillsByBookingCode(booking.getBookingCode());
         BigDecimal totalAmount = BigDecimal.valueOf(booking.getTotalAmount());
         BigDecimal paidAmount = payments.stream()
+                .filter(pb -> pb.getPaymentType() == PaymentType.RECEIPT)
                 .map(PaymentBill::getTotalAmount)
                 .filter(Objects::nonNull)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -188,6 +189,9 @@ public class AccountantServiceImpl implements AccountantService {
 
         String bookingCode = booking.getBookingCode();
         BigDecimal refundAmount = refund.getRefundAmount();
+        if (refundAmount == null || refundAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Customer has not paid, cannot create refund bill");
+        }
 
         PaymentBill bill = PaymentBill.builder()
                 .billNumber("PB-" + java.util.UUID.randomUUID().toString().substring(0, 8))
@@ -211,10 +215,10 @@ public class AccountantServiceImpl implements AccountantService {
                 .paymentBill(savedBill)
                 .content(request.getContent())
                 .quantity(1)
-                .unitPrice(refundAmount != null ? refundAmount.intValue() : 0)
+                .unitPrice(refundAmount.intValue())
                 .discount(0)
                 .amount(refundAmount)
-                .paymentBillItemStatus(PaymentBillItemStatus.PAID)
+                .paymentBillItemStatus(PaymentBillItemStatus.PENDING)
                 .build();
 
         paymentBillItemRepository.save(item);
@@ -340,6 +344,25 @@ public class AccountantServiceImpl implements AccountantService {
         Booking booking = bookingRepository.findByIdForUpdate(bookingId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
 
+        List<PaymentBill> receipts = paymentBillRepository
+                .findPaymentBillsByBookingCode(booking.getBookingCode())
+                .stream()
+                .filter(pb -> pb.getPaymentType() == PaymentType.RECEIPT)
+                .toList();
+        BigDecimal paidAmount = receipts.stream()
+                .map(PaymentBill::getTotalAmount)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal amount;
+        if (paidAmount.compareTo(BigDecimal.ZERO) == 0) {
+            amount = BigDecimal.valueOf(booking.getDepositAmount());
+        } else {
+            amount = BigDecimal.valueOf(booking.getTotalAmount()).subtract(paidAmount);
+        }
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Customer has not paid yet");
+        }
+
         PaymentBill bill = PaymentBill.builder()
                 .billNumber("RC-" + java.util.UUID.randomUUID().toString().substring(0, 8))
                 .paymentForType(PaymentForType.COMPANY)
@@ -350,7 +373,7 @@ public class AccountantServiceImpl implements AccountantService {
                 .payTo(request.getPayTo())
                 .paymentType(request.getPaymentType())
                 .paymentMethod(request.getPaymentMethod())
-                .totalAmount(request.getAmount())
+                .totalAmount(amount)
                 .note(request.getNote())
                 .build();
         bill.setCreatedAt(request.getCreatedDate());
@@ -361,11 +384,11 @@ public class AccountantServiceImpl implements AccountantService {
         PaymentBillItem item = PaymentBillItem.builder()
                 .paymentBill(savedBill)
                 .content(request.getContent())
-                .quantity(request.getQuantity())
-                .unitPrice(request.getUnitPrice())
-                .discount(request.getDiscount())
-                .amount(request.getAmount())
-                .paymentBillItemStatus(PaymentBillItemStatus.PENDING)
+                .quantity(1)
+                .unitPrice(amount.intValue())
+                .discount(0)
+                .amount(amount)
+                .paymentBillItemStatus(PaymentBillItemStatus.PAID)
                 .build();
 
         paymentBillItemRepository.save(item);
@@ -381,6 +404,29 @@ public class AccountantServiceImpl implements AccountantService {
         Booking booking = bookingRepository.findByIdForUpdate(bookingId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
 
+        List<BookingService> services = bookingServiceRepository.findWithServiceByBookingId(bookingId);
+        if (services.isEmpty()) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "No services found for booking");
+        }
+
+        List<PaymentBillItem> items = services.stream().map(bs -> {
+            BigDecimal amount = BigDecimal.valueOf(bs.getService().getNettPrice())
+                    .multiply(BigDecimal.valueOf(bs.getQuantity()));
+            return PaymentBillItem.builder()
+                    .content(bs.getService().getName())
+                    .quantity(bs.getQuantity())
+                    .unitPrice((int) bs.getService().getNettPrice())
+                    .discount(0)
+                    .amount(amount)
+                    .paymentBillItemStatus(PaymentBillItemStatus.PENDING)
+                    .build();
+        }).toList();
+
+        BigDecimal totalAmount = items.stream()
+                .map(PaymentBillItem::getAmount)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         PaymentBill bill = PaymentBill.builder()
                 .billNumber("PM-" + java.util.UUID.randomUUID().toString().substring(0, 8))
                 .paymentForType(PaymentForType.PARTNER)
@@ -391,7 +437,7 @@ public class AccountantServiceImpl implements AccountantService {
                 .payTo(request.getPayTo())
                 .paymentType(request.getPaymentType())
                 .paymentMethod(request.getPaymentMethod())
-                .totalAmount(request.getAmount())
+                .totalAmount(totalAmount)
                 .note(request.getNote())
                 .build();
         bill.setCreatedAt(request.getCreatedDate());
@@ -399,18 +445,9 @@ public class AccountantServiceImpl implements AccountantService {
 
         PaymentBill savedBill = paymentBillRepository.save(bill);
 
-        PaymentBillItem item = PaymentBillItem.builder()
-                .paymentBill(savedBill)
-                .content(request.getContent())
-                .quantity(request.getQuantity())
-                .unitPrice(request.getUnitPrice())
-                .discount(request.getDiscount())
-                .amount(request.getAmount())
-                .paymentBillItemStatus(PaymentBillItemStatus.PENDING)
-                .build();
-
-        paymentBillItemRepository.save(item);
-        savedBill.setItems(List.of(item));
+        items.forEach(i -> i.setPaymentBill(savedBill));
+        paymentBillItemRepository.saveAll(items);
+        savedBill.setItems(items);
 
         BookingSettlementDTO dto = getBookingSettlement(bookingId).getData();
         return new GeneralResponse<>(HttpStatus.OK.value(), "Payment bill created", dto);
