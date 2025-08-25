@@ -90,7 +90,6 @@ public class TourSpecification {
             return criteriaBuilder.and(
                     criteriaBuilder.isFalse(root.get("deleted")),
                     criteriaBuilder.isFalse(scheduleJoin.get("deleted")),
-                    criteriaBuilder.isTrue(scheduleJoin.get("published")),
                     criteriaBuilder.greaterThanOrEqualTo(scheduleJoin.get("departureDate"), LocalDateTime.now())
             );
         };

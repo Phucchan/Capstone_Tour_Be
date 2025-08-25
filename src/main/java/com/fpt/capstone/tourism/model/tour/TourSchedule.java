@@ -42,9 +42,6 @@ public class TourSchedule extends BaseEntity {
     @Column(name = "end_date")
     private LocalDateTime endDate;
 
-    @Column(name = "is_published")
-    private boolean published;
-
     @Column(name = "available_seats", nullable = false)
     @Min(0)
     private Integer availableSeats;

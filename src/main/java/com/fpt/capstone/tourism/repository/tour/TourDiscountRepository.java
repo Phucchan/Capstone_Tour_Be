@@ -23,7 +23,6 @@ public interface TourDiscountRepository extends JpaRepository<TourDiscount, Long
             "WHERE td.startDate <= :now AND td.endDate >= :now " +
             "AND td.deleted = false " +
             "AND ts.deleted = false " +
-            "AND ts.published = true " +
             "AND ts.departureDate >= :now " +
             "AND ts.tour.tourStatus = com.fpt.capstone.tourism.model.enums.TourStatus.PUBLISHED " +
             "AND ts.tour.deleted = false " +
@@ -36,7 +35,6 @@ public interface TourDiscountRepository extends JpaRepository<TourDiscount, Long
             "WHERE td.startDate <= :now AND td.endDate >= :now " +
             "AND td.deleted = false " +
             "AND ts.deleted = false " +
-            "AND ts.published = true " +
             "AND ts.departureDate >= :now " +
             "AND ts.tour.tourStatus = com.fpt.capstone.tourism.model.enums.TourStatus.PUBLISHED " +
             "AND ts.tour.deleted = false")

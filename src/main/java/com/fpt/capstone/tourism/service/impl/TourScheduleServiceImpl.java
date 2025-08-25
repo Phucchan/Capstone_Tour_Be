@@ -101,7 +101,6 @@ public class TourScheduleServiceImpl implements TourScheduleService {
             schedule.setAvailableSeats(tourPax.getMaxQuantity());
             schedule.setDepartureDate(departureDate);
             schedule.setEndDate(endDate);
-            schedule.setPublished(true);
 
             TourSchedule saved = tourScheduleRepository.save(schedule);
             if (i == 0) {
