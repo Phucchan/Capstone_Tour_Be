@@ -166,93 +166,90 @@ public class SellerBookingServiceImpl implements SellerBookingService {
     public GeneralResponse<SellerBookingDetailDTO> updateBookingStatus(Long bookingId, BookingStatus status) {
         Booking booking = bookingRepository.findByIdForUpdate(bookingId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
+        if (booking.getBookingStatus() != BookingStatus.PAID) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Booking must be paid before status can be changed");
+        }
         if (status == BookingStatus.CONFIRMED) {
-            if (booking.getBookingStatus() != BookingStatus.PENDING) {
-                throw BusinessException.of(HttpStatus.BAD_REQUEST, "Booking is not pending");
-            }
-                    booking.setBookingStatus(BookingStatus.CONFIRMED);
-                    bookingRepository.save(booking);
+            booking.setBookingStatus(BookingStatus.CONFIRMED);
+            bookingRepository.save(booking);
 
-                    // Send confirmation email to the booked person
-                    BookingCustomer bookedPerson = bookingCustomerRepository
-                            .findFirstByBooking_IdAndBookedPersonTrue(booking.getId());
-                    if (bookedPerson != null && bookedPerson.getEmail() != null) {
-                        double total = booking.getTotalAmount();
+            // Send confirmation email to the booked person
+            BookingCustomer bookedPerson = bookingCustomerRepository
+                    .findFirstByBooking_IdAndBookedPersonTrue(booking.getId());
+            if (bookedPerson != null && bookedPerson.getEmail() != null) {
+                double total = booking.getTotalAmount();
 
-                        var tour = booking.getTourSchedule().getTour();
-                        var days = tourDayRepository.findByTourIdOrderByDayNumberAsc(tour.getId());
-                        List<String> destinations = days.stream()
-                                .map(d -> d.getLocation() != null ? d.getLocation().getName() : null)
-                                .filter(Objects::nonNull)
-                                .toList();
-                        Set<String> services = days.stream()
-                                .flatMap(d -> d.getServiceTypes().stream())
-                                .map(st -> st.getName())
-                                .collect(Collectors.toCollection(LinkedHashSet::new));
+                var tour = booking.getTourSchedule().getTour();
+                var days = tourDayRepository.findByTourIdOrderByDayNumberAsc(tour.getId());
+                List<String> destinations = days.stream()
+                        .map(d -> d.getLocation() != null ? d.getLocation().getName() : null)
+                        .filter(Objects::nonNull)
+                        .toList();
+                Set<String> services = days.stream()
+                        .flatMap(d -> d.getServiceTypes().stream())
+                        .map(st -> st.getName())
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
 
-                        int adults = booking.getAdults() != null ? booking.getAdults() : 0;
-                        int children = booking.getChildren() != null ? booking.getChildren() : 0;
-                        int infants = booking.getInfants() != null ? booking.getInfants() : 0;
-                        int toddlers = booking.getToddlers() != null ? booking.getToddlers() : 0;
-                        int totalGuests = adults + children + infants + toddlers;
+                int adults = booking.getAdults() != null ? booking.getAdults() : 0;
+                int children = booking.getChildren() != null ? booking.getChildren() : 0;
+                int infants = booking.getInfants() != null ? booking.getInfants() : 0;
+                int toddlers = booking.getToddlers() != null ? booking.getToddlers() : 0;
+                int totalGuests = adults + children + infants + toddlers;
 
-                        String subject = "Booking confirmation for " + tour.getName();
-                        StringBuilder content = new StringBuilder()
-                                .append("Hello ").append(bookedPerson.getFullName()).append(",\n\n")
-                                .append("Your tour booking has been confirmed. Below are the details:\n\n")
-                                .append("Tour: ").append(tour.getName()).append("\n")
-                                .append("Group code: ").append(booking.getBookingCode()).append("\n")
-                                .append("Departure: ").append(booking.getTourSchedule().getDepartureDate()).append(" from ")
-                                .append(tour.getDepartLocation() != null ? tour.getDepartLocation().getName() : "N/A").append("\n")
-                                .append("End date: ").append(booking.getTourSchedule().getEndDate()).append("\n\n")
-                                .append("Group information:\n")
-                                .append(" - Adults: ").append(adults).append("\n")
-                                .append(" - Children: ").append(children).append("\n")
-                                .append(" - Infants: ").append(infants).append("\n")
-                                .append(" - Toddlers: ").append(toddlers).append("\n")
-                                .append(" - Total guests: ").append(totalGuests).append("\n\n");
+                String subject = "Booking confirmation for " + tour.getName();
+                StringBuilder content = new StringBuilder()
+                        .append("Hello ").append(bookedPerson.getFullName()).append(",\n\n")
+                        .append("Your tour booking has been confirmed. Below are the details:\n\n")
+                        .append("Tour: ").append(tour.getName()).append("\n")
+                        .append("Group code: ").append(booking.getBookingCode()).append("\n")
+                        .append("Departure: ").append(booking.getTourSchedule().getDepartureDate()).append(" from ")
+                        .append(tour.getDepartLocation() != null ? tour.getDepartLocation().getName() : "N/A").append("\n")
+                        .append("End date: ").append(booking.getTourSchedule().getEndDate()).append("\n\n")
+                        .append("Group information:\n")
+                        .append(" - Adults: ").append(adults).append("\n")
+                        .append(" - Children: ").append(children).append("\n")
+                        .append(" - Infants: ").append(infants).append("\n")
+                        .append(" - Toddlers: ").append(toddlers).append("\n")
+                        .append(" - Total guests: ").append(totalGuests).append("\n\n");
 
-                        if (!destinations.isEmpty()) {
-                            content.append("Destinations: ").append(String.join(", ", destinations)).append("\n");
-                        }
-                        if (!services.isEmpty()) {
-                            content.append("Services included: ").append(String.join(", ", services)).append("\n");
-                        }
-
-                        content.append("\nPayment details:\n")
-                                .append(" - Total amount: ").append(String.format("%.2f", total)).append("\n")
-                                .append(" - Amount due (100%): ").append(String.format("%.2f", total)).append(" by ")
-                                .append(booking.getExpiredAt()).append("\n\n")
-                                .append("If you have any questions, please contact us.\n")
-                                .append("Thank you for choosing our service.");
-
-                        emailService.sendEmail(bookedPerson.getEmail(), subject, content.toString());
-                    }
-                        SellerBookingDetailDTO dto = toDetailDTO(booking);
-                        return new GeneralResponse<>(HttpStatus.OK.value(), "Success", dto);
-                    } else if (status == BookingStatus.CANCELLED) {
-                        if (booking.getBookingStatus() != BookingStatus.PENDING) {
-                            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Only pending bookings can be cancelled");
-                        }
-                        booking.setBookingStatus(BookingStatus.CANCELLED);
-                        bookingRepository.save(booking);
-
-                        BookingCustomer bookedPerson = bookingCustomerRepository
-                                .findFirstByBooking_IdAndBookedPersonTrue(booking.getId());
-                        if (bookedPerson != null && bookedPerson.getEmail() != null) {
-                            var tour = booking.getTourSchedule().getTour();
-                            String subject = "Booking cancelled for " + tour.getName();
-                            StringBuilder content = new StringBuilder()
-                                    .append("Hello ").append(bookedPerson.getFullName()).append(",\n\n")
-                                    .append("Your tour booking has been cancelled. If you have any questions, please contact us.");
-                            emailService.sendEmail(bookedPerson.getEmail(), subject, content.toString());
-                        }
-                        SellerBookingDetailDTO dto = toDetailDTO(booking);
-                        return new GeneralResponse<>(HttpStatus.OK.value(), "Cancelled", dto);
-                    } else {
-                        throw BusinessException.of(HttpStatus.BAD_REQUEST, "Invalid status");
-                    }
+                if (!destinations.isEmpty()) {
+                    content.append("Destinations: ").append(String.join(", ", destinations)).append("\n");
                 }
+                if (!services.isEmpty()) {
+                    content.append("Services included: ").append(String.join(", ", services)).append("\n");
+                }
+
+                content.append("\nPayment details:\n")
+                        .append(" - Total amount: ").append(String.format("%.2f", total)).append("\n")
+                        .append(" - Amount due (100%): ").append(String.format("%.2f", total)).append(" by ")
+                        .append(booking.getExpiredAt()).append("\n\n")
+                        .append("If you have any questions, please contact us.\n")
+                        .append("Thank you for choosing our service.");
+
+                emailService.sendEmail(bookedPerson.getEmail(), subject, content.toString());
+            }
+            SellerBookingDetailDTO dto = toDetailDTO(booking);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Success", dto);
+        } else if (status == BookingStatus.CANCELLED) {
+            booking.setBookingStatus(BookingStatus.CANCELLED);
+            bookingRepository.save(booking);
+
+            BookingCustomer bookedPerson = bookingCustomerRepository
+                    .findFirstByBooking_IdAndBookedPersonTrue(booking.getId());
+            if (bookedPerson != null && bookedPerson.getEmail() != null) {
+                var tour = booking.getTourSchedule().getTour();
+                String subject = "Booking cancelled for " + tour.getName();
+                StringBuilder content = new StringBuilder()
+                        .append("Hello ").append(bookedPerson.getFullName()).append(",\n\n")
+                        .append("Your tour booking has been cancelled. If you have any questions, please contact us.");
+                emailService.sendEmail(bookedPerson.getEmail(), subject, content.toString());
+            }
+            SellerBookingDetailDTO dto = toDetailDTO(booking);
+            return new GeneralResponse<>(HttpStatus.OK.value(), "Cancelled", dto);
+        } else {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Invalid status");
+        }
+    }
     @Override
     @Transactional
     public GeneralResponse<SellerBookingDetailDTO> updateCustomer(Long customerId, BookingRequestCustomerDTO requestDTO) {

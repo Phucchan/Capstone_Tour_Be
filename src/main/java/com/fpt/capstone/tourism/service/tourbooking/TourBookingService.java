@@ -15,5 +15,5 @@ public interface TourBookingService {
     void addCustomersToSchedule(Long bookingId, Long scheduleId, List<BookingRequestCustomerDTO> customers);
     void confirmPayment(int paymentStatus, String orderInfo);
     BookingConfirmResponse getTourBookingDetails(String bookingCode);
-
+    void updatePaymentMethod(String bookingCode, PaymentMethod paymentMethod);
 }
