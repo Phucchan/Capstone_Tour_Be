@@ -10,6 +10,7 @@ import org.mapstruct.Named;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface TourManagementMapper {
     @Mapping(target = "id", source = "id")
+    @Mapping(target = "code", source = "code")
     @Mapping(target = "name", source = "name")
     @Mapping(target = "thumbnailImage", source = "thumbnailUrl")
     @Mapping(target = "typeName", source = "tourType", qualifiedByName = "mapTourType")

@@ -142,7 +142,7 @@ public class AccountantServiceImpl implements AccountantService {
     }
     @Override
     @Transactional
-    public GeneralResponse<BookingRefundDetailDTO> cancelRefundRequest(Long bookingId) {
+    public GeneralResponse<BookingRefundDetailDTO> approveRefundRequest(Long bookingId) {
         Booking booking = bookingRepository.findByIdForUpdate(bookingId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
 
@@ -155,6 +155,22 @@ public class AccountantServiceImpl implements AccountantService {
 
         BookingRefundDetailDTO dto = getRefundRequestDetail(bookingId).getData();
         return new GeneralResponse<>(HttpStatus.OK.value(), "Cancelled", dto);
+    }
+    @Override
+    @Transactional
+    public GeneralResponse<BookingRefundDetailDTO> cancelRefundRequest(Long bookingId) {
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
+
+        if (booking.getBookingStatus() != BookingStatus.CANCEL_REQUESTED) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, "Booking is not in cancel requested status");
+        }
+
+        booking.setBookingStatus(BookingStatus.CONFIRMED);
+        bookingRepository.save(booking);
+
+        BookingRefundDetailDTO dto = getRefundRequestDetail(bookingId).getData();
+        return new GeneralResponse<>(HttpStatus.OK.value(), "Request cancelled", dto);
     }
     @Override
     @Transactional

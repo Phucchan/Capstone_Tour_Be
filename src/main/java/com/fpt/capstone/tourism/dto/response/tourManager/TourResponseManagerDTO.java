@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class TourResponseManagerDTO {
     private Long id;
+    private String code;
     private String name;
     private String thumbnailImage;
     private String typeName;
