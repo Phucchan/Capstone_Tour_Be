@@ -323,7 +323,7 @@ public class TourBookingServiceImpl implements TourBookingService {
                     paymentBillItem.setPaymentBillItemStatus(PaymentBillItemStatus.PAID);
                 }
 
-                paymentBillItemRepository.saveAll(paymentBillItems);
+                paymentBillItemRepository.saveAll(paymentBillItems );
 
             } else {
                 String baseUrl = backendBaseUrl + "/public/booking";
