@@ -314,7 +314,7 @@ public class TourBookingServiceImpl implements TourBookingService {
         try {
             Booking tourBooking = bookingRepository.findByBookingCode(orderInfo);
             if (paymentStatus == 1) {
-                tourBooking.setBookingStatus(BookingStatus.CONFIRMED);
+                tourBooking.setBookingStatus(BookingStatus.PAID);
                 bookingRepository.save(tourBooking);
 
                 List<PaymentBillItem> paymentBillItems = paymentBillItemRepository.findAllByBookingCode(tourBooking.getBookingCode());
