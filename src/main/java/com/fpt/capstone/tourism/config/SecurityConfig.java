@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .requestMatchers("/public/**", "/auth/**", "/oauth2/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/forgot-password", "/reset-password").permitAll()
+                        .requestMatchers("/v1/customer/**").hasAnyAuthority("CUSTOMER")
                         .requestMatchers("/v1/admin/**").hasAnyAuthority("ADMIN")
                         .requestMatchers("/v1/marketing/**").hasAnyAuthority("MARKETING_MANAGER", "BUSINESS_DEPARTMENT", "ADMIN")
                         .requestMatchers("/v1/business/**").hasAnyAuthority("BUSINESS_DEPARTMENT", "ADMIN")
