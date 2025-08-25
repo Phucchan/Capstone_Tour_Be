@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,6 +60,7 @@ public class TourDiscountManagementController {
         GeneralResponse<List<TourScheduleManagerDTO>> response = tourScheduleService.getTourSchedules(tourId);
         List<TourScheduleManagerDTO> upcomingSchedules = response.getData().stream()
                 .filter(s -> s.getDepartureDate() != null && !s.getDepartureDate().isBefore(LocalDateTime.now()))
+                .sorted(Comparator.comparing(TourScheduleManagerDTO::getDepartureDate))
                 .collect(Collectors.toList());
         response.setData(upcomingSchedules);
         return ResponseEntity.ok(response);

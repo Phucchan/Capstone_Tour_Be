@@ -237,15 +237,17 @@ public class AccountantServiceImpl implements AccountantService {
 
     private BookingRefundDTO mapToDto(Object[] row) {
         Long bookingId = row[0] != null ? ((Number) row[0]).longValue() : null;
-        String tourCode = (String) row[1];
-        String tourName = (String) row[2];
-        String tourType = row[3] != null ? row[3].toString() : null;
-        LocalDateTime startDate = row[4] != null ? ((Timestamp) row[4]).toLocalDateTime() : null;
-        String status = row[5] != null ? row[5].toString() : null;
-        String customerName = (String) row[6];
+        String bookingCode = (String) row[1];
+        String tourCode = (String) row[2];
+        String tourName = (String) row[3];
+        String tourType = row[4] != null ? row[4].toString() : null;
+        LocalDateTime startDate = row[5] != null ? ((Timestamp) row[5]).toLocalDateTime() : null;
+        String status = row[6] != null ? row[6].toString() : null;
+        String customerName = (String) row[7];
 
         return BookingRefundDTO.builder()
                 .bookingId(bookingId)
+                .bookingCode(bookingCode)
                 .tourCode(tourCode)
                 .tourName(tourName)
                 .tourType(tourType)

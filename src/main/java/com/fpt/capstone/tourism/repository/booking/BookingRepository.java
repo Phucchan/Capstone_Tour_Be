@@ -122,7 +122,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Long countReturningCustomers(@Param("startDate") LocalDateTime startDate,
                                  @Param("endDate") LocalDateTime endDate);
 
-    @Query(value = "SELECT b.booking_id AS booking_id, t.code AS tour_code, t.name AS tour_name, t.tour_type AS tour_type, " +
+    @Query(value = "SELECT b.booking_id AS booking_id, b.booking_code AS booking_code, t.code AS tour_code, t.name AS tour_name, t.tour_type AS tour_type, " +
             "ts.departure_date AS start_date, b.booking_status AS status, u.full_name AS customer_name " +
             "FROM bookings b " +
             "LEFT JOIN tour_schedules ts ON b.tour_schedule_id = ts.schedule_id " +
@@ -132,7 +132,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "AND (:status IS NULL OR b.booking_status = :status) " +
             "AND (:search IS NULL OR LOWER(t.code) LIKE LOWER(CONCAT('%', :search, '%')) " +
             "OR LOWER(t.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
-            "OR LOWER(u.full_name) LIKE LOWER(CONCAT('%', :search, '%'))) ",
+            "OR LOWER(u.full_name) LIKE LOWER(CONCAT('%', :search, '%')) " +
+            "OR LOWER(b.booking_code) LIKE LOWER(CONCAT('%', :search, '%'))) ",
             countQuery = "SELECT COUNT(*) FROM bookings b " +
                     "LEFT JOIN tour_schedules ts ON b.tour_schedule_id = ts.schedule_id " +
                     "LEFT JOIN tours t ON ts.tour_id = t.tour_id " +
@@ -141,7 +142,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                     "AND (:status IS NULL OR b.booking_status = :status) " +
                     "AND (:search IS NULL OR LOWER(t.code) LIKE LOWER(CONCAT('%', :search, '%')) " +
                     "OR LOWER(t.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
-                    "OR LOWER(u.full_name) LIKE LOWER(CONCAT('%', :search, '%'))) ",
+                    "OR LOWER(u.full_name) LIKE LOWER(CONCAT('%', :search, '%')) " +
+                    "OR LOWER(b.booking_code) LIKE LOWER(CONCAT('%', :search, '%'))) ",
             nativeQuery = true)
     Page<Object[]> findRefundRequests(@Param("search") String search, @Param("status") String status, Pageable pageable);
 

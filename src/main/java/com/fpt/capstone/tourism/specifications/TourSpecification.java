@@ -124,6 +124,15 @@ public class TourSpecification {
             return criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern);
         };
     }
+    public static Specification<Tour> hasCodeLike(String code) {
+        return (root, query, criteriaBuilder) -> {
+            if (code == null || code.trim().isEmpty()) {
+                return null;
+            }
+            String pattern = "%" + code.trim().toLowerCase() + "%";
+            return criteriaBuilder.like(criteriaBuilder.lower(root.get("code")), pattern);
+        };
+    }
 
     /**
      * Lọc tour theo loại tour.

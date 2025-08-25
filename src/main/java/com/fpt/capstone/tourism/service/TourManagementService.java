@@ -22,7 +22,7 @@ import java.util.List;
 public interface TourManagementService {
 
     GeneralResponse<PagingDTO<TourResponseManagerDTO>> getListTours(int page, int size, String keyword,
-                                                                    TourType tourType, TourStatus tourStatus);
+                                                                    String tourCode, TourType tourType, TourStatus tourStatus);
 
     GeneralResponse<TourDetailManagerDTO> createTour(TourCreateManagerRequestDTO requestDTO, MultipartFile file);
 

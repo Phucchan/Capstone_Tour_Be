@@ -91,7 +91,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
 
     @Override
     public GeneralResponse<PagingDTO<TourResponseManagerDTO>> getListTours(int page, int size, String keyword,
-                                                                           TourType tourType, TourStatus tourStatus) {
+                                                                           String tourCode, TourType tourType, TourStatus tourStatus) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
         Specification<Tour> spec = (root, query, cb) -> cb.conjunction();
         if (keyword != null && !keyword.trim().isEmpty()) {
@@ -102,6 +102,9 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         }
         if (tourStatus != null) {
             spec = spec.and(TourSpecification.hasTourStatus(tourStatus));
+        }
+        if (tourCode != null && !tourCode.trim().isEmpty()) {
+            spec = spec.and(TourSpecification.hasCodeLike(tourCode));
         }
         Page<Tour> tours = tourRepository.findAll(spec, pageable);
 
