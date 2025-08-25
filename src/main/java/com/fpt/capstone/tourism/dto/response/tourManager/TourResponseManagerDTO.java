@@ -17,6 +17,7 @@ public class TourResponseManagerDTO {
     private String name;
     private String thumbnailImage;
     private String typeName;
+    private String tourTransport;
     private String tourStatus;
     private Integer durationDays;
     private LocalDateTime createdAt;
