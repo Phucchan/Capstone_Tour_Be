@@ -86,8 +86,7 @@ public class TourDiscountServiceImpl implements TourDiscountService {
         TourDiscount discount = tourDiscountRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.TOUR_DISCOUNT_NOT_FOUND));
 
-        discount.setDeleted(true);
-        tourDiscountRepository.save(discount);
+        tourDiscountRepository.delete(discount);
 
         return GeneralResponse.<Void>builder()
                 .code(HttpStatus.OK.value())

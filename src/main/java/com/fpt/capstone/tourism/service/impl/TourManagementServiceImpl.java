@@ -94,6 +94,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                                                                            String tourCode, TourType tourType, TourStatus tourStatus) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
         Specification<Tour> spec = (root, query, cb) -> cb.conjunction();
+        spec = spec.and((root, query, cb) -> cb.isFalse(root.get("deleted")));
         if (keyword != null && !keyword.trim().isEmpty()) {
             spec = spec.and(TourSpecification.hasNameLike(keyword));
         }
