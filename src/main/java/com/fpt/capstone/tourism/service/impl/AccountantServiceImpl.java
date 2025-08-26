@@ -288,6 +288,7 @@ public class AccountantServiceImpl implements AccountantService {
         return new GeneralResponse<>(HttpStatus.OK.value(), "Success", paging);
     }
     @Override
+    @Transactional(readOnly = true)
     public GeneralResponse<BookingSettlementDTO> getBookingSettlement(Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
@@ -295,7 +296,9 @@ public class AccountantServiceImpl implements AccountantService {
         List<BookingService> services = bookingServiceRepository.findWithServiceByBookingId(bookingId);
 
         List<BookingServiceSettlementDTO> serviceDtos = services.stream()
+                .filter(bs -> bs.getService() != null)
                 .map(bs -> BookingServiceSettlementDTO.builder()
+                        .serviceId(bs.getService().getId())
                         .serviceName(bs.getService().getName())
                         .dayNumber(bs.getDayNumber())
                         .pax(bs.getQuantity())
