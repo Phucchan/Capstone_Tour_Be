@@ -272,7 +272,6 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         if (requestDTO.getDestinationLocationIds() != null) {
             List<Long> newDestinationIds = requestDTO.getDestinationLocationIds();
             List<TourDay> existingDays = tour.getTourDays();
-            List<TourDay> newDays = new ArrayList<>();
 
             for (int i = 0; i < newDestinationIds.size(); i++) {
                 Long destId = newDestinationIds.get(i);
@@ -282,26 +281,25 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 } else {
                     day = new TourDay();
                     day.setTour(tour);
+                    existingDays.add(day);
                 }
 
-            // Thêm mới ngày
-                Location dest = locationRepository.findById(destId)
+                    Location dest = locationRepository.findById(destId)
                         .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found for day"));
-                day.setTour(tour);
-                day.setLocation(dest);
-                day.setDayNumber(i + 1);
-                newDays.add(day);
-            }
-            if (existingDays.size() > newDays.size()) {
-                List<TourDay> daysToDelete = new ArrayList<>(existingDays.subList(newDays.size(), existingDays.size()));
-                tourDayRepository.deleteAll(daysToDelete);
-            }
+                    day.setLocation(dest);
+                    day.setDayNumber(i + 1);
+                }
+                    if (existingDays.size() > newDestinationIds.size()) {
+                        List<TourDay> daysToDelete = new ArrayList<>(existingDays.subList(newDestinationIds.size(), existingDays.size()));
+                        existingDays.subList(newDestinationIds.size(), existingDays.size()).clear();
+                        tourDayRepository.deleteAll(daysToDelete);
+                    }
 
-            tour.setTourDays(newDays);
-            tour.setDurationDays(newDays.size());
-        }
+                    tour.setDurationDays(existingDays.size());
+                }
 
-        Tour savedTour = tourRepository.save(tour);
+
+                Tour savedTour = tourRepository.save(tour);
         return GeneralResponse.of(buildDetailDTO(savedTour.getId()), "Tour updated successfully");
     }
 

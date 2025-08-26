@@ -38,13 +38,13 @@ public class TourManagementController {
     private final RequestBookingService requestBookingService;
 
     // danh sách tour
-    // postman http://localhost:8080/v1/business/tours?page=1&size=6
+    // postman http://localhost:8080/v1/business/tours?page=0&size=10
     @GetMapping("/tours")
     public ResponseEntity<GeneralResponse<PagingDTO<TourResponseManagerDTO>>> getListtours(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String tourCode,
+            @RequestParam(value = "tourCode", required = false) String tourCode,
             @RequestParam(required = false) TourType tourType,
             @RequestParam(required = false) TourStatus tourStatus) {
         return ResponseEntity.ok(tourManagementService.getListTours(page, size, keyword, tourCode, tourType, tourStatus));
