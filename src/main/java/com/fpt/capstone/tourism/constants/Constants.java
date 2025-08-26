@@ -92,6 +92,11 @@ public class Constants {
         // PartnerService management
         public static final String SERVICE_NOT_FOUND = "Không tìm thấy dịch vụ";
         public static final String SERVICE_CREATED = "Tạo dịch vụ thành công";
+        public static final String SERVICE_CREATE_FAIL = "Tạo dịch vụ thất bại";
+        public static final String SERVICE_DELETE_SUCCESS = "Xóa dịch vụ thành công";
+        public static final String SERVICE_DELETE_FAIL = "Xóa dịch vụ thất bại";
+        public static final String SERVICE_STATUS_UPDATED = "Thay đổi trạng thái dịch vụ thành công";
+        public static final String SERVICE_STATUS_UPDATE_FAIL = "Thay đổi trạng thái dịch vụ thất bại";
         public static final String NO_SERVICES_AVAILABLE = "Không có dịch vụ tour nào";
         public static final String SERVICE_NOT_ASSOCIATED = "Dịch vụ không được liên kết với tour này";
         public static final String PARTNER_STATUS_UPDATED = "Thay đổi trạng thái nhà cung cấp thành công";
@@ -227,6 +232,8 @@ public class Constants {
         public static final String GET_SERVICE_LIST_FAIL = "Lấy danh sách dịch vụ thất bại";
         public static final String BOOKING_NOT_FOUND = "Không tìm thấy đặt tour";
         public static final String SERVICE_ALREADY_EXISTS = "Dịch vụ đã tồn tại";
+        public static final String GET_SERVICE_DETAIL_SUCCESS = "Lấy chi tiết dịch vụ thành công";
+        public static final String GET_SERVICE_DETAIL_FAIL = "Lấy chi tiết dịch vụ thất bại";
 
         public static final String GET_CHECKINS_SUCCESS = "Lấy danh sách check-in thành công";
         public static final String GET_CHECKINS_FAIL = "Lấy danh sách check-in thất bại";

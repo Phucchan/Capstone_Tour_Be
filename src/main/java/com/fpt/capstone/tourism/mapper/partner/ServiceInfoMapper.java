@@ -1,10 +1,10 @@
 package com.fpt.capstone.tourism.mapper.partner;
 
+import com.fpt.capstone.tourism.dto.response.ServiceDetailDTO;
 import com.fpt.capstone.tourism.dto.response.ServiceInfoDTO;
 import com.fpt.capstone.tourism.model.partner.PartnerService;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
 @Mapper(componentModel = "spring")
 public interface ServiceInfoMapper {
@@ -18,4 +18,11 @@ public interface ServiceInfoMapper {
     @Mapping(source = "serviceType.name", target = "serviceTypeName")
     @Mapping(source = "status", target = "status")
     ServiceInfoDTO toDto(PartnerService partnerService);
+
+    @Mapping(source = "partner.id", target = "partnerId")
+    @Mapping(source = "partner.name", target = "partnerName")
+    @Mapping(source = "serviceType.id", target = "serviceTypeId")
+    @Mapping(source = "serviceType.name", target = "serviceTypeName")
+    @Mapping(source = "status", target = "status")
+    ServiceDetailDTO toDetailDto(PartnerService partnerService);
 }
