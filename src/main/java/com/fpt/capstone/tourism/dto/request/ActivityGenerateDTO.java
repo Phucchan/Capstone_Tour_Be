@@ -9,4 +9,5 @@ public class ActivityGenerateDTO {
     private String preferences;
     private String locationName;
     private int startIndex;
+    private String date;
 }

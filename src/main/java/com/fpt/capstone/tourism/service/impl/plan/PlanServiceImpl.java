@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.service.impl.plan;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -7,6 +8,7 @@ import com.fpt.capstone.tourism.constants.Constants;
 import com.fpt.capstone.tourism.dto.common.partner.PartnerShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.request.ActivityGenerateDTO;
 import com.fpt.capstone.tourism.dto.request.plan.PlanDayDTO;
 import com.fpt.capstone.tourism.dto.request.plan.PlanGenerationRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PublicLocationDTO;
@@ -14,6 +16,7 @@ import com.fpt.capstone.tourism.enrich.Enricher;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.mapper.LocationMapper;
 import com.fpt.capstone.tourism.model.Location;
+import com.fpt.capstone.tourism.model.domain.Activity;
 import com.fpt.capstone.tourism.model.domain.PlanDay;
 import com.fpt.capstone.tourism.model.domain.PlanDetail;
 import com.fpt.capstone.tourism.model.enums.PlanStatus;
@@ -239,7 +242,7 @@ public class PlanServiceImpl implements PlanService {
                                 - Tổng ngân sách sẽ được chia đều tương đối theo số ngày trong hành trình, nhưng có thể linh hoạt điều chỉnh theo từng ngày.
                                 - Tổng chi phí của tất cả chuyến đi nên đạt **tối thiểu khoảng 80-90%% ngân sách**, để đảm bảo người dùng tận hưởng trọn vẹn trải nghiệm, đồng thời vẫn giữ lại một phần dự phòng nhỏ cho các trường hợp phát sinh.
                                 - Tránh việc chi tiêu quá tiết kiệm hoặc chọn phương án miễn phí nếu không thật sự cần thiết.
-                                - Tránh tạo ra lịch trình ngày có chi phí quá thấp hoặc quá cao so với phần còn lại của chuyến đi.
+                                - Tránh tạo ra lịch trình ngày có chi phí quá thấp hoặc quá cao so với phần còn lại của chuyến đi. Chi phí của các ngày nên tương đương nhau, tránh ngày quá cao hoặc quá thấp.
                         
                                 %s
                             
@@ -365,5 +368,76 @@ public class PlanServiceImpl implements PlanService {
             throw BusinessException.of("Lấy dữ liệu thất bại", e);
         }
     }
+
+    @Override
+    public String deletePlan(String id) {
+        try {
+            planRepository.deletePlanById(id);
+            return id;
+        } catch (Exception e){
+            throw BusinessException.of("Lấy dữ liệu thất bại", e);
+        }
+    }
+
+    @Override
+    public List<Activity> getActivitySuggestions(ActivityGenerateDTO dto) {
+        try {
+            String prompt = buildActivityPrompt(dto);
+
+            String response = geminiApiService.getGeminiResponse(prompt);
+
+            if (response == null || response.isEmpty()) {
+                throw BusinessException.of("Không thể tạo gợi ý hoạt động");
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+            List<Activity> activities = mapper.readValue(cleanJson(response), new TypeReference<>() {});
+
+            // Enrich activities with images
+            activities.parallelStream().forEach(enricher::enrichActivityWithImage);
+
+            return activities;
+
+        } catch (Exception e) {
+            throw BusinessException.of("Lấy dữ liệu thất bại", e);
+        }
+    }
+
+
+    private String buildActivityPrompt(ActivityGenerateDTO dto) {
+        return """
+        Bạn là một trợ lý AI chuyên xây dựng chương trình du lịch cá nhân hóa.
+        Sở thích chính của người dùng bao gồm: %s.
+        Hôm nay là ngày %s, họ đang ở tại %s.
+        Hãy đề xuất một kế hoạch gồm các hoạt động phù hợp với sở thích của người dùng.
+       
+        Hãy tạo ít nhất 8 hoạt động, bao gồm:
+        1. **title**: tên hoạt động, ngắn gọn, dễ hiểu
+        2. **content**: mô tả chi tiết hoạt động, không quá 30 từ, ngắn gọn, dễ hiểu
+        3. **category**: loại hoạt động (ví dụ: ẩm thực, tham quan, giải trí, văn hóa, ...)
+        4. **duration**: thời lượng ước tính, ví dụ: 2 giờ, nửa ngày
+        5. **imageUrl**: link hình ảnh minh họa phù hợp với hoạt động
+        6. **startTime**: thời gian bắt đầu hoạt động, định dạng `yyyy-MM-ddTHH:mm:ss`
+        7. **endTime**: thời gian kết thúc hoạt động, định dạng `yyyy-MM-ddTHH:mm:ss`
+        8. **estimatedCost**: chi phí ước tính (double), đơn vị VNĐ, hãy đánh giá chi phí phù hợp theo mặt bằng Việt Nam và ghi vào trường `estimatedCost` (đơn vị VNĐ). Nếu miễn phí, để giá trị là `0`.
+            - Nếu một hoạt động là **miễn phí hoàn toàn** (ví dụ: đi bộ quanh hồ, tham quan đền chùa), hãy đặt `estimatedCost: 0`.
+            - Ước tính theo mặt bằng giá thực tế – ví dụ: bữa ăn phổ thông 50.000–100.000 VNĐ, vé tham quan 30.000–100.000 VNĐ, vé xem phim 100.000–150.000 VNĐ...
+            - Tránh việc để tất cả hoạt động đều có chi phí là 0, hãy ưu tiên các hoạt động có trả phí, có giá trị trải nghiệm tương xứng và góp phần nâng tổng chi phí lên mức hợp lý.
+       
+       Các lưu ý quan trọng:
+        - Chỉ được chọn nội dung sát với các sở thích đã cung cấp. Tuyệt đối không đưa ra hoạt động không liên quan, dù có vẻ thú vị..
+        - Thời gian định dạng theo ISO 8601 (VD: 2025-07-20T08:00:00)
+        - ID của hoạt động sẽ bắt đầu từ %d và tăng dần.
+       
+       Định dạng phản hồi của bạn BẮT BUỘC tuân theo cấu trúc JSON sau:
+       
+       ### ĐỊNH_DẠNG_PHẢN_HỒI_JSON:
+       %s
+       """.formatted(dto.getPreferences(), dto.getDate(), dto.getLocationName(), dto.getStartIndex(), Constants.AI.PROMPT_ACTIVITY_RESPONSE);
+    }
+
 
 }

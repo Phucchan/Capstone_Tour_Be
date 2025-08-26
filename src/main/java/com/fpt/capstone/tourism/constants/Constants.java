@@ -525,6 +525,32 @@ public class Constants {
                 ### ĐỊNH_DẠNG_PHẢN_HỒI_JSON:
                 
                 """ + PLAN_DAY_RESPONSE_JSON;
+        public static final Object PROMPT_ACTIVITY_RESPONSE = """
+                [
+                  {
+                    "id": 1,
+                    "title": "Chinh phục Fansipan",
+                    "content": "Trải nghiệm cáp treo Fansipan ngắm nhìn dãy Hoàng Liên Sơn hùng vĩ. Tham quan quần thể tâm linh trên đỉnh núi.",
+                    "category": "Tham quan",
+                    "duration": "3 giờ",
+                    "imageUrl": "https://example.com/fansipan.jpg",
+                    "startTime": "2025-07-20T08:30:00",
+                    "endTime": "2025-07-20T11:30:00",
+                    "estimatedCost": 750000
+                  },
+                  {
+                    "id": 2,
+                    "title": "Chinh phục Everest",
+                    "content": "Trải nghiệm cáp treo Everest ngắm nhìn dãy Hoàng Liên Sơn hùng vĩ. Tham quan quần thể tâm linh trên đỉnh núi.",
+                    "category": "Tham quan",
+                    "duration": "5 giờ",
+                    "imageUrl": "https://example.com/fansipan.jpg",
+                    "startTime": "2025-07-20T08:30:00",
+                    "endTime": "2025-07-20T11:30:00",
+                    "estimatedCost": 750000
+                  }
+                ]
+                """;
     }
 }
 

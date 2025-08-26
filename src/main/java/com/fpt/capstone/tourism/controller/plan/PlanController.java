@@ -5,12 +5,15 @@ import com.fpt.capstone.tourism.dto.common.PlanDTO;
 import com.fpt.capstone.tourism.dto.common.partner.PartnerShortDTO;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.general.PagingDTO;
+import com.fpt.capstone.tourism.dto.request.ActivityGenerateDTO;
 import com.fpt.capstone.tourism.dto.request.plan.PlanGenerationRequestDTO;
 import com.fpt.capstone.tourism.dto.response.PublicLocationDTO;
+import com.fpt.capstone.tourism.model.domain.Activity;
 import com.fpt.capstone.tourism.model.mongo.Plan;
 import com.fpt.capstone.tourism.service.PartnerManagementService;
 import com.fpt.capstone.tourism.service.plan.PlanService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +22,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/public/plans")
+@Slf4j
 public class PlanController {
 
     private final PlanService planService;
@@ -62,12 +66,23 @@ public class PlanController {
         return ResponseEntity.ok(planService.getPlans(page, size, sortField, sortDirection, userId));
     }
 
+    @DeleteMapping("/delete/{planId}")
+    public ResponseEntity<GeneralResponse<String>> deletePlan(@PathVariable String planId) {
+        return ResponseEntity.ok(GeneralResponse.of(planService.deletePlan(planId)));
+    }
 
     @GetMapping("/partner/list/{planId}")
     public ResponseEntity<GeneralResponse<List<PartnerShortDTO>>> getPlanByPartner(@PathVariable String planId,
                                                                                    @RequestParam String categoryName,
                                                                                    @RequestParam List<Integer> locationIds) {
         return ResponseEntity.ok(partnerManagementService.getPartners(planId, categoryName, locationIds));
+    }
+
+
+    @PostMapping("/activities/suggestion")
+    public ResponseEntity<GeneralResponse<List<Activity>>> getActivitySuggestions(@RequestBody ActivityGenerateDTO dto) {
+        log.info("Requesting activity suggestions with DTO: {}", dto);
+        return ResponseEntity.ok(GeneralResponse.of(planService.getActivitySuggestions(dto)));
     }
 
 

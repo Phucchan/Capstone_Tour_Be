@@ -18,4 +18,7 @@ public interface PlanRepository extends MongoRepository<Plan, String> {
     @Query("{ '_id': ?0 }")
     @Update("{ '$set': { 'planStatus': ?1 } }")
     void updatePlanStatusById(String planId, PlanStatus status);
+
+    void deletePlanById(String id);
+
 }
