@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TourPriceCalculateRequestDTO {
-    private Double extraCost;
+
     private Double profitRate;
 }
