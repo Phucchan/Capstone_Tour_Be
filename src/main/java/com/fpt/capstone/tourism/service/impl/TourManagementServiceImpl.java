@@ -10,21 +10,17 @@ import com.fpt.capstone.tourism.dto.request.ChangeStatusDTO;
 import com.fpt.capstone.tourism.dto.request.PartnerServiceCreateDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.*;
 import com.fpt.capstone.tourism.dto.response.ServiceInfoDTO;
-import com.fpt.capstone.tourism.dto.response.UserBasicDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourOptionsDTO;
 import com.fpt.capstone.tourism.dto.response.tour.TourThemeOptionDTO;
-import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxManagerDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.helper.IHelper.TourHelper;
-import com.fpt.capstone.tourism.mapper.UserMapper;
 import com.fpt.capstone.tourism.mapper.booking.RequestBookingMapper;
 import com.fpt.capstone.tourism.mapper.partner.ServiceInfoMapper;
 import com.fpt.capstone.tourism.mapper.tourManager.TourDayManagerMapper;
 import com.fpt.capstone.tourism.mapper.tourManager.TourManagementMapper;
 import com.fpt.capstone.tourism.model.Location;
 import com.fpt.capstone.tourism.model.RequestBooking;
-import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.enums.PartnerServiceStatus;
 import com.fpt.capstone.tourism.model.enums.RequestBookingStatus;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
@@ -40,15 +36,11 @@ import com.fpt.capstone.tourism.repository.partner.PartnerRepository;
 import com.fpt.capstone.tourism.repository.partner.PartnerServiceRepository;
 import com.fpt.capstone.tourism.repository.partner.ServiceTypeRepository;
 import com.fpt.capstone.tourism.repository.tour.TourDayRepository;
-import com.fpt.capstone.tourism.repository.tour.TourPaxRepository;
-import com.fpt.capstone.tourism.repository.tour.TourScheduleRepository;
 import com.fpt.capstone.tourism.repository.tour.TourThemeRepository;
-import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.service.LocationService;
 import com.fpt.capstone.tourism.service.S3Service;
 import com.fpt.capstone.tourism.specifications.TourSpecification;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -60,7 +52,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -91,10 +82,10 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
 
     @Override
     public GeneralResponse<PagingDTO<TourResponseManagerDTO>> getListTours(int page, int size, String keyword,
-                                                                           String tourCode, TourType tourType, TourStatus tourStatus) {
+                                                                           TourType tourType, TourStatus tourStatus) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
         Specification<Tour> spec = (root, query, cb) -> cb.conjunction();
-        spec = spec.and((root, query, cb) -> cb.isFalse(root.get("deleted")));
+        spec = spec.and(TourSpecification.hasNameOrCodeLike(keyword));
         if (keyword != null && !keyword.trim().isEmpty()) {
             spec = spec.and(TourSpecification.hasNameLike(keyword));
         }
@@ -103,9 +94,6 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         }
         if (tourStatus != null) {
             spec = spec.and(TourSpecification.hasTourStatus(tourStatus));
-        }
-        if (tourCode != null && !tourCode.trim().isEmpty()) {
-            spec = spec.and(TourSpecification.hasCodeLike(tourCode));
         }
         Page<Tour> tours = tourRepository.findAll(spec, pageable);
 
@@ -267,36 +255,6 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
             tour.getThemes().clear();
             tour.getThemes().addAll(newThemes);
         }
-
-        // 2. LOGIC cập nhật danh sách ngày đi (TourDays)
-        if (requestDTO.getDestinationLocationIds() != null) {
-            List<Long> newDestinationIds = requestDTO.getDestinationLocationIds();
-            List<TourDay> existingDays = tour.getTourDays();
-
-            for (int i = 0; i < newDestinationIds.size(); i++) {
-                Long destId = newDestinationIds.get(i);
-                TourDay day;
-                if (i < existingDays.size()) {
-                    day = existingDays.get(i);
-                } else {
-                    day = new TourDay();
-                    day.setTour(tour);
-                    existingDays.add(day);
-                }
-
-                    Location dest = locationRepository.findById(destId)
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found for day"));
-                    day.setLocation(dest);
-                    day.setDayNumber(i + 1);
-                }
-                    if (existingDays.size() > newDestinationIds.size()) {
-                        List<TourDay> daysToDelete = new ArrayList<>(existingDays.subList(newDestinationIds.size(), existingDays.size()));
-                        existingDays.subList(newDestinationIds.size(), existingDays.size()).clear();
-                        tourDayRepository.deleteAll(daysToDelete);
-                    }
-
-                    tour.setDurationDays(existingDays.size());
-                }
 
 
                 Tour savedTour = tourRepository.save(tour);
