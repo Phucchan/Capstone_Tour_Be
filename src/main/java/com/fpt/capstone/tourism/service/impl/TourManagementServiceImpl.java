@@ -272,56 +272,33 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         if (requestDTO.getDestinationLocationIds() != null) {
             List<Long> newDestinationIds = requestDTO.getDestinationLocationIds();
             List<TourDay> existingDays = tour.getTourDays();
-
-            // Tìm những ngày cần xóa
-            List<TourDay> daysToRemove = existingDays.stream()
-                    .filter(day -> day.getLocation() != null && !newDestinationIds.contains(day.getLocation().getId()))
-                    .collect(Collectors.toList());
-
-            // ID điểm đến đã tồn tại
-            List<Long> existingDestinationIds = existingDays.stream()
-                    .map(day -> day.getLocation() != null ? day.getLocation().getId() : null)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-
-            // ID điểm đến mới cần thêm
-            List<Long> idsToAdd = newDestinationIds.stream()
-                    .filter(destId -> !existingDestinationIds.contains(destId))
-                    .collect(Collectors.toList());
-
-            // Xóa ngày không còn dùng
-            existingDays.removeAll(daysToRemove);
-            tourDayRepository.deleteAll(daysToRemove);
-
-            // Thêm mới ngày
-            for (Long destId : idsToAdd) {
-                Location dest = locationRepository.findById(destId)
-                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found for new day"));
-                TourDay day = new TourDay();
-                day.setTour(tour);
-                day.setLocation(dest);
-                day.setTitle("Ngày mới: Tham quan " + dest.getName());
-                existingDays.add(day);
-            }
-
-            // Sắp xếp lại thứ tự ngày đi
-            List<TourDay> finalDayList = new ArrayList<>();
-            Map<Long, TourDay> existingDaysByLocationId = existingDays.stream()
-                    .filter(d -> d.getLocation() != null)
-                    .collect(Collectors.toMap(d -> d.getLocation().getId(), d -> d, (d1, d2) -> d1));
+            List<TourDay> newDays = new ArrayList<>();
 
             for (int i = 0; i < newDestinationIds.size(); i++) {
                 Long destId = newDestinationIds.get(i);
-                TourDay dayToOrder = existingDaysByLocationId.get(destId);
-                if (dayToOrder != null) {
-                    dayToOrder.setDayNumber(i + 1);
-                    finalDayList.add(dayToOrder);
+                TourDay day;
+                if (i < existingDays.size()) {
+                    day = existingDays.get(i);
+                } else {
+                    day = new TourDay();
+                    day.setTour(tour);
                 }
+
+            // Thêm mới ngày
+                Location dest = locationRepository.findById(destId)
+                        .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Location not found for day"));
+                day.setTour(tour);
+                day.setLocation(dest);
+                day.setDayNumber(i + 1);
+                newDays.add(day);
+            }
+            if (existingDays.size() > newDays.size()) {
+                List<TourDay> daysToDelete = new ArrayList<>(existingDays.subList(newDays.size(), existingDays.size()));
+                tourDayRepository.deleteAll(daysToDelete);
             }
 
-            tour.getTourDays().clear();
-            tour.getTourDays().addAll(finalDayList);
-            tour.setDurationDays(finalDayList.size());
+            tour.setTourDays(newDays);
+            tour.setDurationDays(newDays.size());
         }
 
         Tour savedTour = tourRepository.save(tour);
