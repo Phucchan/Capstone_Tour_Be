@@ -401,6 +401,32 @@ public class TourBookingServiceImpl implements TourBookingService {
                 .build();
         messagingTemplate.convertAndSend("/topic/bookings", dto);
     }
+    @Override
+    @Transactional
+    public void updatePaymentMethod(String bookingCode, PaymentMethod paymentMethod) {
+        try {
+            Booking booking = bookingRepository.findByBookingCode(bookingCode);
+            booking.setPaymentMethod(paymentMethod);
+
+            String baseUrl = backendBaseUrl + "/public/booking";
+            if (paymentMethod == PaymentMethod.BANKING) {
+                String paymentUrl = vnPayService.generatePaymentUrl(booking.getTotalAmount(), booking.getBookingCode(), baseUrl, 60);
+                booking.setPaymentUrl(paymentUrl);
+            } else {
+                booking.setPaymentUrl(null);
+            }
+
+            bookingRepository.save(booking);
+
+            List<PaymentBill> bills = paymentBillRepository.findPaymentBillsByBookingCode(bookingCode);
+            for (PaymentBill bill : bills) {
+                bill.setPaymentMethod(paymentMethod);
+            }
+            paymentBillRepository.saveAll(bills);
+        } catch (Exception ex) {
+            throw BusinessException.of("Cập nhật phương thức thanh toán thất bại", ex);
+        }
+    }
 
     private void notifyNewBooking(Booking booking, String tourName, Long tourId) {
         BookingSummaryDTO dto = BookingSummaryDTO.builder()

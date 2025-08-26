@@ -74,7 +74,7 @@ import java.util.stream.Collectors;
                         throw BusinessException.of(Constants.Message.NO_PERMISSION_TO_ACCESS);
                     }
 
-                    List<CheckIn> checkIns = checkInRepository.findByBooking_Id(bookingId);
+                    List<CheckIn> checkIns = checkInRepository.findByBooking_IdAndDeletedFalse(bookingId);
                     List<CheckInDTO> dtos = checkIns.stream()
                             .map(c -> CheckInDTO.builder()
                                     .id(c.getId())
@@ -105,7 +105,7 @@ import java.util.stream.Collectors;
 
                         String key = s3Service.uploadFile(file, "albums");
 
-                        long count = checkInRepository.countByBooking_Id(bookingId);
+                        long count = checkInRepository.countByBooking_IdAndDeletedFalse(bookingId);
                         boolean award = count < 10;
 
                         CheckIn checkIn = CheckIn.builder()
@@ -138,11 +138,11 @@ import java.util.stream.Collectors;
                 @Override
                     public GeneralResponse<String> deleteCheckIn(Long userId, Long checkInId) {
                         try {
-                            CheckIn checkIn = checkInRepository.findByIdAndBooking_User_Id(checkInId, userId)
+                            CheckIn checkIn = checkInRepository
+                                    .findByIdAndBooking_User_IdAndDeletedFalse(checkInId, userId)
                                     .orElseThrow(() -> BusinessException.of(Constants.Message.CHECKIN_NOT_FOUND));
-                            String key = checkIn.getImageUrl().replace(bucketUrl + "/", "");
-                            s3Service.deleteFile(key);
-                            checkInRepository.delete(checkIn);
+                            checkIn.softDelete();
+                            checkInRepository.save(checkIn);
                             return new GeneralResponse<>(HttpStatus.OK.value(), Constants.Message.DELETE_CHECKIN_SUCCESS, null);
                         } catch (BusinessException be) {
                             throw be;

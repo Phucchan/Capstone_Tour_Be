@@ -16,6 +16,7 @@ public interface TourManagementMapper {
     @Mapping(target = "typeName", source = "tourType", qualifiedByName = "mapTourType")
     @Mapping(target = "tourStatus", source = "tourStatus", qualifiedByName = "mapTourStatus")
     @Mapping(target = "durationDays", source = "durationDays")
+    @Mapping(target = "tourTransport", source = "tourTransport", qualifiedByName = "mapTourTransport")
     @Mapping(target = "createdAt", source = "createdAt")
    // @Mapping(target = "createdByName", source = "createdBy.fullName")
     TourResponseManagerDTO toTourResponseDTO(Tour tour);
@@ -29,5 +30,10 @@ public interface TourManagementMapper {
     @Named("mapTourStatus")
     default String mapTourStatus(Enum<?> tourStatus) {
         return tourStatus != null ? tourStatus.name() : null;
+    }
+
+    @Named("mapTourTransport")
+    default String mapTourTransport(Enum<?> transport) {
+        return transport != null ? transport.name() : null;
     }
 }

@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.dto.request.tourManager;
 
+import com.fpt.capstone.tourism.model.enums.TourTransport;
 import com.fpt.capstone.tourism.model.enums.TourType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,4 +22,5 @@ public class TourCreateManagerRequestDTO {
     private Integer durationDays;
     private String description;
     private TourType tourType;
+    private TourTransport tourTransport;
 }

@@ -9,9 +9,9 @@ import java.util.Optional;
 
 @Repository
 public interface CheckInRepository extends JpaRepository<CheckIn, Long> {
-    List<CheckIn> findByBooking_Id(Long bookingId);
+    List<CheckIn> findByBooking_IdAndDeletedFalse(Long bookingId);
 
-    Optional<CheckIn> findByIdAndBooking_User_Id(Long id, Long userId);
+    Optional<CheckIn> findByIdAndBooking_User_IdAndDeletedFalse(Long id, Long userId);
 
-    long countByBooking_Id(Long bookingId);
+    long countByBooking_IdAndDeletedFalse(Long bookingId);
 }

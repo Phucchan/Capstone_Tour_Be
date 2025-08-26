@@ -20,6 +20,7 @@ public class TourDetailManagerDTO {
     private String code;
     private String name;
     private String thumbnailUrl;
+    private String tourTransport;
     private String description;
     private String tourType;
     private String tourStatus;

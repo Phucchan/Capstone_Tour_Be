@@ -4,6 +4,7 @@ package com.fpt.capstone.tourism.controller.booking;
 import com.fpt.capstone.tourism.dto.general.GeneralResponse;
 import com.fpt.capstone.tourism.dto.request.booking.BookingRequestDTO;
 import com.fpt.capstone.tourism.dto.response.booking.BookingConfirmResponse;
+import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.service.RequestBookingService;
 import com.fpt.capstone.tourism.service.VNPayService;
 import com.fpt.capstone.tourism.service.tourbooking.TourBookingService;
@@ -59,6 +60,13 @@ public class BookingController {
     @PostMapping("/send-code")
     public ResponseEntity<GeneralResponse<String>> sendVerificationCode(@RequestParam("email") String email) {
         return ResponseEntity.ok(requestBookingService.sendVerificationCode(email));
+    }
+    @PostMapping("/change-payment-method")
+    public ResponseEntity<GeneralResponse<String>> updatePaymentMethod(
+            @RequestParam("bookingCode") String bookingCode,
+            @RequestParam("paymentMethod") PaymentMethod paymentMethod) {
+        tourBookingService.updatePaymentMethod(bookingCode, paymentMethod);
+        return ResponseEntity.ok(GeneralResponse.of("Update payment method successfully"));
     }
 
 }

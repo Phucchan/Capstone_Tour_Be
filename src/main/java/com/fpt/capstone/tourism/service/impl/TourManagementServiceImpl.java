@@ -137,7 +137,9 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         tour.setDescription(requestDTO.getDescription());
         tour.setTourType(requestDTO.getTourType() != null ? requestDTO.getTourType() : TourType.FIXED);
         tour.setTourStatus(TourStatus.DRAFT);
-
+        if (requestDTO.getTourTransport() != null) {
+            tour.setTourTransport(requestDTO.getTourTransport());
+        }
         RequestBooking request = null;
         if (tour.getTourType() == TourType.CUSTOM) {
             if (requestDTO.getRequestBookingId() == null) {
@@ -237,6 +239,9 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
             } catch (IllegalArgumentException ex) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, "Invalid tour status: " + statusStr);
             }
+        }
+        if (requestDTO.getTourTransport() != null) {
+            tour.setTourTransport(requestDTO.getTourTransport());
         }
 
         // ✅ Cập nhật thumbnail nếu có file mới
@@ -387,6 +392,7 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
                 .description(tour.getDescription())
                 .tourType(tour.getTourType() != null ? tour.getTourType().name() : null)
                 .tourStatus(tour.getTourStatus() != null ? tour.getTourStatus().name() : null)
+                .tourTransport(tour.getTourTransport() != null ? tour.getTourTransport().name() : null)
                 .durationDays(tour.getDurationDays())
                 .departLocation(departDto)
                 .destinations(destinations)

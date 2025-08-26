@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.dto.request.tourManager;
 
+import com.fpt.capstone.tourism.model.enums.TourTransport;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,7 @@ public class TourUpdateManagerRequestDTO {
     private String name;
     private String description;
     private String tourStatus; // <-- THÊM TRƯỜNG NÀY VÀO
+    private TourTransport tourTransport;
     private Long departLocationId;
     private List<Long> tourThemeIds;
     private List<Long> destinationLocationIds;
