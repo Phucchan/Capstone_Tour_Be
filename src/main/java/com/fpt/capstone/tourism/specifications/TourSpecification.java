@@ -94,6 +94,21 @@ public class TourSpecification {
             );
         };
     }
+    /**
+     * Lọc các tour có tên hoặc mã giống với từ khóa tìm kiếm (không phân biệt chữ hoa chữ thường).
+     */
+    public static Specification<Tour> hasNameOrCodeLike(String keyword) {
+        return (root, query, criteriaBuilder) -> {
+            if (keyword == null || keyword.trim().isEmpty()) {
+                return null;
+            }
+            String pattern = "%" + keyword.trim().toLowerCase() + "%";
+            return criteriaBuilder.or(
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern),
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("code")), pattern)
+            );
+        };
+    }
 
     /**
      * Lọc các tour có lịch trình khởi hành vào một ngày cụ thể.
@@ -139,18 +154,6 @@ public class TourSpecification {
     public static Specification<Tour> hasTourType(TourType tourType) {
         return (root, query, criteriaBuilder) ->
                 tourType == null ? null : criteriaBuilder.equal(root.get("tourType"), tourType);
-    }
-    public static Specification<Tour> hasNameOrCodeLike(String keyword) {
-        return (root, query, criteriaBuilder) -> {
-            if (keyword == null || keyword.trim().isEmpty()) {
-                return null;
-            }
-            String pattern = "%" + keyword.trim().toLowerCase() + "%";
-            return criteriaBuilder.or(
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern),
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("code")), pattern)
-            );
-        };
     }
 
     /**
