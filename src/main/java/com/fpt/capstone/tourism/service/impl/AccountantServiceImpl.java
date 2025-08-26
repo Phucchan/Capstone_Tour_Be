@@ -297,14 +297,17 @@ public class AccountantServiceImpl implements AccountantService {
 
         List<BookingServiceSettlementDTO> serviceDtos = services.stream()
                 .filter(bs -> bs.getService() != null)
-                .map(bs -> BookingServiceSettlementDTO.builder()
-                        .serviceId(bs.getService().getId())
-                        .serviceName(bs.getService().getName())
-                        .dayNumber(bs.getDayNumber())
-                        .pax(bs.getQuantity())
-                        .costPerPax(bs.getService().getNettPrice())
-                        .sellingPrice(bs.getService().getSellingPrice())
-                        .build())
+                .map(bs -> {
+                    var service = bs.getService();
+                    return BookingServiceSettlementDTO.builder()
+                            .serviceId(service != null ? service.getId() : null)
+                            .serviceName(service != null ? service.getName() : null)
+                            .dayNumber(bs.getDayNumber())
+                            .pax(bs.getQuantity())
+                            .costPerPax(service != null ? service.getNettPrice() : null)
+                            .sellingPrice(service != null ? service.getSellingPrice() : null)
+                            .build();
+                })
                 .toList();
 
         List<PaymentBill> bills = paymentBillRepository.findPaymentBillsByBookingCode(booking.getBookingCode());

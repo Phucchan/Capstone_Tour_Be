@@ -110,7 +110,11 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         Page<Tour> tours = tourRepository.findAll(spec, pageable);
 
         List<TourResponseManagerDTO> tourResponseDTOs = tours.getContent().stream()
-                .map(tourMapper::toTourResponseDTO)
+                .map(tour -> {
+                    TourResponseManagerDTO dto = tourMapper.toTourResponseDTO(tour);
+                    dto.setDurationDays((int) tourDayRepository.countByTourId(tour.getId()));
+                    return dto;
+                })
                 .collect(Collectors.toList());
         PagingDTO<TourResponseManagerDTO> pagingDTO = PagingDTO.<TourResponseManagerDTO>builder()
                 .page(tours.getNumber())
