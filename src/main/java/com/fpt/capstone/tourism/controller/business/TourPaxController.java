@@ -20,9 +20,6 @@ import com.fpt.capstone.tourism.dto.response.tourManager.TourCostSummaryDTO;
 @RequestMapping("/business")
 public class TourPaxController {
     private final TourPaxService tourPaxService;
-//    private final PartnerServiceService partnerServiceService;
-
-
 
     @GetMapping("/tour/{tourId}/tour-pax")
     // Example: http://localhost:8080/v1/business/tour/1/tour-pax
@@ -67,17 +64,12 @@ public class TourPaxController {
             @RequestBody TourPriceCalculateRequestDTO request) {
         return ResponseEntity.ok(tourPaxService.calculatePrices(tourId, request));
     }
-//    @GetMapping("/partner-services")
-//    // Example: http://localhost:8080/v1/business/partner-services
-//    public ResponseEntity<GeneralResponse<List<PartnerServiceShortDTO>>> getPartnerServices() {
-//        return ResponseEntity.ok(partnerServiceService.getPartnerServices());
-//    }
-
     /**
      * API để lấy danh sách chi tiết các dịch vụ đã được thêm vào tour,
      * dùng cho trang chiết tính.
      */
     @GetMapping("/tours/{tourId}/services")
+    //postman http://localhost:8080/v1/business/tours/1/services
     public ResponseEntity<GeneralResponse<List<ServiceBreakdownDTO>>> getServiceBreakdown(
             @PathVariable Long tourId) {
         return ResponseEntity.ok(tourPaxService.getServiceBreakdown(tourId));
