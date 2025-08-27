@@ -19,7 +19,7 @@ public class ServiceDetailDTO {
     private String serviceTypeName;
     private String imageUrl;
     private String description;
-    private double netPrice;
+    private double nettPrice;
     private double sellingPrice;
     private CostType costType;
     private String status;
