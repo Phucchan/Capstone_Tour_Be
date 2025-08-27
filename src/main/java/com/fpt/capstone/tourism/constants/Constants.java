@@ -211,7 +211,7 @@ public class Constants {
         // Price configuration
         public static final String INVALID_PRICE = "Giá phải là một số hợp lệ";
         public static final String CONFIG_UPDATED = "Cập nhật cấu hình giá thành công";
-        public static final String CREATE_BOOKING_FAILED = "Tạo Tour Booking Thất Bại";
+        public static final String CREATE_BOOKING_FAILED = "Tạo Tour Booking Thất Bại. Mã OTP KHông hợp lệ";
         public static final String EMAIL_AND_VERIFICATION_CODE_REQUIRED = "Email và mã xác thực là bắt buộc";
         public static final String INVALID_VERIFICATION_CODE = "Mã Code không hợp lệ, vui lòng thử lại";
 
