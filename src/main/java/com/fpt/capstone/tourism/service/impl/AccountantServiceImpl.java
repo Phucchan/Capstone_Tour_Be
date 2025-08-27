@@ -490,6 +490,13 @@ public class AccountantServiceImpl implements AccountantService {
 
 
     private PaymentBillListDTO toPaymentBillListDTO(PaymentBill pb) {
+        List<PaymentBillItem> items = paymentBillItemRepository.findAllByPaymentBill_Id(pb.getId());
+
+        PaymentBillItemStatus status = PaymentBillItemStatus.PENDING;
+        if (items != null && !items.isEmpty()) {
+            status = items.get(0).getPaymentBillItemStatus();
+        }
+
         return PaymentBillListDTO.builder()
                 .billId(pb.getId())
                 .billNumber(pb.getBillNumber())
@@ -500,6 +507,7 @@ public class AccountantServiceImpl implements AccountantService {
                 .paymentType(pb.getPaymentType())
                 .paymentMethod(pb.getPaymentMethod())
                 .totalAmount(pb.getTotalAmount())
+                .status(status)
                 .build();
     }
 }
