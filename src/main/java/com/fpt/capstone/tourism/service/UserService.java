@@ -28,6 +28,7 @@ public interface UserService {
 
     GeneralResponse<UserBasicDTO> getUserBasic(String username);
 
+    GeneralResponse<String> cancelBooking(Long userId, Long bookingId);
 
     GeneralResponse<UserProfileResponseDTO> getUserProfile(Long userId);
 
