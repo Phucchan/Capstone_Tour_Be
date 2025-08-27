@@ -16,13 +16,17 @@ public interface ServiceInfoMapper {
     @Mapping(source = "partner.name", target = "partnerName")
     // Lấy tên loại dịch vụ từ PartnerService -> ServiceType -> name
     @Mapping(source = "serviceType.name", target = "serviceTypeName")
+    @Mapping(source = "sellingPrice", target = "sellingPrice")
     @Mapping(source = "status", target = "status")
     ServiceInfoDTO toDto(PartnerService partnerService);
 
     @Mapping(source = "partner.id", target = "partnerId")
     @Mapping(source = "partner.name", target = "partnerName")
     @Mapping(source = "serviceType.id", target = "serviceTypeId")
+    @Mapping(source = "nettPrice", target = "nettPrice")
+    @Mapping(source = "sellingPrice", target = "sellingPrice")
     @Mapping(source = "serviceType.name", target = "serviceTypeName")
     @Mapping(source = "status", target = "status")
+
     ServiceDetailDTO toDetailDto(PartnerService partnerService);
 }
