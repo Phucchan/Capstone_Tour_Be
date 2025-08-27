@@ -1,7 +1,11 @@
 package com.fpt.capstone.tourism.repository.tour;
 
 import com.fpt.capstone.tourism.model.tour.TourSchedule;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -33,4 +37,8 @@ public interface TourScheduleRepository extends JpaRepository<TourSchedule, Long
     List<TourSchedule> findByTourIdAndDepartureDateAfterAndDeletedFalseOrderByDepartureDateAsc(Long tourId, LocalDateTime now);
 
     List<TourSchedule> findByTourId(Long tourId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select ts from TourSchedule ts where ts.id = :id")
+    Optional<TourSchedule> findByIdForUpdate(@Param("id") Long id);
 }
