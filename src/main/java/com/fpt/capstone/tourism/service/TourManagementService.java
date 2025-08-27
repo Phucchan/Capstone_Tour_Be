@@ -52,6 +52,6 @@ public interface TourManagementService {
 
     GeneralResponse<List<ServiceTypeShortDTO>> getServiceTypes();
 
-    GeneralResponse<List<PartnerServiceShortDTO>> getPartnerServices(Long serviceTypeId);
+    GeneralResponse<List<PartnerServiceShortDTO>> getPartnerServices(Long serviceTypeId, Long locationId);
 }
 

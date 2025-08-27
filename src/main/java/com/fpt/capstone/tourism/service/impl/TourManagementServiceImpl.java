@@ -485,6 +485,12 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         PartnerService service = partnerServiceRepository.findById(serviceId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, Constants.Message.SERVICE_NOT_FOUND));
 
+        if (day.getLocation() != null && service.getPartner() != null &&
+                service.getPartner().getLocation() != null &&
+                !day.getLocation().getId().equals(service.getPartner().getLocation().getId())) {
+            throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.SERVICE_LOCATION_NOT_MATCH);
+        }
+
         if (day.getServices().contains(service)) {
             throw BusinessException.of(HttpStatus.BAD_REQUEST, Constants.Message.SERVICE_ALREADY_EXISTS);
         }
@@ -589,14 +595,9 @@ public class TourManagementServiceImpl implements com.fpt.capstone.tourism.servi
         }
     }
 
-    @Override
-    public GeneralResponse<List<PartnerServiceShortDTO>> getPartnerServices(Long serviceTypeId) {
-        List<PartnerService> services;
-        if (serviceTypeId != null) {
-            services = partnerServiceRepository.findByServiceTypeId(serviceTypeId);
-        } else {
-            services = partnerServiceRepository.findAll();
-        }
+    public GeneralResponse<List<PartnerServiceShortDTO>> getPartnerServices(Long serviceTypeId, Long locationId) {
+        List<PartnerService> services = partnerServiceRepository
+                .findByServiceTypeAndLocation(serviceTypeId, locationId);
         services.forEach(service -> {
             if (service.getStatus() == null) {
                 service.setStatus(PartnerServiceStatus.ACTIVE);

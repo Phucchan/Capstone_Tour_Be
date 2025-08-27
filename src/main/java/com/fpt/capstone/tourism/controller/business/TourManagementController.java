@@ -100,10 +100,10 @@ public class TourManagementController {
     }
     @GetMapping("/partner-services")
     public ResponseEntity<GeneralResponse<List<PartnerServiceShortDTO>>> getPartnerServices(
-            // Thêm @RequestParam để nhận ID loại dịch vụ
-            @RequestParam(value = "serviceTypeId", required = false) Long serviceTypeId
+            @RequestParam(value = "serviceTypeId", required = false) Long serviceTypeId,
+            @RequestParam(value = "locationId", required = false) Long locationId
     ) {
-        return ResponseEntity.ok(tourManagementService.getPartnerServices(serviceTypeId));
+        return ResponseEntity.ok(tourManagementService.getPartnerServices(serviceTypeId, locationId));
     }
 
 }

@@ -232,6 +232,7 @@ public class Constants {
         public static final String GET_SERVICE_LIST_FAIL = "Lấy danh sách dịch vụ thất bại";
         public static final String BOOKING_NOT_FOUND = "Không tìm thấy đặt tour";
         public static final String SERVICE_ALREADY_EXISTS = "Dịch vụ đã tồn tại";
+        public static final String SERVICE_LOCATION_NOT_MATCH = "Dịch vụ không thuộc địa điểm của ngày tour";
         public static final String GET_SERVICE_DETAIL_SUCCESS = "Lấy chi tiết dịch vụ thành công";
         public static final String GET_SERVICE_DETAIL_FAIL = "Lấy chi tiết dịch vụ thất bại";
 
