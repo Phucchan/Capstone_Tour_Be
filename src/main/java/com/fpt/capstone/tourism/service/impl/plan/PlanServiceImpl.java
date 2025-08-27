@@ -263,7 +263,7 @@ public class PlanServiceImpl implements PlanService {
                                 7. **title**: tiêu đề dễ hiểu, ngắn gọn, thể hiện nội dung chính của ngày hôm nay.
                                 
                                 %s
-                            """, totalDays, dayNumber, locationName, preferences, budgetMin, budgetMax, totalSpending, partnerContext, totalSpending, Constants.AI.PROMPT_DAY_END);
+                            """, totalDays,startDate, dayNumber, locationName, preferences, budgetMin, budgetMax, totalSpending, partnerContext, totalSpending, Constants.AI.PROMPT_DAY_END);
     }
 
     private String buildPartnerContext(String locationName, List<PartnerShortDTO> partners) {
