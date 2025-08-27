@@ -7,6 +7,7 @@ import com.fpt.capstone.tourism.dto.response.accountant.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.enums.BookingStatus;
+import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.payment.*;
 import com.fpt.capstone.tourism.model.tour.Booking;
 import com.fpt.capstone.tourism.model.tour.BookingService;
@@ -288,6 +289,7 @@ public class AccountantServiceImpl implements AccountantService {
         return new GeneralResponse<>(HttpStatus.OK.value(), "Success", paging);
     }
     @Override
+    @Transactional(readOnly = true)
     public GeneralResponse<BookingSettlementDTO> getBookingSettlement(Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Booking not found"));
@@ -295,13 +297,18 @@ public class AccountantServiceImpl implements AccountantService {
         List<BookingService> services = bookingServiceRepository.findWithServiceByBookingId(bookingId);
 
         List<BookingServiceSettlementDTO> serviceDtos = services.stream()
-                .map(bs -> BookingServiceSettlementDTO.builder()
-                        .serviceName(bs.getService().getName())
-                        .dayNumber(bs.getDayNumber())
-                        .pax(bs.getQuantity())
-                        .costPerPax(bs.getService().getNettPrice())
-                        .sellingPrice(bs.getService().getSellingPrice())
-                        .build())
+                .filter(bs -> bs.getService() != null)
+                .map(bs -> {
+                    var service = bs.getService();
+                    return BookingServiceSettlementDTO.builder()
+                            .serviceId(service != null ? service.getId() : null)
+                            .serviceName(service != null ? service.getName() : null)
+                            .dayNumber(bs.getDayNumber())
+                            .pax(bs.getQuantity())
+                            .costPerPax(service != null ? service.getNettPrice() : null)
+                            .sellingPrice(service != null ? service.getSellingPrice() : null)
+                            .build();
+                })
                 .toList();
 
         List<PaymentBill> bills = paymentBillRepository.findPaymentBillsByBookingCode(booking.getBookingCode());
@@ -393,8 +400,15 @@ public class AccountantServiceImpl implements AccountantService {
                 .paymentBillItemStatus(PaymentBillItemStatus.PAID)
                 .build();
 
+
         paymentBillItemRepository.save(item);
         savedBill.setItems(List.of(item));
+
+        if (booking.getPaymentMethod() == PaymentMethod.CASH
+                && booking.getBookingStatus() == BookingStatus.PENDING) {
+            booking.setBookingStatus(BookingStatus.PAID);
+            bookingRepository.save(booking);
+        }
 
         BookingSettlementDTO dto = getBookingSettlement(bookingId).getData();
         return new GeneralResponse<>(HttpStatus.OK.value(), "Receipt bill created", dto);
@@ -484,6 +498,13 @@ public class AccountantServiceImpl implements AccountantService {
 
 
     private PaymentBillListDTO toPaymentBillListDTO(PaymentBill pb) {
+        List<PaymentBillItem> items = paymentBillItemRepository.findAllByPaymentBill_Id(pb.getId());
+
+        PaymentBillItemStatus status = PaymentBillItemStatus.PENDING;
+        if (items != null && !items.isEmpty()) {
+            status = items.get(0).getPaymentBillItemStatus();
+        }
+
         return PaymentBillListDTO.builder()
                 .billId(pb.getId())
                 .billNumber(pb.getBillNumber())
@@ -494,6 +515,7 @@ public class AccountantServiceImpl implements AccountantService {
                 .paymentType(pb.getPaymentType())
                 .paymentMethod(pb.getPaymentMethod())
                 .totalAmount(pb.getTotalAmount())
+                .status(status)
                 .build();
     }
 }

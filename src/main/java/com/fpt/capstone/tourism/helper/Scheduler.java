@@ -16,17 +16,7 @@ import java.util.List;
 public class Scheduler {
     private final BookingRepository bookingRepository;
 
-    @Scheduled(fixedRate = 2 * 60 * 60 * 1000)
-    void removeExpiredUnpaidBookings() {
-        LocalDateTime cutoff = LocalDateTime.now().plusDays(3);
-        List<Booking> bookings = bookingRepository
-                .findByBookingStatusAndTourSchedule_DepartureDateBefore(BookingStatus.PENDING, cutoff);
-
-        if (!bookings.isEmpty()) {
-            bookings.forEach(b -> b.setBookingStatus(BookingStatus.CANCELLED));
-            bookingRepository.saveAll(bookings);
-        }
-    }
+    // Chạy mỗi 1 phút
     @Scheduled(fixedRate = 60 * 1000)
     void cancelUnpaidBookings() {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));

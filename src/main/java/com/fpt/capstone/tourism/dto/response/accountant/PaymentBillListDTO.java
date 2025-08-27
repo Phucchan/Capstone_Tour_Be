@@ -2,6 +2,7 @@ package com.fpt.capstone.tourism.dto.response.accountant;
 
 import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.payment.PaymentType;
+import com.fpt.capstone.tourism.model.payment.PaymentBillItemStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,4 +25,5 @@ public class PaymentBillListDTO {
     private PaymentType paymentType;
     private PaymentMethod paymentMethod;
     private BigDecimal totalAmount;
+    private PaymentBillItemStatus status;
 }

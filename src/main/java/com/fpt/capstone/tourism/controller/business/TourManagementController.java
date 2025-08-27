@@ -38,16 +38,15 @@ public class TourManagementController {
     private final RequestBookingService requestBookingService;
 
     // danh sách tour
-    // postman http://localhost:8080/v1/business/tours?page=1&size=6
+    // postman http://localhost:8080/v1/business/tours?page=0&size=10
     @GetMapping("/tours")
     public ResponseEntity<GeneralResponse<PagingDTO<TourResponseManagerDTO>>> getListtours(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String tourCode,
             @RequestParam(required = false) TourType tourType,
             @RequestParam(required = false) TourStatus tourStatus) {
-        return ResponseEntity.ok(tourManagementService.getListTours(page, size, keyword, tourCode, tourType, tourStatus));
+        return ResponseEntity.ok(tourManagementService.getListTours(page, size, keyword, tourType, tourStatus));
 
     }
 
@@ -101,10 +100,10 @@ public class TourManagementController {
     }
     @GetMapping("/partner-services")
     public ResponseEntity<GeneralResponse<List<PartnerServiceShortDTO>>> getPartnerServices(
-            // Thêm @RequestParam để nhận ID loại dịch vụ
-            @RequestParam(value = "serviceTypeId", required = false) Long serviceTypeId
+            @RequestParam(value = "serviceTypeId", required = false) Long serviceTypeId,
+            @RequestParam(value = "locationId", required = false) Long locationId
     ) {
-        return ResponseEntity.ok(tourManagementService.getPartnerServices(serviceTypeId));
+        return ResponseEntity.ok(tourManagementService.getPartnerServices(serviceTypeId, locationId));
     }
 
 }

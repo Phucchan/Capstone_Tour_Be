@@ -71,4 +71,11 @@ public class ProfileController {
             @RequestBody RefundRequestDTO requestDTO) {
         return ResponseEntity.ok(userService.submitRefundInfo(userId, bookingId, requestDTO));
     }
+    @PutMapping("/bookings/{bookingId}/cancel")
+    // postman http://localhost:8080/v1/users/bookings/1/cancel?userId=1
+    public ResponseEntity<GeneralResponse<String>> cancelBooking(
+            @RequestParam Long userId,
+            @PathVariable Long bookingId) {
+        return ResponseEntity.ok(userService.cancelBooking(userId, bookingId));
+    }
 }

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BookingServiceSettlementDTO {
+    private Long serviceId;
     private String serviceName;
     private Integer dayNumber;
     private Integer pax;

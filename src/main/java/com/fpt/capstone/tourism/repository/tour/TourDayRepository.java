@@ -23,4 +23,6 @@ public interface TourDayRepository extends JpaRepository<TourDay, Long> {
     @Query("SELECT DISTINCT td FROM TourDay td LEFT JOIN FETCH td.services WHERE td.tour.id = :tourId ORDER BY td.dayNumber ASC")
     List<TourDay> findByTourIdWithServices(@Param("tourId") Long tourId);
 
+    @Query("SELECT COUNT(td) FROM TourDay td WHERE td.tour.id = :tourId")
+    long countByTourId(@Param("tourId") Long tourId);
 }

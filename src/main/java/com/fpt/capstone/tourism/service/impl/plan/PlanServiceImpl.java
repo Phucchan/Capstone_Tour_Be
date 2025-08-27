@@ -112,7 +112,7 @@ public class PlanServiceImpl implements PlanService {
 
 
 
-                String prompt = generatePrompt(totalDays, preferences, budgetMin, budgetMax, totalSpending, locationName, dayNumber, relatedPartners);
+                String prompt = generatePrompt(totalDays, preferences, budgetMin, budgetMax, totalSpending, locationName, dayNumber, relatedPartners, dto.getStartDate());
 
                 String response = geminiApiService.getGeminiResponse(prompt);
 
@@ -136,7 +136,7 @@ public class PlanServiceImpl implements PlanService {
                 planDays.add(planDay);
             }
 
-            String planDetailsPrompt = generatePrompt(locationNames, preferences, totalDays, transportPartners);
+            String planDetailsPrompt = generatePrompt(locationNames, preferences, totalDays, transportPartners, dto.getStartDate());
             String planDetailsResponse = geminiApiService.getGeminiResponse(planDetailsPrompt);
 
             ObjectMapper mapper = new ObjectMapper();
@@ -180,7 +180,7 @@ public class PlanServiceImpl implements PlanService {
                 .replaceFirst("\\s*```$", "");
     }
 
-    private String generatePrompt(List<String> locationNames, String preferences, int totalDays, List<PartnerShortDTO> transportPartners) {
+    private String generatePrompt(List<String> locationNames, String preferences, int totalDays, List<PartnerShortDTO> transportPartners, String startDate) {
 
         String partnerContext = buildPartnerContext(transportPartners);
         if (partnerContext.isEmpty()) {
@@ -189,7 +189,7 @@ public class PlanServiceImpl implements PlanService {
         return String.format("""
                             Bạn là một trợ lý AI chuyên xây dựng chương trình du lịch cá nhân hóa.
             
-                            Người dùng đang trong hành trình kéo dài tổng cộng %d ngày.
+                            Người dùng đang trong hành trình kéo dài tổng cộng %d ngày, bắt đầu từ %s.
                             Họ sẽ ghé thăm các địa điểm: %s.
                             Sở thích chính của người dùng bao gồm: %s..
             
@@ -219,15 +219,15 @@ public class PlanServiceImpl implements PlanService {
                                     }
                                 ]
                             }
-                        """, totalDays, String.join(", ", locationNames), preferences, partnerContext);
+                        """, totalDays, startDate, String.join(", ", locationNames), preferences, partnerContext);
     }
 
-    private String generatePrompt(int totalDays, String preferences, double budgetMin, double budgetMax, double totalSpending, String locationName, int dayNumber, List<PartnerShortDTO> relatedPartners) {
+    private String generatePrompt(int totalDays, String preferences, double budgetMin, double budgetMax, double totalSpending, String locationName, int dayNumber, List<PartnerShortDTO> relatedPartners, String startDate) {
         String partnerContext = buildPartnerContext(locationName, relatedPartners);
         return String.format("""
                                 Bạn là một trợ lý AI chuyên xây dựng chương trình du lịch cá nhân hóa.
                         
-                                Người dùng đang trong hành trình kéo dài tổng cộng %d ngày.
+                                Người dùng đang trong hành trình kéo dài tổng cộng %d ngày, bắt đầu từ %s.
                                 Hôm nay là **ngày thứ %d**, họ sẽ ở tại **%s**.
                                 Sở thích chính của người dùng bao gồm: %s.
                                 Tổng chi phí mong muốn cho chuyến đi đến nay là khoảng %.0f - %.0f VNĐ.

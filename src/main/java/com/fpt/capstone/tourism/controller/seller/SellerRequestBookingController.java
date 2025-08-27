@@ -29,6 +29,10 @@ public class SellerRequestBookingController {
                 requestBookingService.getRequestsByStatus(RequestBookingStatus.PENDING, page, size, search)
         );
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<GeneralResponse<RequestBookingDTO>> getRequestDetail(@PathVariable Long id) {
+        return ResponseEntity.ok(requestBookingService.getRequest(id));
+    }
 
     @PatchMapping("/{id}/approve")
     // Example request: PATCH http://localhost:8080/v1/seller/request-bookings/1/approve

@@ -52,7 +52,8 @@ public class SellerBookingServiceImpl implements SellerBookingService {
     @Override
     public GeneralResponse<PagingDTO<SellerBookingSummaryDTO>> getAvailableBookings(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<Booking> bookingPage = bookingRepository.findBySellerIsNullAndBookingStatus(BookingStatus.PENDING, pageable);
+        Page<Booking> bookingPage = bookingRepository.findBySellerIsNullAndBookingStatusIn(
+                List.of(BookingStatus.PENDING, BookingStatus.PAID), pageable);
 
         List<SellerBookingSummaryDTO> dtos = bookingPage.getContent().stream()
                 .map(this::toSummaryDTO)
@@ -196,35 +197,36 @@ public class SellerBookingServiceImpl implements SellerBookingService {
                 int toddlers = booking.getToddlers() != null ? booking.getToddlers() : 0;
                 int totalGuests = adults + children + infants + toddlers;
 
-                String subject = "Booking confirmation for " + tour.getName();
+                String subject = "Xác nhận đặt tour cho " + tour.getName();
                 StringBuilder content = new StringBuilder()
-                        .append("Hello ").append(bookedPerson.getFullName()).append(",\n\n")
-                        .append("Your tour booking has been confirmed. Below are the details:\n\n")
+                        .append("Xin chào ").append(bookedPerson.getFullName()).append(",\n\n")
+                        .append("Đơn đặt tour của bạn đã được xác nhận. Thông tin chi tiết:\n\n")
                         .append("Tour: ").append(tour.getName()).append("\n")
-                        .append("Group code: ").append(booking.getBookingCode()).append("\n")
-                        .append("Departure: ").append(booking.getTourSchedule().getDepartureDate()).append(" from ")
-                        .append(tour.getDepartLocation() != null ? tour.getDepartLocation().getName() : "N/A").append("\n")
-                        .append("End date: ").append(booking.getTourSchedule().getEndDate()).append("\n\n")
-                        .append("Group information:\n")
-                        .append(" - Adults: ").append(adults).append("\n")
-                        .append(" - Children: ").append(children).append("\n")
-                        .append(" - Infants: ").append(infants).append("\n")
-                        .append(" - Toddlers: ").append(toddlers).append("\n")
-                        .append(" - Total guests: ").append(totalGuests).append("\n\n");
+                        .append("Mã đoàn: ").append(booking.getBookingCode()).append("\n")
+                        .append("Khởi hành: ").append(booking.getTourSchedule().getDepartureDate()).append(" từ ")
+                        .append(tour.getDepartLocation() != null ? tour.getDepartLocation().getName() : "Không xác định").append("\n")
+                        .append("Ngày kết thúc: ").append(booking.getTourSchedule().getEndDate()).append("\n\n")
+                        .append("Thông tin đoàn:\n")
+                        .append(" - Người lớn: ").append(adults).append("\n")
+                        .append(" - Trẻ em: ").append(children).append("\n")
+                        .append(" - Trẻ sơ sinh: ").append(infants).append("\n")
+                        .append(" - Trẻ nhỏ: ").append(toddlers).append("\n")
+                        .append(" - Tổng số khách: ").append(totalGuests).append("\n\n");
 
                 if (!destinations.isEmpty()) {
-                    content.append("Destinations: ").append(String.join(", ", destinations)).append("\n");
+                    content.append("Điểm đến: ").append(String.join(", ", destinations)).append("\n");
                 }
                 if (!services.isEmpty()) {
-                    content.append("Services included: ").append(String.join(", ", services)).append("\n");
+                    content.append("Dịch vụ bao gồm: ").append(String.join(", ", services)).append("\n");
                 }
 
-                content.append("\nPayment details:\n")
-                        .append(" - Total amount: ").append(String.format("%.2f", total)).append("\n")
-                        .append(" - Amount due (100%): ").append(String.format("%.2f", total)).append(" by ")
+                content.append("\nThông tin thanh toán:\n")
+                        .append(" - Tổng tiền: ").append(String.format("%.2f", total)).append("\n")
+                        .append(" - Số tiền cần thanh toán (100%): ").append(String.format("%.2f", total)).append(" trước ")
                         .append(booking.getExpiredAt()).append("\n\n")
-                        .append("If you have any questions, please contact us.\n")
-                        .append("Thank you for choosing our service.");
+                        .append("Nếu bạn có bất kỳ câu hỏi nào, xin vui lòng liên hệ với chúng tôi.\n")
+                        .append("Cảm ơn bạn đã lựa chọn dịch vụ của chúng tôi.");
+
 
                 emailService.sendEmail(bookedPerson.getEmail(), subject, content.toString());
             }
@@ -238,10 +240,10 @@ public class SellerBookingServiceImpl implements SellerBookingService {
                     .findFirstByBooking_IdAndBookedPersonTrue(booking.getId());
             if (bookedPerson != null && bookedPerson.getEmail() != null) {
                 var tour = booking.getTourSchedule().getTour();
-                String subject = "Booking cancelled for " + tour.getName();
+                String subject = "Hủy đặt tour cho " + tour.getName();
                 StringBuilder content = new StringBuilder()
-                        .append("Hello ").append(bookedPerson.getFullName()).append(",\n\n")
-                        .append("Your tour booking has been cancelled. If you have any questions, please contact us.");
+                        .append("Xin chào ").append(bookedPerson.getFullName()).append(",\n\n")
+                        .append("Đơn đặt tour của bạn đã bị hủy. Nếu bạn có bất kỳ câu hỏi nào, xin vui lòng liên hệ với chúng tôi.");
                 emailService.sendEmail(bookedPerson.getEmail(), subject, content.toString());
             }
             SellerBookingDetailDTO dto = toDetailDTO(booking);

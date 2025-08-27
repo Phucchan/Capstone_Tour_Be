@@ -1,5 +1,6 @@
 package com.fpt.capstone.tourism.dto.response;
 
+import com.fpt.capstone.tourism.model.enums.CostType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,11 +10,17 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ServiceInfoDTO {
+public class ServiceDetailDTO {
     private Long id;
     private String name;
+    private Long partnerId;
     private String partnerName;
-    private double sellingPrice;
+    private Long serviceTypeId;
     private String serviceTypeName;
+    private String imageUrl;
+    private String description;
+    private double nettPrice;
+    private double sellingPrice;
+    private CostType costType;
     private String status;
 }

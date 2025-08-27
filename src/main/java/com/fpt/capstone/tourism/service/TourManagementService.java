@@ -9,7 +9,6 @@ import com.fpt.capstone.tourism.dto.request.PartnerServiceCreateDTO;
 import com.fpt.capstone.tourism.dto.request.tourManager.*;
 import com.fpt.capstone.tourism.dto.response.ServiceInfoDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.TourOptionsDTO;
-import com.fpt.capstone.tourism.dto.response.tourManager.TourPaxManagerDTO;
 import com.fpt.capstone.tourism.dto.response.tourManager.*;
 import com.fpt.capstone.tourism.model.enums.TourStatus;
 import com.fpt.capstone.tourism.model.enums.TourType;
@@ -22,7 +21,7 @@ import java.util.List;
 public interface TourManagementService {
 
     GeneralResponse<PagingDTO<TourResponseManagerDTO>> getListTours(int page, int size, String keyword,
-                                                                    String tourCode, TourType tourType, TourStatus tourStatus);
+                                                                     TourType tourType, TourStatus tourStatus);
 
     GeneralResponse<TourDetailManagerDTO> createTour(TourCreateManagerRequestDTO requestDTO, MultipartFile file);
 
@@ -53,6 +52,6 @@ public interface TourManagementService {
 
     GeneralResponse<List<ServiceTypeShortDTO>> getServiceTypes();
 
-    GeneralResponse<List<PartnerServiceShortDTO>> getPartnerServices(Long serviceTypeId);
+    GeneralResponse<List<PartnerServiceShortDTO>> getPartnerServices(Long serviceTypeId, Long locationId);
 }
 
