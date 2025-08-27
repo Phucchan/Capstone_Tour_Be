@@ -43,4 +43,7 @@ public interface PartnerServiceRepository extends JpaRepository<PartnerService, 
 
     Page<PartnerService> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
+    Page<PartnerService> findByStatusNot(PartnerServiceStatus status, Pageable pageable);
+
+    Page<PartnerService> findByStatusNotAndNameContainingIgnoreCase(PartnerServiceStatus status, String name, Pageable pageable);
 }
