@@ -89,7 +89,7 @@ public class TourBookingServiceImpl implements TourBookingService {
                     .toList();      // thu về một danh sách
 
             // Kiểm tra số ghế còn trống trước khi tạo booking
-            TourSchedule schedule = tourScheduleRepository.findById(bookingRequestDTO.getScheduleId())
+            TourSchedule schedule = tourScheduleRepository.findByIdForUpdate(bookingRequestDTO.getScheduleId())
                     .orElseThrow(() -> BusinessException.of(HttpStatus.NOT_FOUND, "Schedule not found"));
             int passengers = allCustomersDTO.size();
             int totalSlots = schedule.getTourPax().getMaxQuantity();

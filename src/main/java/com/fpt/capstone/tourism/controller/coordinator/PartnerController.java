@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/cordinator")
+@RequestMapping("/coordinator")
 @RequiredArgsConstructor
 public class PartnerController {
 

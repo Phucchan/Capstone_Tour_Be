@@ -7,6 +7,7 @@ import com.fpt.capstone.tourism.dto.response.accountant.*;
 import com.fpt.capstone.tourism.exception.common.BusinessException;
 import com.fpt.capstone.tourism.model.User;
 import com.fpt.capstone.tourism.model.enums.BookingStatus;
+import com.fpt.capstone.tourism.model.enums.PaymentMethod;
 import com.fpt.capstone.tourism.model.payment.*;
 import com.fpt.capstone.tourism.model.tour.Booking;
 import com.fpt.capstone.tourism.model.tour.BookingService;
@@ -399,8 +400,15 @@ public class AccountantServiceImpl implements AccountantService {
                 .paymentBillItemStatus(PaymentBillItemStatus.PAID)
                 .build();
 
+
         paymentBillItemRepository.save(item);
         savedBill.setItems(List.of(item));
+
+        if (booking.getPaymentMethod() == PaymentMethod.CASH
+                && booking.getBookingStatus() == BookingStatus.PENDING) {
+            booking.setBookingStatus(BookingStatus.PAID);
+            bookingRepository.save(booking);
+        }
 
         BookingSettlementDTO dto = getBookingSettlement(bookingId).getData();
         return new GeneralResponse<>(HttpStatus.OK.value(), "Receipt bill created", dto);
