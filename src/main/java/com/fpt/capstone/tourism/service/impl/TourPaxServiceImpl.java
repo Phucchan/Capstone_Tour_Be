@@ -91,9 +91,8 @@ public class TourPaxServiceImpl implements TourPaxService {
             if (request.getMinQuantity() > request.getMaxQuantity()) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, PAX_CONFIG_INVALID_RANGE);
             }
-            // Thêm validation chống trùng lặp
             validatePaxRange(tourId, null, request.getMinQuantity(), request.getMaxQuantity());
-            // --- THÊM VALIDATE GIÁ  ---
+
             if (request.isManualPrice() && request.getFixedPrice() != null && request.getSellingPrice() != null) {
                 if (request.getFixedPrice() > request.getSellingPrice()) {
                     throw BusinessException.of(HttpStatus.BAD_REQUEST, "Giá bán không được nhỏ hơn giá vốn.");
@@ -106,6 +105,7 @@ public class TourPaxServiceImpl implements TourPaxService {
                     .fixedPrice(request.getFixedPrice() == null ? 0d : request.getFixedPrice())
                     .sellingPrice(request.getSellingPrice() == null ? 0d : request.getSellingPrice())
                     .manualPrice(request.isManualPrice())
+                    .extraHotelCost(request.getExtraHotelCost() == null ? 0d : request.getExtraHotelCost())
                     .build();
             pax = tourPaxRepository.save(pax);
             return new GeneralResponse<>(HttpStatus.CREATED.value(), PAX_CONFIG_CREATE_SUCCESS, toDTO(pax));
@@ -131,9 +131,8 @@ public class TourPaxServiceImpl implements TourPaxService {
             if (minQty > maxQty) {
                 throw BusinessException.of(HttpStatus.BAD_REQUEST, PAX_CONFIG_INVALID_RANGE);
             }
-            // Thêm validation chống trùng lặp
             validatePaxRange(tourId, paxId, minQty, maxQty);
-            // --- THÊM VALIDATE GIÁ ---
+
             Double fixedPrice = request.getFixedPrice() != null ? request.getFixedPrice() : pax.getFixedPrice();
             Double sellingPrice = request.getSellingPrice() != null ? request.getSellingPrice() : pax.getSellingPrice();
             Boolean isManual = request.getManualPrice() != null ? request.getManualPrice() : pax.isManualPrice();
@@ -148,6 +147,7 @@ public class TourPaxServiceImpl implements TourPaxService {
             if (request.getFixedPrice() != null) pax.setFixedPrice(request.getFixedPrice());
             if (request.getSellingPrice() != null) pax.setSellingPrice(request.getSellingPrice());
             if (request.getManualPrice() != null) pax.setManualPrice(request.getManualPrice());
+            if (request.getExtraHotelCost() != null) pax.setExtraHotelCost(request.getExtraHotelCost());
 
             pax = tourPaxRepository.save(pax);
             return new GeneralResponse<>(HttpStatus.OK.value(), PAX_CONFIG_UPDATE_SUCCESS, toDTO(pax));
@@ -188,7 +188,6 @@ public class TourPaxServiceImpl implements TourPaxService {
             log.info("Tour ID: {}. Chi phí tính toán được: fixedCost = {}, perPersonCost = {}", tourId, fixedCost, perPersonCost);
 
             double profitRate = request.getProfitRate() != null ? request.getProfitRate() / 100d : 0d;
-            double extraCost = request.getExtraCost() != null ? request.getExtraCost() : 0d;
 
             List<TourPax> paxList = tourPaxRepository.findByTourIdAndDeletedIsFalse(tourId);
             if (paxList.isEmpty()) {
@@ -196,7 +195,6 @@ public class TourPaxServiceImpl implements TourPaxService {
             }
 
             for (TourPax pax : paxList) {
-                // --- LOGIC MỚI: Chỉ tính toán nếu giá không được nhập thủ công ---
                 if (pax.isManualPrice()) {
                     log.info(" -> Bỏ qua Pax ID {} vì giá được nhập thủ công.", pax.getId());
                     continue;
@@ -211,7 +209,7 @@ public class TourPaxServiceImpl implements TourPaxService {
                 double totalCostPerPax = (fixedCost / paxCount) + perPersonCost;
                 pax.setFixedPrice(totalCostPerPax);
 
-                double sellingPrice = totalCostPerPax * (1 + profitRate) + extraCost;
+                double sellingPrice = totalCostPerPax * (1 + profitRate);
                 pax.setSellingPrice(sellingPrice);
                 log.info(" -> Pax ID {}: ({} - {} khách): Giá vốn = {}, Giá bán = {}", pax.getId(), pax.getMinQuantity(), pax.getMaxQuantity(), totalCostPerPax, sellingPrice);
             }
@@ -287,7 +285,8 @@ public class TourPaxServiceImpl implements TourPaxService {
                 .maxQuantity(pax.getMaxQuantity())
                 .fixedPrice(pax.getFixedPrice())
                 .sellingPrice(pax.getSellingPrice())
-                .manualPrice(pax.isManualPrice()) // Cập nhật trường mới
+                .extraHotelCost(pax.getExtraHotelCost())
+                .manualPrice(pax.isManualPrice())
                 .isDeleted(Boolean.TRUE.equals(pax.getDeleted()))
                 .build();
     }
