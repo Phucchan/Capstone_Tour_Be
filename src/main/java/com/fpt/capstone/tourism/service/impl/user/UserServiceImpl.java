@@ -244,6 +244,25 @@ public class UserServiceImpl implements UserService {
     }
     @Override
     @Transactional
+    public GeneralResponse<String> cancelBooking(Long userId, Long bookingId) {
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                .orElseThrow(() -> BusinessException.of(Constants.Message.BOOKING_NOT_FOUND));
+
+        if (booking.getUser() == null || !booking.getUser().getId().equals(userId)) {
+            throw BusinessException.of(Constants.Message.BOOKING_NOT_FOUND);
+        }
+
+        if (booking.getBookingStatus() != BookingStatus.PENDING) {
+            throw BusinessException.of("Chỉ có thể hủy cho đặt tour chưa thanh toán");
+        }
+
+        booking.setBookingStatus(BookingStatus.CANCELLED);
+        bookingRepository.save(booking);
+
+        return GeneralResponse.of("Hủy đặt tour thành công");
+    }
+    @Override
+    @Transactional
     public GeneralResponse<String> submitRefundInfo(Long userId, Long bookingId, RefundRequestDTO requestDTO) {
         Booking booking = bookingRepository.findByIdForUpdate(bookingId)
                 .orElseThrow(() -> BusinessException.of(Constants.Message.BOOKING_NOT_FOUND));
