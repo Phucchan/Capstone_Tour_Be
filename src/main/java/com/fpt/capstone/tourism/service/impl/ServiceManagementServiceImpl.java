@@ -44,9 +44,10 @@ public class ServiceManagementServiceImpl implements ServiceManagementService {
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
             Page<PartnerService> servicePage;
             if (StringUtils.hasText(keyword)) {
-                servicePage = partnerServiceRepository.findByNameContainingIgnoreCase(keyword, pageable);
+                servicePage = partnerServiceRepository
+                        .findByStatusNotAndNameContainingIgnoreCase(PartnerServiceStatus.PENDING, keyword, pageable);
             } else {
-                servicePage = partnerServiceRepository.findAll(pageable);
+                servicePage = partnerServiceRepository.findByStatusNot(PartnerServiceStatus.PENDING, pageable);
             }
             List<ServiceInfoDTO> dtos = servicePage.getContent().stream()
                     .map(serviceInfoMapper::toDto)
