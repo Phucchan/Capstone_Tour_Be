@@ -232,6 +232,7 @@ public class PlanServiceImpl implements PlanService {
                                 Sở thích chính của người dùng bao gồm: %s.
                                 Tổng chi phí mong muốn cho chuyến đi đến nay là khoảng %.0f - %.0f VNĐ.
                                 Tổng tiền đã chi tiêu đến nay là %.0f VNĐ.
+                                Số tiền tối đa chi tiêu trong ngày hôm nay là khoảng %.0f VNĐ.
                             
                             
                                 Hãy cố gắng thiết kế lịch trình có chi phí hợp lý và xứng đáng với mức ngân sách đã đề ra.
@@ -263,7 +264,7 @@ public class PlanServiceImpl implements PlanService {
                                 7. **title**: tiêu đề dễ hiểu, ngắn gọn, thể hiện nội dung chính của ngày hôm nay.
                                 
                                 %s
-                            """, totalDays,startDate, dayNumber, locationName, preferences, budgetMin, budgetMax, totalSpending, partnerContext, totalSpending, Constants.AI.PROMPT_DAY_END);
+                            """, totalDays,startDate, dayNumber, locationName, preferences, budgetMin, budgetMax, totalSpending, budgetMax / totalDays,partnerContext, totalSpending, Constants.AI.PROMPT_DAY_END);
     }
 
     private String buildPartnerContext(String locationName, List<PartnerShortDTO> partners) {
