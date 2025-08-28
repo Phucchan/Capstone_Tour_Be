@@ -55,7 +55,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
                     UserRole userRole = UserRole.builder()
                             .user(savedUser)
-                            .role(Role.builder().id(1L).build())
+                            .role(Role.builder().id(5L).build())
                             .deleted(false)
                             .build();
 
