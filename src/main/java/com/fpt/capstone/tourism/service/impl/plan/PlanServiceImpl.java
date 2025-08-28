@@ -261,7 +261,7 @@ public class PlanServiceImpl implements PlanService {
                                     - Với các nhà hàng và khách sạn **không được để estimatedCost = 0**.
                                     - Ước tính theo mặt bằng giá thực tế – ví dụ: bữa ăn phổ thông 50.000–100.000 VNĐ, khách sạn bình dân 300.000–600.000 VNĐ/đêm...
                                     - Giá dịch vụ của các ngày trước và sau nên tương đương nhau, tránh ngày quá cao hoặc quá thấp.
-                                7. **title**: tiêu đề dễ hiểu, ngắn gọn, thể hiện nội dung chính của ngày hôm nay.
+                                7. **title**: tiêu đề dễ hiểu, ngắn gọn, thể hiện nội dung chính của ngày hôm nay. 
                                 
                                 %s
                             """, totalDays,startDate, dayNumber, locationName, preferences, budgetMin, budgetMax, totalSpending, budgetMax / totalDays,partnerContext, totalSpending, Constants.AI.PROMPT_DAY_END);
