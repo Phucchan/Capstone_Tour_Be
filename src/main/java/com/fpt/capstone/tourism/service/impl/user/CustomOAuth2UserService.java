@@ -9,6 +9,7 @@ import com.fpt.capstone.tourism.repository.user.UserRepository;
 import com.fpt.capstone.tourism.repository.user.UserRoleRepository;
 import com.fpt.capstone.tourism.repository.oauth2.OAuthAccountRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -20,6 +21,7 @@ import jakarta.transaction.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
@@ -51,6 +53,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
 
+
+        log.info("OAuth2 User Info: provider={}, providerId={}, email={}, name={}",
+                provider, providerId, email, name);
+
         if (email == null) {
             throw new OAuth2AuthenticationException("Email not found from OAuth2 provider");
         }
@@ -62,7 +68,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     newUser.setEmail(email);
                     newUser.setFullName(name);
                     newUser.setUsername(email);
-                    newUser.setPassword(null); // No password for OAuth
+                    newUser.setPassword("Motconvit!"); // No password for OAuth
                     User savedUser =  userRepository.save(newUser);
 
                     UserRole userRole = UserRole.builder()
@@ -75,6 +81,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
                     return savedUser;
                 });
+
+        log.info("User logged in: {} via {}", user.getEmail(), provider);
 
         // 5. Find or create OAuthAccount
         oAuthAccountRepository.findByProviderAndUserId(provider, user.getId())
